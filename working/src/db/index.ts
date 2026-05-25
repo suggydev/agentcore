@@ -1,50 +1,65 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
-import { getLogger } from '@/lib/logger';
 
-const logger = getLogger();
+const poolConfig = {
+  connectionString: process.env.DATABASE_URL,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+};
 
-const DATABASE_URL = process.env.DATABASE_URL;
+let pool: Pool | null = null;
+let db: ReturnType<typeof drizzle> | null = null;
 
-if (!DATABASE_URL) {
-  logger.fatal('DATABASE_URL environment variable is required');
-  throw new Error('DATABASE_URL environment variable is required');
+/**
+ * Get database connection instance
+ * @throws {Error} if DATABASE_URL is not set
+ */
+export function getDb() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+
+  if (!pool) {
+    pool = new Pool(poolConfig);
+    
+    pool.on('error', (err) => {
+      console.error('Unexpected database pool error:', err);
+    });
+  }
+
+  if (!db) {
+    db = drizzle(pool, { schema });
+  }
+
+  return db;
 }
 
-const DB_POOL_MAX = Number(process.env.DB_POOL_MAX) || 20;
-const DB_POOL_IDLE_TIMEOUT_MS = Number(process.env.DB_POOL_IDLE_TIMEOUT_MS) || 30_000;
-const DB_POOL_CONNECTION_TIMEOUT_MS = Number(process.env.DB_POOL_CONNECTION_TIMEOUT_MS) || 10_000;
+/**
+ * Check database health with timeout
+ * @returns true if database is accessible
+ */
+export async function checkDatabaseHealth(): Promise<boolean> {
+  try {
+    const database = getDb();
+    const result = await database.execute({ sql: 'SELECT 1' });
+    return result.rows.length > 0;
+  } catch (error) {
+    console.error('Database health check failed:', error);
+    return false;
+  }
+}
 
-export const pool = new Pool({
-  connectionString: DATABASE_URL,
-  max: DB_POOL_MAX,
-  idleTimeoutMillis: DB_POOL_IDLE_TIMEOUT_MS,
-  connectionTimeoutMillis: DB_POOL_CONNECTION_TIMEOUT_MS,
-});
+/**
+ * Close database connections gracefully
+ */
+export async function closeDatabase(): Promise<void> {
+  if (pool) {
+    await pool.end();
+    pool = null;
+    db = null;
+  }
+}
 
-// Log pool errors so they don't go silent
-pool.on('error', (err) => {
-  logger.error('Unexpected database pool error', {
-    errorMessage: err.message,
-    errorName: err.name,
-  });
-});
-
-pool.on('connect', () => {
-  logger.debug('New database client connected to pool');
-});
-
-pool.on('remove', () => {
-  logger.debug('Database client removed from pool');
-});
-
-export const db = drizzle(pool, { schema });
-
-export type Database = typeof db;
-
-logger.info('Database connection pool initialized', {
-  maxPoolSize: DB_POOL_MAX,
-  idleTimeoutMs: DB_POOL_IDLE_TIMEOUT_MS,
-  connectionTimeoutMs: DB_POOL_CONNECTION_TIMEOUT_MS,
-});
+export type Database = ReturnType<typeof getDb>;
