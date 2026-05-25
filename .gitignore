@@ -6,3 +6,13 @@ node_modules/
 dist/
 .venv/
 *.egg-info/
+
+backups/
+*.tar.gz
+*.zip
+*.bak
+*.sql
+*.sqlite
+*.mp4
+*.mp3
+
