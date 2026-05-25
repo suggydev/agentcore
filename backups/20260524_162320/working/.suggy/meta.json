@@ -1,0 +1,75 @@
+{
+  "analysis": {
+    "raw_response": "{\n  \"description\": \"AgentCore — SaaS-платформа для создания, управления и мониторинга AI-агентов с мультиканальными интеграциями (Telegram, WhatsApp, Slack, CRM-системы), биллингом через YooKassa, ролевой моделью доступа, локальной JWT-аутентификацией (миграция с Supabase), дашбордом аналитики и системой кошельков. Стек: TanStack Start (React 19), Drizzle ORM, PostgreSQL, TailwindCSS, Radix UI.\",\n  \"functions\": [\n    \"Управление AI-агентами (создание, пауза, возобновление, остановка, версионирование конфигураций)\",\n    \"Дашборд с аналитикой (логи исполнений, стоимость, токены, успешность, графики)\",\n    \"Локальная JWT-аутентификация (логин, регистрация, refresh-токены, HTTP-only cookies)\",\n    \"Двухфакторная аутентификация (TOTP)\",\n    \"Ролевая модель доступа (owner, admin, operator, viewer)\",\n    \"Биллинг и подписки через YooKassa (basic, extended, premium, custom)\",\n    \"Кошельки компаний (пополнение, списание, возврат, транзакции)\",\n    \"Интеграции: Telegram, WhatsApp Business, Slack, HubSpot, Salesforce, amoCRM, Bitrix24, Zapier\",\n    \"Админ-панель (управление конфигурацией .env, выполнение SQL, статусы сервисов)\",\n    \"Демо-режим для демонстрации платформы\",\n    \"Мультиязычность (i18next)\",\n    \"Структурированное логирование с маскированием чувствительных данных\",\n    \"Управление лидами и алертами\",\n    \"База знаний агентов\",\n    \"Аудит-логирование действий\",\n    \"API-ключи для внешнего доступа\",\n    \"Онбординг новых пользователей\",\n    \"Экспорт данных (CSV и др.)\",\n    \"Валидация окружения через Zod при старте\"\n  ],\n  \"bugs\": [\n    \"Несоответствие имени поля 2FA: API /api/auth/login возвращает { requires2FA: true }, а login.tsx проверяет data.pending2FA — 2FA-флоу сломан\",\n    \"В admin-config.functions.ts пароль админа хешируется SHA-256 вместо bcrypt — криптографически нестойко для паролей\",\n    \"Хардкод пароля админа 'agentcore2026' в config.ts и admin-config.functions.ts — критическая уязвимость\",\n    \"JWT-секрет fallback на AGENTCORE_ENCRYPTION_KEY или SUPABASE_SERVICE_ROLE_KEY — использование одного ключа для шифрования и JWT нарушает принцип разделения секретов\",\n    \"Имя middleware requireSupabaseAuth вводит в заблуждение — проект перешёл на локальную аутентификацию, но все serverFn используют старое имя\",\n    \"В billing-plans.ts вызовы i18n.t() на уровне модуля могут выполняться до инициализации i18next — названия планов будут пустыми или ключами\",\n    \"В billing.functions.ts нет проверки принадлежности пользователя к компании при создании подписки — возможна подстановка companyId\",\n    \"В admin-config.functions.ts используется execSync для выполнения команд — риск инъекции команд\",\n    \"В package.json версия zod обрезана: \\\"zod\\\": \\\" — невалидный JSON, установка зависимостей невозможна\",\n    \"Множество файлов обрезаны (schema.ts, app.tsx, app.billing.tsx, admin.tsx, logger.ts, auth-middleware-local.ts, config.ts, agent-control.functions.ts, auth-local.functions.ts, billing.functions.ts, app.index.tsx) — проект в неполном состоянии\",\n    \"В logger.ts console.lo обрезано — логирование не работает\",\n    \"В api.auth.register.ts используется ручной SQL вместо Drizzle ORM при том, что в auth-local.functions.ts тот же функционал реализован через ORM — дублирование и рассинхрон\",\n    \"Отсутствует CSRF-защита для POST-эндпоинтов аутентификации\",\n    \"Нет rate limiting на эндпоинтах логина/регистрации — уязвимость к брутфорсу\",\n    \"В drizzle.config.ts fallback DATABASE_URL содержит логин/пароль в коде — утечка в VCS\"\n  ],\n  \"improvements\": [\n    \"Переименовать requireSupabaseAuth в requireAuth везде — устранить семантическое несоответствие\",\n    \"Заменить SHA-256 на bcrypt для пароля админа, убрать хардкод значения по умолчанию — требовать явную установку ADMIN_PASSWORD\",\n    \"Разделить JWT_SECRET и AGENTCORE_ENCRYPTION_KEY — запретить fallback между ними\",\n    \"Исправить несоответствие requires2FA/pending2FA в логине — унифицировать контракт API\",\n    \"Добавить rate limiting на auth-эндпоинты (express-rate-limit или кастомный middleware)\",\n    \"Добавить CSRF-токены для форм аутентификации\",\n    \"Реализовать ротацию refresh-токенов с инвалидацией старых\",\n    \"Перейти с db:push на db:migrate для продакшена — push не создаёт миграций и небезопасен для данных\",\n    \"Вынести админ-панель в отдельный сервис/порт — снизить поверхность атаки\",\n    \"Добавить санитизацию ввода для SQL-консоли админки или заменить на whitelist запросов\",\n    \"Инициализировать billing-plans лениво (функция-фабрика) вместо вызовов i18n.t() при импорте модуля\",\n    \"Добавить проверку принадлежности пользователя к компании во всех serverFn (companyId из токена vs companyId из payload)\",\n    \"Добавить E2E-тесты (Playwright) для критических флоу: логин, 2FA, биллинг, управление агентами\",\n    \"Реализовать Error Bounders на уровне маршрутов для graceful обработки ошибок рендера\",\n    \"Добавить CORS-конфигурацию для API-эндпоинтов\",\n    \"Использовать PgBouncer для продакшен-пулинга соединений\",\n    \"Добавить API-версионирование (/api/v1/...)\",\n    \"Реализовать инвалидацию сессий при смене пароля\",\n    \"Добавить propagation correlation ID через все слои (HTTP → serverFn → logger → DB)\",\n    \"Убрать fallback-учётные данные из drizzle.config.ts — только из env\"\n  ],\n  \"env_vars\": [\n    {\"key\": \"DATABASE_URL\", \"description\": \"Строка подключения PostgreSQL\", \"required\": true},\n    {\"key\": \"JWT_SECRET\", \"description\": \"Секрет для подписи JWT-токенов (минимум 32 символа)\", \"required\": true},\n    {\"key\": \"AGENTCORE_ENCRYPTION_KEY\", \"description\": \"Ключ шифрования (32 байта hex)\", \"required\": true},\n    {\"key\": \"ADMIN_PASSWORD\", \"description\": \"Пароль админ-панели (минимум 8 символов)\", \"required\": true},\n    {\"key\": \"NODE_ENV\", \"description\": \"Окружение: development/staging/production\", \"required\": true},\n    {\"key\": \"SITE_URL\", \"description\": \"URL сайта для корректной генерации ссылок\", \"required\": true},\n    {\"key\": \"OPENAI_API_KEY\", \"description\": \"API-ключ OpenAI для AI-агентов\", \"required\": false},\n    {\"key\": \"ANTHROPIC_API_KEY\", \"description\": \"API-ключ Anthropic для AI-агентов\", \"required\": false},\n    {\"key\": \"GOOGLE_API_KEY\", \"description\": \"API-ключ Google для AI-агентов\", \"required\": false},\n    {\"key\": \"LOVABLE_API_KEY\", \"description\": \"API-ключ Lovable AI\", \"required\": false},\n    {\"key\": \"YOOKASSA_SHOP_ID\", \"description\": \"ID магазина YooKassa для биллинга\", \"required\": false},\n    {\"key\": \"YOOKASSA_SECRET_KEY\", \"description\": \"Секретный ключ YooKassa\", \"required\": false},\n    {\"key\": \"YOOKASSA_WEBHOOK_SECRET\", \"description\": \"Секрет вебхуков YooKassa\", \"required\": false},\n    {\"key\": \"TELEGRAM_BOT_TOKEN\", \"description\": \"Токен Telegram-бота\", \"required\": false},\n    {\"key\": \"TELEGRAM_API_ID\", \"description\": \"API ID Telegram userbot\", \"required\": false},\n    {\"key\": \"TELEGRAM_API_HASH\", \"description\": \"API Hash Telegram userbot\", \"required\": false},\n    {\"key\": \"WHATSAPP_PHONE_NUMBER_ID\", \"description\": \"ID номера WhatsApp Business\", \"required\": false},\n    {\"key\": \"WHATSAPP_ACCESS_TOKEN\", \"description\": \"Токен доступа WhatsApp Business\", \"required\": false},\n    {\"key\": \"WHATSAPP_VERIFY_TOKEN\", \"description\": \"Токен верификации вебхука WhatsApp\", \"required\": false},\n    {\"key\": \"WHATSAPP_APP_SECRET\", \"description\": \"Секрет приложения WhatsApp\", \"required\": false},\n    {\"key\": \"SLACK_CLIENT_ID\", \"description\": \"Client ID Slack OAuth\", \"required\": false},\n    {\"key\": \"SLACK_CLIENT_SECRET\", \"description\": \"Client Secret Slack OAuth\", \"required\": false},\n    {\"key\": \"SLACK_SIGNING_SECRET\", \"description\": \"Signing Secret Slack\", \"required\": false},\n    {\"key\": \"HUBSPOT_CLIENT_ID\", \"description\": \"Client ID HubSpot OAuth\", \"required\": false},\n    {\"key\": \"HUBSPOT_CLIENT_SECRET\", \"description\": \"Client Secret HubSpot OAuth\", \"required\": false},\n    {\"key\": \"SALESFORCE_CLIENT_ID\", \"description\": \"Client ID Salesforce OAuth\", \"required\": false},\n    {\"key\": \"SALESFORCE_CLIENT_SECRET\", \"description\": \"Client Secret Salesforce OAuth\", \"required\": false},\n    {\"key\": \"RESEND_API_KEY\", \"description\": \"API-ключ Resend для email\", \"required\": false},\n    {\"key\": \"TWILIO_ACCOUNT_SID\", \"description\": \"SID аккаунта Twilio для SMS\", \"required\": false},\n    {\"key\": \"TWILIO_AUTH_TOKEN\", \"description\": \"Токен авторизации Twilio\", \"required\": false},\n    {\"key\": \"TWILIO_FROM_NUMBER\", \"description\": \"Номер отправителя Twilio\", \"required\": false},\n    {\"key\": \"REDIS_URL\", \"description\": \"URL Redis для кеширования и очередей\", \"required\": false},\n    {\"key\": \"INTERNAL_API_TOKEN\", \"description\": \"Токен для внутренних API-вызовов\", \"required\": false},\n    {\"key\": \"WORKER_API_URL\", \"description\": \"URL воркер-сервиса\", \"required\": false},\n    {\"key\": \"SENTRY_DSN\", \"description\": \"DSN Sentry для мониторинга ошибок\", \"required\": false},\n    {\"key\": \"SUPPORT_EMAIL\", \"description\": \"Email службы поддержки\", \"required\": false},\n    {\"key\": \"VITE_SUPABASE_URL\", \"description\": \"URL Supabase (фронтенд, опционально для миграции)\", \"required\": false},\n    {\"key\": \"VITE_SUPABASE_PUBLISHABLE_KEY\", \"description\": \"Публичный ключ Supabase (фронтенд)\", \"required\": false}\n  ],\n  \"dependencies\": [\n    \"@tanstack/react-start\",\n    \"@tanstack/react-router\",\n    \"@tanstack/react-query\",\n    \"react\",\n    \"react-dom\",\n    \"drizzle-orm\",\n    \"drizzle-kit\",\n    \"pg\",\n    \"bcryptjs\",\n    \"jsonwebtoken\",\n    \"zod\",\n    \"react-hook-form\",\n    \"@hookform/resolvers\",\n    \"i18next\",\n    \"react-i18next\",\n    \"i18next-browser-languagedetector\",\n    \"socket.io-client\",\n    \"recharts\",\n    \"otplib\",\n    \"qrcode\",\n    \"date-fns\",\n    \"sonner\",\n    \"cmdk\",\n    \"class-variance-authority\",\n    \"clsx\",\n    \"tailwind-merge\",\n    \"tailwindcss\",\n    \"@tailwindcss/vite\",\n    \"tw-animate-css\",\n    \"vaul\",\n    \"embla-carousel-react\",\n    \"react-resizable-panels\",\n    \"react-day-picker\",\n    \"input-otp\",\n    \"lucide-react\",\n    \"@phosphor-icons/react\",\n    \"@radix-ui/react-*",
+    "parse_error": true
+  },
+  "project_type": "node",
+  "language": "typescript",
+  "constraints": "",
+  "created_at": "2026-05-23T19:26:12.223956+00:00",
+  "source": "ai_upload",
+  "plan": {
+    "tasks": [
+      {
+        "type": "refactor",
+        "priority": 8,
+        "title": "Обновление зависимостей и устранение уязвимостей",
+        "description": "Проверить и обновить все npm-пакеты до последних стабильных версий, устранить известные уязвимости безопасности с помощью npm audit fix.",
+        "acceptance_criteria": [
+          "Все пакеты обновлены до совместимых последних версий",
+          "Команда npm audit не показывает критических или высоких уязвимостей",
+          "Приложение успешно запускается и проходит базовые проверки"
+        ],
+        "estimated_minutes": 60
+      },
+      {
+        "type": "test",
+        "priority": 7,
+        "title": "Настройка тестирования и покрытие ключевой логики",
+        "description": "Настроить фреймворк для юнит-тестирования (Jest) и написать тесты для ключевых бизнес-модулей и утилит проекта.",
+        "acceptance_criteria": [
+          "Фреймворк тестирования настроен и добавлен в package.json",
+          "Покрытие кода (code coverage) для основных модулей составляет не менее 50%",
+          "Все тесты успешно проходят при запуске npm test"
+        ],
+        "estimated_minutes": 120
+      },
+      {
+        "type": "feature",
+        "priority": 6,
+        "title": "Добавление эндпоинтов проверки работоспособности",
+        "description": "Реализовать маршруты /health и /readiness для мониторинга состояния Node.js приложения (проверка памяти, подключений к БД/кэшу).",
+        "acceptance_criteria": [
+          "Эндпоинт /health возвращает статус 200 и базовую информацию о процессе",
+          "Эндпоинт /readiness проверяет доступность внешних зависимостей (БД, Redis)",
+          "Маршруты защищены от несанкционированного доступа при необходимости"
+        ],
+        "estimated_minutes": 45
+      },
+      {
+        "type": "feature",
+        "priority": 5,
+        "title": "Внедрение структурированного логирования",
+        "description": "Заменить стандартные вызовы console.log на структурированный логгер (например, Pino или Winston) с поддержкой уровней логирования и контекста запроса.",
+        "acceptance_criteria": [
+          "Логгер настроен и выводит сообщения в JSON-формате",
+          "Реализован middleware для автоматического логирования входящих HTTP-запросов и времени ответа",
+          "Уровень логирования управляется через переменные окружения (LOG_LEVEL)"
+        ],
+        "estimated_minutes": 90
+      },
+      {
+        "type": "docs",
+        "priority": 4,
+        "title": "Документирование API",
+        "description": "Создать документацию для существующих API-эндпоинтов с использованием стандарта OpenAPI (Swagger) и настроить интерактивный UI.",
+        "acceptance_criteria": [
+          "Создана спецификация OpenAPI для всех текущих маршрутов",
+          "Настроен и доступен Swagger UI по маршруту /api-docs",
+          "Описаны модели данных, параметры и коды ответов"
+        ],
+        "estimated_minutes": 120
+      }
+    ]
+  }
+}
