@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Workspace {
+  id           String    @id @default(cuid())
+  name         String
+  plan         String    @default("TRIAL")
+  trialEndsAt  DateTime?
+  settings     Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  users        User[]
+  agents       Agent[]
+  conversations Conversation[]
+  crmContacts  CRMContact[]
+  knowledgeDocs KnowledgeDocument[]
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  password     String
+  role         String    @default("OWNER")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  workspaceId  String
+  workspace    Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model Agent {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  model         String    @default("accounts/fireworks/models/glm-5p1")
+  systemPrompt  String    @default("You are a helpful AI assistant.")
+  temperature   Float     @default(0.7)
+  maxTokens     Int       @default(2000)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id])
+  conversations Conversation[]
+}
+
+model Conversation {
+  id          String    @id @default(cuid())
+  title       String
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  agentId     String?
+  agent       Agent?    @relation(fields: [agentId], references: [id])
+  userId      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
+}
+
+model Message {
+  id              String       @id @default(cuid())
+  content         String
+  role            String
+  model           String?
+  order           Int          @default(0)
+  createdAt       DateTime     @default(now())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model CRMContact {
+  id          String    @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  status      String    @default("lead")
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model KnowledgeDocument {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  type        String    @default("text")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model BillingTransaction {
+  id          String    @id @default(cuid())
+  type        String
+  amount      Float
+  description String?
+  status      String    @default("completed")
+  createdAt   DateTime  @default(now())
+  workspaceId String
+}
