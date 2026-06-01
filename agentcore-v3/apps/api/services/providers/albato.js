@@ -231,6 +231,38 @@ class AlbatoProvider extends IntegrationProvider {
       return { ok: false, error: err.message };
     }
   }
+
+  async handleWebhook(payload, signature) {
+    try {
+      if (!payload || typeof payload !== 'object') {
+        throw new Error('[Albato] Invalid webhook payload');
+      }
+      return {
+        processed: true,
+        scenarioId: payload.scenario_id || payload.scenarioId || '',
+        executionId: payload.execution_id || payload.executionId || '',
+        data: payload.data || {},
+        event: payload.event || 'scenario_complete'
+      };
+    } catch (err) {
+      this.log('error', 'Webhook handling failed', { error: err.message });
+      throw err;
+    }
+  }
+
+  async disconnect() {
+    try {
+      this.apiToken = null;
+      this.workspaceId = null;
+      this.initialized = false;
+      this.log('info', 'Albato provider disconnected');
+      return true;
+    } catch (err) {
+      this.log('error', 'Disconnect failed', { error: err.message });
+      this.initialized = false;
+      return false;
+    }
+  }
 }
 
 function createAlbatoProvider(config) {

@@ -18,9 +18,6 @@ class AppError extends Error {
 }
 
 class IntegrationProvider extends EventEmitter {
-  /**
-   * @param {object} config — { name, displayName, agentId, version }
-   */
   constructor(config) {
     super();
     this.name = config.name;
@@ -32,19 +29,39 @@ class IntegrationProvider extends EventEmitter {
     this.rateLimitQueue = [];
     this.maxRetries = 3;
     this.retryDelay = 1000;
+    this.credentials = null;
   }
 
-  /**
-   * Инициализация провайдера (OAuth / API Key).
-   * Должна быть переопределена в дочернем классе.
-   * @param {object} credentials
-   */
   async initialize(credentials) {
     throw new AppError(
-      `[${this.displayName}] initialize() must be implemented by Agent #${this.agentId}`,
+      `[${this.displayName}] initialize() must be implemented`,
       501,
       'NOT_IMPLEMENTED'
     );
+  }
+
+  async sendMessage(agentId, conversationId, message) {
+    throw new AppError(
+      `[${this.displayName}] sendMessage() must be implemented`,
+      501,
+      'NOT_IMPLEMENTED'
+    );
+  }
+
+  async handleWebhook(payload, signature) {
+    throw new AppError(
+      `[${this.displayName}] handleWebhook() must be implemented`,
+      501,
+      'NOT_IMPLEMENTED'
+    );
+  }
+
+  async disconnect() {
+    this.initialized = false;
+    this.credentials = null;
+    this.client = null;
+    this.log('info', 'Provider disconnected');
+    return true;
   }
 
   /**

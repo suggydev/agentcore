@@ -43,7 +43,20 @@ class WhatsAppProvider extends IntegrationProvider {
       timeout: 15000
     });
     this.initialized = true;
+    this.credentials = credentials;
     this.log('info', 'WhatsAppProvider инициализирован');
+  }
+
+  async sendMessage(agentId, conversationId, message) {
+    try {
+      this.ensureInitialized();
+      if (!conversationId) throw new Error('[WhatsApp] conversationId (phone number) is required');
+      if (!message) throw new Error('[WhatsApp] message is required');
+      return await this._sendWhatsAppMessage(conversationId, message);
+    } catch (err) {
+      this.log('error', 'sendMessage failed', { error: err.message });
+      throw err;
+    }
   }
 
   ensureInitialized() {
@@ -67,7 +80,7 @@ class WhatsAppProvider extends IntegrationProvider {
     return { recipient_type: 'individual', to };
   }
 
-  sendMessage(to, text) {
+  _sendWhatsAppMessage(to, text) {
     this.ensureInitialized();
 
     return this.execute(async () => {
@@ -234,16 +247,61 @@ class WhatsAppProvider extends IntegrationProvider {
     return messages;
   }
 
-  async getMediaUrl(mediaId) {
-    this.ensureInitialized();
+  async healthCheck() {
+    try {
+      const start = Date.now();
+      await this.execute(async () => {
+        return this.client.get(`/${this.apiVersion}/${this.phoneNumberId}`, {
+          headers: this._headers(),
+          timeout: 10000
+        });
+      });
+      return { ok: true, latency: Date.now() - start };
+    } catch (err) {
+      this.log('error', 'Health-check failed', { error: err.message });
+      return { ok: false, error: err.message };
+    }
+  }
 
-    return this.execute(async () => {
-      const response = await this.client.get(
-        `/${this.apiVersion}/${mediaId}`,
-        { headers: this._headers() }
-      );
-      return response.data;
-    });
+  async handleWebhook(payload, signature) {
+    try {
+      if (!payload || typeof payload !== 'object') {
+        throw new Error('[WhatsApp] Invalid webhook payload');
+      }
+      const messages = this.parseIncomingMessage(payload);
+      if (!messages || messages.length === 0) {
+        return { processed: false, reason: 'no_messages' };
+      }
+      return {
+        processed: true,
+        messages: messages.map(m => ({
+          from: m.from,
+          text: m.text,
+          type: m.type,
+          messageId: m.messageId,
+          timestamp: m.timestamp
+        }))
+      };
+    } catch (err) {
+      this.log('error', 'Webhook handling failed', { error: err.message });
+      throw err;
+    }
+  }
+
+  async disconnect() {
+    try {
+      this.phoneNumberId = null;
+      this.accessToken = null;
+      this.verifyToken = null;
+      this.initialized = false;
+      this.client = null;
+      this.log('info', 'WhatsApp provider disconnected');
+      return true;
+    } catch (err) {
+      this.log('error', 'Disconnect failed', { error: err.message });
+      this.initialized = false;
+      return false;
+    }
   }
 }
 

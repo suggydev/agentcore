@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const protectedPaths = ['/dashboard', '/agents', '/chat', '/onboarding'];
+const protectedPaths = ['/dashboard', '/agents', '/chat', '/onboarding', '/knowledge', '/settings'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('token')?.value;
 
   if (pathname === '/login' && token) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/agents', request.url));
   }
 
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
@@ -29,5 +29,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/agents/:path*', '/chat/:path*', '/onboarding/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/agents/:path*', '/chat/:path*', '/onboarding/:path*', '/login', '/knowledge/:path*', '/settings/:path*'],
 };

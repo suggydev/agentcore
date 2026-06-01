@@ -272,6 +272,35 @@ class Yandex360Provider extends IntegrationProvider {
       return { ok: false, error: err.message };
     }
   }
+
+  async handleWebhook(payload, signature) {
+    try {
+      if (!payload || typeof payload !== 'object') {
+        throw new Error('[Yandex360] Invalid webhook payload');
+      }
+      return { processed: true, event: payload.event || 'unknown', data: payload };
+    } catch (err) {
+      this.log('error', 'Webhook handling failed', { error: err.message });
+      throw err;
+    }
+  }
+
+  async disconnect() {
+    try {
+      this.accessToken = null;
+      this.refreshToken = null;
+      this.clientId = null;
+      this.clientSecret = null;
+      this.orgId = null;
+      this.initialized = false;
+      this.log('info', 'Yandex360 provider disconnected');
+      return true;
+    } catch (err) {
+      this.log('error', 'Disconnect failed', { error: err.message });
+      this.initialized = false;
+      return false;
+    }
+  }
 }
 
 function createYandex360Provider(config) {

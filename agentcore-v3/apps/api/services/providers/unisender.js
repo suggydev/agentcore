@@ -263,6 +263,40 @@ class UnisenderProvider extends IntegrationProvider {
       return { ok: false, error: err.message };
     }
   }
+
+  async handleWebhook(payload, signature) {
+    try {
+      if (!payload || typeof payload !== 'object') {
+        throw new Error('[Unisender] Invalid webhook payload');
+      }
+      const event = payload.event || 'unknown';
+      return {
+        processed: true,
+        event,
+        email: payload.email || '',
+        listId: payload.list_id || '',
+        status: payload.status || ''
+      };
+    } catch (err) {
+      this.log('error', 'Webhook handling failed', { error: err.message });
+      throw err;
+    }
+  }
+
+  async disconnect() {
+    try {
+      this.apiKey = null;
+      this.defaultSenderEmail = null;
+      this.defaultSenderName = null;
+      this.initialized = false;
+      this.log('info', 'Unisender provider disconnected');
+      return true;
+    } catch (err) {
+      this.log('error', 'Disconnect failed', { error: err.message });
+      this.initialized = false;
+      return false;
+    }
+  }
 }
 
 function createUnisenderProvider(config) {

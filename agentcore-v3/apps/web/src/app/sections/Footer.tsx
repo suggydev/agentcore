@@ -61,7 +61,7 @@ export default function Footer() {
               <li><a href="#capabilities" className="hover:text-ink-900 transition-colors underline-animated">Возможности</a></li>
               <li><a href="#workflow" className="hover:text-ink-900 transition-colors underline-animated">Как работает</a></li>
               <li><a href="#pricing" className="hover:text-ink-900 transition-colors underline-animated">Тарифы</a></li>
-              <li><a href="/dashboard" className="hover:text-ink-900 transition-colors underline-animated">Дашборд</a></li>
+              <li><a href="/agents" className="hover:text-ink-900 transition-colors underline-animated">Дашборд</a></li>
             </ul>
           </div>
           

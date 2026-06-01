@@ -318,11 +318,51 @@ class AvitoProvider extends IntegrationProvider {
   async healthCheck() {
     try {
       const start = Date.now();
-      await this._request('GET', `/messenger/v2/health`);
+      await this._request('GET', `/messenger/v2/accounts/${this.userId}/chats`, null, { limit: 1 });
       return { ok: true, latency: Date.now() - start };
     } catch (err) {
       this.log('error', 'Health-check не пройден', { error: err.message });
       return { ok: false, error: err.message };
+    }
+  }
+
+  async handleWebhook(payload, signature) {
+    try {
+      if (!payload || typeof payload !== 'object') {
+        throw new Error('[Avito] Invalid webhook payload');
+      }
+      const type = payload.type || 'unknown';
+      if (type === 'message_received' || type === 'message') {
+        const msg = payload.payload || payload;
+        return {
+          processed: true,
+          chatId: msg.chat_id || msg.chatId,
+          text: msg.content?.text || msg.text || '',
+          fromId: msg.author_id || msg.authorId || msg.from_id,
+          direction: msg.direction || 'inbound',
+          event: type
+        };
+      }
+      return { processed: true, event: type, data: payload };
+    } catch (err) {
+      this.log('error', 'Webhook handling failed', { error: err.message });
+      throw err;
+    }
+  }
+
+  async disconnect() {
+    try {
+      this.accessToken = null;
+      this.clientId = null;
+      this.clientSecret = null;
+      this.userId = null;
+      this.initialized = false;
+      this.log('info', 'Avito provider disconnected');
+      return true;
+    } catch (err) {
+      this.log('error', 'Disconnect failed', { error: err.message });
+      this.initialized = false;
+      return false;
     }
   }
 }

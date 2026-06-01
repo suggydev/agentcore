@@ -6,6 +6,27 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        bg: 'var(--bg)',
+        surface: {
+          DEFAULT: 'var(--surface)',
+          2: 'var(--surface-2)',
+        },
+        border: 'var(--border)',
+        text: {
+          DEFAULT: 'var(--text)',
+          muted: 'var(--text-muted)',
+        },
+        accent: {
+          DEFAULT: 'var(--accent)',
+          soft: 'var(--accent-soft)',
+        },
+        brand: {
+          DEFAULT: 'var(--brand)',
+          light: 'var(--brand-light)',
+        },
+        success: 'var(--success)',
+        warning: 'var(--warning)',
+        danger: 'var(--danger)',
         mauve: {
           50: '#FDF7FE',
           100: '#F9EEFC',
@@ -31,33 +52,28 @@ module.exports = {
           800: '#1A1D23',
           900: '#111318',
         },
-        surface: {
-          DEFAULT: '#FFFFFF',
-          elevated: '#F8F9FB',
-          subtle: '#F0F1F5',
-          warm: '#FDF7FE',
-        },
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
         display: ['var(--font-onest)', 'Onest', 'var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-unbounded)', 'Unbounded', 'var(--font-onest)', 'Onest', 'monospace'],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      borderRadius: {
+        card: '12px',
+        button: '8px',
+        pill: '999px',
       },
       letterSpacing: {
-        'tight': '-0.03em',
-        'display': '-0.02em',
-        'label': '0.08em',
+        tight: '-0.03em',
+        display: '-0.02em',
+        label: '0.08em',
+        heading: '-0.01em',
       },
       animation: {
         'fade-up': 'fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'fade-up-sm': 'fadeUpSm 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'scale-in': 'scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'slide-right': 'slideRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-        'line-draw': 'lineDraw 1.2s ease-out forwards',
-        'float-slow': 'floatSlow 8s ease-in-out infinite',
-        'pulse-subtle': 'pulseSubtle 4s ease-in-out infinite',
-        'stroke-reveal': 'strokeReveal 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'shimmer': 'shimmer 2s ease-in-out infinite',
       },
       keyframes: {
@@ -76,26 +92,6 @@ module.exports = {
         slideRight: {
           '0%': { opacity: '0', transform: 'translateX(-30px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
-        },
-        lineDraw: {
-          '0%': { strokeDashoffset: '1000' },
-          '100%': { strokeDashoffset: '0' },
-        },
-        floatSlow: {
-          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
-          '50%': { transform: 'translateY(-15px) rotate(1deg)' },
-        },
-        pulseSubtle: {
-          '0%, 100%': { opacity: '0.6' },
-          '50%': { opacity: '1' },
-        },
-        strokeReveal: {
-          '0%': { strokeDashoffset: '200', opacity: '0' },
-          '100%': { strokeDashoffset: '0', opacity: '1' },
-        },
-        slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(100%)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         shimmer: {
           '0%': { backgroundPosition: '-200% 0' },

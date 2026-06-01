@@ -652,6 +652,24 @@ class AmoCRMProvider extends IntegrationProvider {
     this.log('info', `Sync complete: ${created} created, ${skipped} skipped`);
     return { created, skipped };
   }
+
+  async disconnect() {
+    try {
+      this.accessToken = null;
+      this.refreshToken = null;
+      this.clientId = null;
+      this.clientSecret = null;
+      this.domain = null;
+      this.client = null;
+      this.initialized = false;
+      this.log('info', 'amoCRM provider disconnected');
+      return true;
+    } catch (err) {
+      this.log('error', 'Disconnect failed', { error: err.message });
+      this.initialized = false;
+      return false;
+    }
+  }
 }
 
 module.exports = { AmoCRMProvider };

@@ -5,15 +5,10 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
-  LayoutDashboard,
   Bot,
   Workflow,
   FlaskConical,
   BookOpen,
-  Blocks,
-  MessageSquare,
-  BarChart3,
-  CreditCard,
   Settings,
   LogOut,
   CornerDownLeft,
@@ -33,15 +28,10 @@ interface CommandPaletteProps {
 }
 
 const COMMAND_DEFS: Omit<Command, 'action'>[] = [
-  { label: 'Обзор', description: 'Главная страница дашборда', icon: LayoutDashboard },
-  { label: 'Создать агента', description: 'Создать нового AI-агента', icon: Bot },
+  { label: 'Агенты', description: 'Ваши AI-агенты', icon: Bot },
   { label: 'Brain Map', description: 'Визуальный редактор логики', icon: Workflow },
   { label: 'Тест агента', description: 'Протестировать агента в чате', icon: FlaskConical },
   { label: 'База знаний', description: 'Документы и FAQ для агентов', icon: BookOpen },
-  { label: 'Интеграции', description: 'Подключить внешние сервисы', icon: Blocks },
-  { label: 'Диалоги', description: 'История переписок агентов', icon: MessageSquare },
-  { label: 'Аналитика', description: 'Метрики и статистика', icon: BarChart3 },
-  { label: 'Тарифы', description: 'Управление подпиской', icon: CreditCard },
   { label: 'Настройки', description: 'Настройки рабочей области', icon: Settings },
   { label: 'Выйти', description: 'Покинуть рабочую область', icon: LogOut },
 ];
@@ -56,16 +46,11 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const commands = useMemo((): Command[] =>
     COMMAND_DEFS.map((cmd): Command => {
       switch (cmd.label) {
-        case 'Обзор': return { ...cmd, action: () => router.push('/dashboard') };
-        case 'Создать агента': return { ...cmd, action: () => router.push('/dashboard/agents') };
-        case 'Brain Map': return { ...cmd, action: () => router.push('/dashboard/brain-map') };
-        case 'Тест агента': return { ...cmd, action: () => router.push('/dashboard/brain-map/test') };
-        case 'База знаний': return { ...cmd, action: () => router.push('/dashboard/knowledge') };
-        case 'Интеграции': return { ...cmd, action: () => router.push('/dashboard/integrations') };
-        case 'Диалоги': return { ...cmd, action: () => router.push('/dashboard/conversations') };
-        case 'Аналитика': return { ...cmd, action: () => router.push('/dashboard/analytics') };
-        case 'Тарифы': return { ...cmd, action: () => router.push('/dashboard/billing') };
-        case 'Настройки': return { ...cmd, action: () => router.push('/dashboard/settings') };
+        case 'Агенты': return { ...cmd, action: () => router.push('/agents') };
+        case 'Brain Map': return { ...cmd, action: () => router.push('/agents/brain-map') };
+        case 'Тест агента': return { ...cmd, action: () => router.push('/agents/brain-map/test') };
+        case 'База знаний': return { ...cmd, action: () => router.push('/knowledge') };
+        case 'Настройки': return { ...cmd, action: () => router.push('/settings') };
         case 'Выйти':
           return {
             ...cmd,

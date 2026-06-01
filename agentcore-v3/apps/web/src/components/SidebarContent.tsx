@@ -1,3 +1,4 @@
+// DEPRECATED: This component is replaced in the redesign/cto-style branch. Do not add new features here.
 'use client';
 
 import { useState, useEffect, useRef } from 'react';

@@ -50,10 +50,22 @@ class VkProvider extends IntegrationProvider {
 
     this.accessToken = credentials.accessToken;
     this.groupId = String(credentials.groupId);
+    this.credentials = credentials;
     this.initialized = true;
 
     this.log('info', 'Провайдер ВКонтакте инициализирован', { groupId: this.groupId });
     return true;
+  }
+
+  async sendMessage(agentId, conversationId, message) {
+    try {
+      if (!conversationId) throw new Error('[VK] conversationId (peerId) is required');
+      if (!message) throw new Error('[VK] message is required');
+      return await this._sendVkMessage({ peerId: parseInt(conversationId, 10) || conversationId, message });
+    } catch (err) {
+      this.log('error', 'sendMessage failed', { error: err.message });
+      throw err;
+    }
   }
 
   _vkRequest(method, params = {}) {
@@ -253,6 +265,46 @@ class VkProvider extends IntegrationProvider {
     } catch (err) {
       this.log('error', 'Health-check не пройден', { error: err.message });
       return { ok: false, error: err.message };
+    }
+  }
+
+  async handleWebhook(payload, signature) {
+    try {
+      if (!payload || typeof payload !== 'object') {
+        throw new Error('[VK] Invalid webhook payload');
+      }
+      if (payload.type === 'confirmation') {
+        return { processed: true, confirmation: true, event: 'confirmation' };
+      }
+      if (payload.type === 'message_new') {
+        const msg = payload.object?.message || payload.object;
+        return {
+          processed: true,
+          peerId: msg?.peer_id || msg?.from_id,
+          text: msg?.text || '',
+          fromId: msg?.from_id,
+          messageId: msg?.id,
+          event: 'message_new'
+        };
+      }
+      return { processed: true, event: payload.type, data: payload.object };
+    } catch (err) {
+      this.log('error', 'Webhook handling failed', { error: err.message });
+      throw err;
+    }
+  }
+
+  async disconnect() {
+    try {
+      this.accessToken = null;
+      this.groupId = null;
+      this.initialized = false;
+      this.log('info', 'VK provider disconnected');
+      return true;
+    } catch (err) {
+      this.log('error', 'Disconnect failed', { error: err.message });
+      this.initialized = false;
+      return false;
     }
   }
 }

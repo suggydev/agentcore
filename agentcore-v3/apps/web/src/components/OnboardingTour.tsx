@@ -1,3 +1,4 @@
+// DEPRECATED: This component is replaced in the redesign/cto-style branch. Do not add new features here.
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -22,7 +23,7 @@ const STEPS: TourStep[] = [
     id: 'agents',
     title: 'Создайте AI-агента в разделе Агенты',
     icon: Bot,
-    spotlightSelector: 'a[href="/dashboard/agents"]',
+    spotlightSelector: 'a[href="/agents"]',
   },
   {
     id: 'done',

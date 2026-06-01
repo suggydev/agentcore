@@ -275,7 +275,7 @@ export default function ChatPage() {
         className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white border-r border-mauve-100 flex flex-col shadow-xl lg:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-300`}
       >
         <div className="p-4 border-b border-mauve-100 flex items-center justify-between">
-          <a href="/dashboard" className="flex items-center gap-2">
+          <a href="/agents" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-mauve-600 to-mauve-400 flex items-center justify-center">
               <Bot className="w-4 h-4 text-white" />
             </div>
@@ -448,7 +448,7 @@ export default function ChatPage() {
             </div>
           )}
 
-          <a href="/dashboard" className="p-2 rounded-lg hover:bg-mauve-50 text-mauve-500 flex-shrink-0">
+          <a href="/agents" className="p-2 rounded-lg hover:bg-mauve-50 text-mauve-500 flex-shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </a>
         </header>

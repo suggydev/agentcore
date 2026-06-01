@@ -91,6 +91,7 @@ model Agent {
   workspaceId   String
   workspace     Workspace @relation(fields: [workspaceId], references: [id])
   conversations Conversation[]
+  integrations  Integration[]
 
   @@index([workspaceId])
   @@index([workspaceId, isActive])
@@ -142,8 +143,44 @@ model CRMContact {
   workspace   Workspace     @relation(fields: [workspaceId], references: [id])
 
   @@index([workspaceId])
-  @@index([workspaceId, status])
-  @@index([email])
+  @@index([type])
+  @@index([status])
+}
+
+model Integration {
+  id              String   @id @default(cuid())
+  agentId         String
+  agent           Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  provider        String
+  credentials     String
+  status          String   @default("active")
+  webhookUrl      String?
+  webhookSecret   String?
+  lastHealthCheck DateTime?
+  lastError       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  logs IntegrationLog[]
+
+  @@unique([agentId, provider])
+  @@index([agentId])
+  @@index([provider])
+}
+
+model IntegrationLog {
+  id             String   @id @default(cuid())
+  integrationId  String
+  integration    Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  direction      String
+  eventType      String
+  payload        String?
+  status         String
+  createdAt      DateTime @default(now())
+
+  @@index([integrationId])
+  @@index([integrationId, createdAt])
+  @@index([direction])
 }
 
 model KnowledgeDocument {

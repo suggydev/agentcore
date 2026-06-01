@@ -156,7 +156,7 @@ export default function AgentsPage() {
         setAgents(prev => [data, ...prev]);
         setCreateResult({ ok: true, id: data.id });
         setCreateStep(3);
-        setTimeout(() => router.push(`/dashboard/agents/${data.id}`), 1200);
+        setTimeout(() => router.push(`/agents/${data.id}`), 1200);
       } else {
         setCreateResult({ ok: false });
         setCreateStep(0);
@@ -241,7 +241,7 @@ export default function AgentsPage() {
       {view === 'list' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {agents.map(agent => (
-            <motion.div key={agent.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-5 group cursor-pointer hover:shadow-md hover:border-mauve-200 transition-all" onClick={() => router.push(`/dashboard/agents/${agent.id}`)}>
+            <motion.div key={agent.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-5 group cursor-pointer hover:shadow-md hover:border-mauve-200 transition-all" onClick={() => router.push(`/agents/${agent.id}`)}>
               <div className="flex items-start justify-between mb-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-mauve-500 to-mauve-300 flex items-center justify-center"><Brain className="w-5 h-5 text-white" /></div>
                 <button onClick={(e: React.MouseEvent) => deleteAgent(agent.id, e)} className="p-1.5 rounded-lg hover:bg-red-50 text-ink-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"><Trash2 className="w-3.5 h-3.5" /></button>

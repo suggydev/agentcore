@@ -44,10 +44,23 @@ class TelegramProvider extends IntegrationProvider {
     }
 
     this.botToken = credentials.botToken;
+    this.credentials = credentials;
     this.initialized = true;
 
     this.log('info', 'Провайдер Telegram инициализирован');
     return true;
+  }
+
+  async sendMessage(agentId, conversationId, message) {
+    try {
+      if (!conversationId) throw new Error('[Telegram] conversationId (chatId) is required');
+      if (!message) throw new Error('[Telegram] message is required');
+      const chatId = typeof conversationId === 'number' ? conversationId : parseInt(conversationId, 10) || conversationId;
+      return await this._sendTelegramMessage(chatId, message);
+    } catch (err) {
+      this.log('error', 'sendMessage failed', { error: err.message });
+      throw err;
+    }
   }
 
   async _tgRequest(method, body = {}) {
@@ -77,7 +90,7 @@ class TelegramProvider extends IntegrationProvider {
    * @param {object} [options] — дополнительные параметры (parse_mode, reply_markup и т.д.)
    * @returns {Promise<{ok: boolean, result: object}>}
    */
-  async sendMessage(chatId, text, options = {}) {
+  async _sendTelegramMessage(chatId, text, options = {}) {
     if (!chatId) {
       throw new Error('[Telegram] Параметр chatId обязателен');
     }
@@ -167,6 +180,43 @@ class TelegramProvider extends IntegrationProvider {
     } catch (err) {
       this.log('error', 'Health-check не пройден', { error: err.message });
       return { ok: false, error: err.message };
+    }
+  }
+
+  async handleWebhook(payload, signature) {
+    try {
+      if (!payload || typeof payload !== 'object') {
+        throw new Error('[Telegram] Invalid webhook payload');
+      }
+      const message = payload.message || payload.callback_query?.message;
+      if (!message) return { processed: false, reason: 'no_message' };
+      return {
+        processed: true,
+        chatId: message.chat?.id,
+        text: message.text || '',
+        from: message.from?.username || message.from?.first_name || '',
+        userId: message.from?.id
+      };
+    } catch (err) {
+      this.log('error', 'Webhook handling failed', { error: err.message });
+      throw err;
+    }
+  }
+
+  async disconnect() {
+    try {
+      if (this.botToken) {
+        await this.deleteWebhook({ dropPendingUpdates: true });
+      }
+      this.botToken = null;
+      this.initialized = false;
+      this.log('info', 'Telegram provider disconnected');
+      return true;
+    } catch (err) {
+      this.log('error', 'Disconnect failed', { error: err.message });
+      this.botToken = null;
+      this.initialized = false;
+      return false;
     }
   }
 }

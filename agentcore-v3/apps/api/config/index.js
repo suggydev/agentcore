@@ -22,7 +22,8 @@ const envSchema = z.object({
   TRIAL_DAYS: z.string().default('7').transform(Number),
   CREATE_DEFAULT_AGENTS: z.string().default('true').transform(v => v === 'true'),
   PRO_CREDIT_AMOUNT: z.string().default('10').transform(Number),
-  BUSINESS_CREDIT_AMOUNT: z.string().default('10').transform(Number)
+  BUSINESS_CREDIT_AMOUNT: z.string().default('10').transform(Number),
+  ENCRYPTION_KEY: z.string().optional()
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -67,5 +68,6 @@ module.exports = {
   TRIAL_DAYS: env.TRIAL_DAYS,
   CREATE_DEFAULT_AGENTS: env.CREATE_DEFAULT_AGENTS,
   PRO_CREDIT_AMOUNT: env.PRO_CREDIT_AMOUNT,
-  BUSINESS_CREDIT_AMOUNT: env.BUSINESS_CREDIT_AMOUNT
+  BUSINESS_CREDIT_AMOUNT: env.BUSINESS_CREDIT_AMOUNT,
+  ENCRYPTION_KEY: env.ENCRYPTION_KEY || env.DATABASE_URL
 };

@@ -54,6 +54,7 @@ app.use('/api/knowledge', require('./routes/knowledge'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/workspace', require('./routes/workspace'));
 app.use('/api/integrations', require('./routes/integrations'));
+app.use('/api/webhooks', require('./routes/webhooks'));
 app.use('/api/health', require('./routes/health'));
 
 // ============================

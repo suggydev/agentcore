@@ -1,0 +1,30 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import NewDashboardLayout from '@/components/NewDashboardLayout';
+import { ToastProvider } from '@/design/components/Toast';
+import { ThemeProvider } from '@/design/ThemeProvider';
+
+function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  const ls = localStorage.getItem('token');
+  if (ls) return ls;
+  const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+  return match ? match[1] : null;
+}
+
+export default function AgentsLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  useEffect(() => {
+    const token = getToken();
+    if (!token) router.push('/login');
+  }, [router]);
+  return (
+    <ThemeProvider>
+      <ToastProvider>
+        <NewDashboardLayout>{children}</NewDashboardLayout>
+      </ToastProvider>
+    </ThemeProvider>
+  );
+}

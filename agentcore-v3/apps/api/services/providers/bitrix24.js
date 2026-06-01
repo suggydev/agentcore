@@ -549,6 +549,41 @@ class Bitrix24Provider extends IntegrationProvider {
     }
     return null;
   }
+
+  async handleWebhook(payload, signature) {
+    try {
+      if (!payload || typeof payload !== 'object') {
+        throw new AppError('[Bitrix24] Invalid webhook payload', 400, 'INVALID_PAYLOAD');
+      }
+      const events = [];
+      if (payload.event) {
+        events.push({ event: payload.event, data: payload.data });
+      }
+      return { processed: true, events };
+    } catch (err) {
+      this.log('error', 'Webhook handling failed', { error: err.message });
+      throw err;
+    }
+  }
+
+  async disconnect() {
+    try {
+      this.accessToken = null;
+      this.refreshToken = null;
+      this.clientId = null;
+      this.clientSecret = null;
+      this.domain = null;
+      this.webhookUserId = null;
+      this.webhookToken = null;
+      this.initialized = false;
+      this.log('info', 'Bitrix24 provider disconnected');
+      return true;
+    } catch (err) {
+      this.log('error', 'Disconnect failed', { error: err.message });
+      this.initialized = false;
+      return false;
+    }
+  }
 }
 
 module.exports = { Bitrix24Provider };

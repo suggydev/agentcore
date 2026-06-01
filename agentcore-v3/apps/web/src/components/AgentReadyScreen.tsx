@@ -32,15 +32,15 @@ const ACTION_CARDS: ActionCard[] = [
 function resolveActionHref(baseHref: string, agentId: string): string {
   switch (baseHref) {
     case 'test':
-      return `/dashboard/brain-map/test?agent=${agentId}`;
+      return `/agents/brain-map/test?agent=${agentId}`;
     case 'brain-map':
-      return `/dashboard/brain-map?agent=${agentId}`;
+      return `/agents/brain-map?agent=${agentId}`;
     case 'integrations':
-      return '/dashboard/integrations';
+      return '/agents';
     case 'knowledge':
-      return '/dashboard/knowledge';
+      return '/knowledge';
     default:
-      return '/dashboard';
+      return '/agents';
   }
 }
 
