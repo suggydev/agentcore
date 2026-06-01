@@ -1,20 +1,31 @@
 const express = require('express');
 const axios = require('axios');
+const { z } = require('zod');
 const { prisma } = require('../prisma-client');
 const config = require('../config');
 const { webchatAuth } = require('../middleware/auth');
 const { aiLimiter } = require('../middleware/rateLimit');
 const { fetchModels, routeToModel } = require('../services/suggy');
+const { safeError } = require('../utils/errors');
 
 const router = express.Router();
 
+const webchatMessageSchema = z.object({
+  workspaceId: z.string().min(1),
+  agentId: z.string().optional(),
+  sessionId: z.string().optional(),
+  content: z.string().min(1),
+  customerName: z.string().optional(),
+  customerEmail: z.string().email().optional().or(z.literal(''))
+});
+
 router.post('/message', webchatAuth, aiLimiter, async (req, res) => {
   try {
-    const { workspaceId, agentId, sessionId, content, customerName, customerEmail } = req.body;
-
-    if (!workspaceId || !content) {
-      return res.status(400).json({ error: 'workspaceId and content are required' });
+    const parsed = webchatMessageSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation error', details: parsed.error.flatten() });
     }
+    const { workspaceId, agentId, sessionId, content } = parsed.data;
 
     let agent;
     if (agentId) {
@@ -108,21 +119,18 @@ router.post('/message', webchatAuth, aiLimiter, async (req, res) => {
 
       res.json({ response: aiContent, model_used: selectedModel, conversationId: conversation.id });
     } catch (aiErr) {
-      console.error('WebChat AI error:', aiErr.response?.data || aiErr.message);
+      console.error('WebChat AI error:', aiErr.code || aiErr.response?.status || aiErr.message);
       if (aiErr.code === 'ECONNABORTED') {
-        return res.status(504).json({ error: 'Превышено время ожидания от AI-модели', model_used: selectedModel });
+        return res.status(504).json({ error: 'Превышено время ожидания от AI-модели' });
       }
       if (aiErr.response?.status === 429) {
-        return res.status(429).json({ error: 'Слишком много запросов. Подождите.', model_used: selectedModel });
+        return res.status(429).json({ error: 'Слишком много запросов. Подождите.' });
       }
-      res.status(500).json({
-        error: aiErr.response?.data?.error?.message || aiErr.message,
-        model_used: selectedModel
-      });
+      safeError(res, aiErr, 502, 'AI service unavailable');
     }
   } catch (err) {
     console.error('WebChat error:', err);
-    res.status(400).json({ error: err.message });
+    safeError(res, err, 400, 'Failed to process webchat message');
   }
 });
 

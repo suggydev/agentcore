@@ -59,7 +59,7 @@ export default function RequisitesPage() {
             <div>
               <p className="text-base font-bold text-amber-800 mb-1">Внимание: данные не заполнены</p>
               <p className="text-sm text-amber-700">
-                Нижеуказанные реквизиты являются шаблонными. Заполните реальные данные в разделе <strong>Settings → Company Data</strong> вашего дашборда.
+                Нижеуказанные реквизиты являются шаблонными. Заполните реальные данные в разделе <strong>Настройки → Данные компании</strong> вашего дашборда.
               </p>
             </div>
           </div>

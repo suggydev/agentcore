@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import Logo from './Logo';
 import MagneticButton from './MagneticButton';
+import { useAgentStore } from '@/store/agentStore';
 
 const navItems = [
   { href: '#capabilities', label: 'Возможности' },
@@ -15,7 +16,7 @@ export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const isAuthenticated = useAgentStore((s) => s.auth.isAuthenticated);
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
@@ -23,11 +24,6 @@ export default function Navigation() {
     const prev = scrollY.getPrevious();
     setHidden(latest > 200 && prev !== undefined && latest > prev);
   });
-
-  useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    setIsLoggedIn(!!token);
-  }, []);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : '';
@@ -55,10 +51,10 @@ export default function Navigation() {
             ))}
             <MagneticButton strength={0.2}>
               <a
-                href={isLoggedIn ? '/dashboard' : '/login'}
+                href={isAuthenticated ? '/dashboard' : '/login'}
                 className="btn-primary text-sm py-2 px-5"
               >
-                {isLoggedIn ? 'Перейти в панель' : 'Попробовать бесплатно'}
+                {isAuthenticated ? 'Перейти в панель' : 'Попробовать бесплатно'}
               </a>
             </MagneticButton>
           </div>
@@ -133,11 +129,11 @@ export default function Navigation() {
                   className="pt-4"
                 >
                   <a
-                    href={isLoggedIn ? '/dashboard' : '/login'}
+                    href={isAuthenticated ? '/dashboard' : '/login'}
                     onClick={closeMobile}
                     className="btn-primary text-sm py-2.5 px-6 inline-block"
                   >
-                    {isLoggedIn ? 'Перейти в панель' : 'Попробовать бесплатно'}
+                    {isAuthenticated ? 'Перейти в панель' : 'Попробовать бесплатно'}
                   </a>
                 </motion.div>
               </div>

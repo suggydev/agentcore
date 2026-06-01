@@ -2,16 +2,24 @@ const jwt = require('jsonwebtoken');
 const { prisma } = require('../prisma-client');
 const config = require('../config');
 
-function authenticate(req, res, next) {
+async function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   const token = authHeader.split(' ')[1];
   try {
-    req.user = jwt.verify(token, config.JWT_SECRET);
+    const decoded = jwt.verify(token, config.JWT_SECRET);
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!user || user.tokenVersion !== decoded.tokenVersion) {
+      return res.status(401).json({ error: 'Token expired, please login again' });
+    }
+    req.user = decoded;
     next();
-  } catch {
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired' });
+    }
     return res.status(401).json({ error: 'Invalid token' });
   }
 }
@@ -43,8 +51,8 @@ async function checkTrial(req, res, next) {
 
 function webchatAuth(req, res, next) {
   if (!config.WEBCHAT_API_KEY) {
-    console.warn('[SECURITY] WebChat: WEBCHAT_API_KEY not configured, skipping API key check for development');
-    return next();
+    console.error('[SECURITY] WebChat: WEBCHAT_API_KEY not configured — rejecting all requests');
+    return res.status(503).json({ error: 'WebChat is not configured' });
   }
   const apiKey = req.headers['x-api-key'] || req.headers['x-webchat-key'];
   if (apiKey !== config.WEBCHAT_API_KEY) {

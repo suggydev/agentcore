@@ -9,7 +9,10 @@ import {
   Maximize2,
 } from 'lucide-react';
 import ReactFlow, {
-  Background, Controls, MiniMap, Node, Edge, Connection,
+  Background,
+  Controls,
+  MiniMap,
+  Node, Edge, Connection,
   useNodesState, useEdgesState, addEdge, MarkerType,
   Handle, Position, NodeProps, ReactFlowProvider,
 } from 'reactflow';

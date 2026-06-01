@@ -1,0 +1,137 @@
+id,file,start_line,end_line,kind,name,signature,is_exported,called_from_count,has_test
+FN-0001,server.js,15,26,middleware,requestIdTracking,anonymous,no,many,no
+FN-0002,server.js,65,77,middleware,authenticate,"function authenticate(req, res, next)",no,many,no
+FN-0003,server.js,80,93,middleware,checkTrial,"async function checkTrial(req, res, next)",no,4,no
+FN-0004,server.js,95,105,middleware,webchatAuth,"function webchatAuth(req, res, next)",no,1,no
+FN-0005,server.js,111,130,function,fetchModels,"async function fetchModels()",no,5,no
+FN-0006,server.js,132,182,function,routeToModel,"function routeToModel(task, message, models)",no,4,no
+FN-0007,server.js,188,254,route,POST /api/auth/register,"async (req, res) => {}",no,0,no
+FN-0008,server.js,256,276,route,POST /api/auth/login,"async (req, res) => {}",no,0,no
+FN-0009,server.js,278,286,route,GET /api/auth/me,"async (req, res) => {}",no,0,no
+FN-0010,server.js,292,299,route,GET /api/v1/models,"async (req, res) => {}",no,0,no
+FN-0011,server.js,305,398,route,POST /api/v1/chat/completions,"async (req, res) => {}",no,0,no
+FN-0012,server.js,404,437,route,POST /api/v1/images/generations,"async (req, res) => {}",no,0,no
+FN-0013,server.js,443,460,route,GET /api/agents,"async (req, res) => {}",no,0,no
+FN-0014,server.js,462,490,route,POST /api/agents,"async (req, res) => {}",no,0,no
+FN-0015,server.js,492,507,route,PUT /api/agents/:id,"async (req, res) => {}",no,0,no
+FN-0016,server.js,509,519,route,DELETE /api/agents/:id,"async (req, res) => {}",no,0,no
+FN-0017,server.js,525,543,route,GET /api/conversations,"async (req, res) => {}",no,0,no
+FN-0018,server.js,545,558,route,POST /api/conversations,"async (req, res) => {}",no,0,no
+FN-0019,server.js,560,572,route,GET /api/conversations/:id,"async (req, res) => {}",no,0,no
+FN-0020,server.js,574,675,route,POST /api/conversations/:id/messages,"async (req, res) => {}",no,0,no
+FN-0021,server.js,681,789,route,POST /api/channels/webchat/message,"async (req, res) => {}",no,0,no
+FN-0022,server.js,795,807,route,GET /api/billing/plan,"async (req, res) => {}",no,0,no
+FN-0023,server.js,809,832,route,GET /api/billing/trial-status,"async (req, res) => {}",no,0,no
+FN-0024,server.js,834,850,route,GET /api/billing/usage,"async (req, res) => {}",no,0,no
+FN-0025,server.js,856,891,route,PUT /api/workspace/onboarding,"async (req, res) => {}",no,0,no
+FN-0026,server.js,897,914,route,GET /api/crm/customers,"async (req, res) => {}",no,0,no
+FN-0027,server.js,916,933,route,POST /api/crm/customers,"async (req, res) => {}",no,0,no
+FN-0028,server.js,939,955,route,GET /api/knowledge/documents,"async (req, res) => {}",no,0,no
+FN-0029,server.js,957,973,route,POST /api/knowledge/documents,"async (req, res) => {}",no,0,no
+FN-0030,server.js,979,1011,route,GET /api/analytics/dashboard,"async (req, res) => {}",no,0,no
+FN-0031,server.js,1017,1026,route,GET /api/health,"async (req, res) => {}",no,0,no
+FN-0032,server.js,1032,1036,middleware,errorHandler,"(err, req, res, next) => {}",no,1,no
+FN-0033,server.js,1038,1042,callback,startup,() => {},no,0,no
+FN-0034,server.js,1045,1051,handler,SIGTERM,() => {},no,0,no
+FN-0035,services/yookassa.js,9,21,function,getCheckout,"function getCheckout()",no,6,no
+FN-0036,services/yookassa.js,23,61,function,createPayment,"async function createPayment({...})",yes,0,no
+FN-0037,services/yookassa.js,63,67,function,getPayment,"async function getPayment(paymentId)",yes,0,no
+FN-0038,services/yookassa.js,69,80,function,capturePayment,"async function capturePayment(paymentId, amount)",yes,0,no
+FN-0039,services/yookassa.js,82,86,function,cancelPayment,"async function cancelPayment(paymentId)",yes,0,no
+FN-0040,services/yookassa.js,88,99,function,createRefund,"async function createRefund({...})",yes,0,no
+FN-0041,services/yookassa.js,101,105,function,getRefund,"async function getRefund(refundId)",yes,0,no
+FN-0042,deploy.py,27,40,function,create_tarball,"function create_tarball()",no,1,no
+FN-0043,deploy.py,42,53,function,run_ssh,"function run_ssh(client, cmd)",no,2,no
+FN-0044,deploy.py,55,132,function,main,"function main()",no,0,no
+FN-0045,quick_deploy.py,37,52,function,upload_dir,"function upload_dir(local_path, remote_path)",no,1,no
+FN-0046,quick_deploy.py,62,72,function,run,"function run(cmd, timeout=60)",no,4,no
+FN-0047,quick_deploy.py,100,129,function,upload_web,"function upload_web()",no,1,no
+FN-0048,deploy_all.py,13,15,function,run,"function run(cmd, t=10)",no,9,no
+FN-0049,apps/web/deploy.py,48,66,function,create_archive,"function create_archive()",no,1,no
+FN-0050,apps/web/deploy.py,69,74,function,run_remote,"function run_remote(client, cmd, timeout=300)",no,5,no
+FN-0051,apps/web/deploy.py,77,192,function,main,"function main()",no,0,no
+FN-0052,tg_devops_bot.py,51,53,function,check_auth,"function check_auth(user_id)",no,1,no
+FN-0053,tg_devops_bot.py,55,75,function,deploy,"async function deploy(send_msg)",no,1,no
+FN-0054,tg_devops_bot.py,77,104,function,status_check,"async function status_check(send_msg)",no,1,no
+FN-0055,tg_devops_bot.py,106,125,function,show_logs,"async function show_logs(send_msg, service)",no,1,no
+FN-0056,tg_devops_bot.py,127,157,function,restart_services,"async function restart_services(send_msg)",no,1,no
+FN-0057,tg_devops_bot.py,159,213,function,handle_message,"async function handle_message(text, user_id, send_msg)",no,1,no
+FN-0058,tg_devops_bot.py,216,250,function,main_polling,"async function main_polling()",no,1,no
+FN-0059,agentStore.ts,119,125,method,setWorkspace,"(workspace) => set(...)",no,0,no
+FN-0060,agentStore.ts,127,133,method,setPersona,"(persona) => set(...)",no,0,no
+FN-0061,agentStore.ts,135,141,method,setKnowledge,"(knowledge) => set(...)",no,0,no
+FN-0062,agentStore.ts,143,149,method,setGoal,"(goal) => set(...)",no,0,no
+FN-0063,agentStore.ts,151,157,method,completeOnboarding,"() => set(...)",no,0,no
+FN-0064,agentStore.ts,159,163,method,resetOnboarding,"() => set(...)",no,0,no
+FN-0065,agentStore.ts,164,170,method,startTrial,"() => set(...)",no,0,no
+FN-0066,agentStore.ts,172,180,method,getTrialDaysLeft,"() => number",no,0,no
+FN-0067,agentTemplates.ts,612,626,function,extractFromPrompt,"function extractFromPrompt(text)",yes,0,no
+FN-0068,pricingConfig.ts,64,77,function,buildFeatureRows,"function buildFeatureRows()",yes,0,no
+FN-0069,pricingConfig.ts,293,306,function,buildComparisonRows,"function buildComparisonRows()",yes,0,no
+FN-0070,layout.tsx,9,29,component,RootLayout,"function RootLayout({children})",yes,0,no
+FN-0071,page.tsx,50,113,component,HomePage,"export default function HomePage()",yes,0,no
+FN-0072,page.tsx,20,33,function,SectionDivider,"function SectionDivider()",no,1,no
+FN-0073,page.tsx,35,48,function,SectionDividerInvert,"function SectionDividerInvert()",no,1,no
+FN-0074,HeroSection.tsx,1,end,component,HeroSection,default export,yes,1,no
+FN-0075,ValuePropSection.tsx,1,end,component,ValuePropSection,default export,yes,1,no
+FN-0076,CapabilitiesSection.tsx,1,end,component,CapabilitiesSection,default export,yes,1,no
+FN-0077,UseCasesSection.tsx,1,end,component,UseCasesSection,default export,yes,1,no
+FN-0078,WorkflowSection.tsx,1,end,component,WorkflowSection,default export,yes,1,no
+FN-0079,ArchitectureSection.tsx,1,end,component,ArchitectureSection,default export,yes,1,no
+FN-0080,PricingSection.tsx,1,end,component,PricingSection,default export,yes,1,no
+FN-0081,FAQSection.tsx,1,end,component,FAQSection,default export,yes,1,no
+FN-0082,TestimonialsSection.tsx,1,end,component,TestimonialsSection,default export,yes,1,no
+FN-0083,CTASection.tsx,1,end,component,CTASection,default export,yes,1,no
+FN-0084,Footer.tsx,1,end,component,Footer,default export,yes,1,no
+FN-0085,login/page.tsx,56,621,component,LoginPage,"export default function LoginPage()",yes,0,no
+FN-0086,onboarding/page.tsx,1,end,component,OnboardingPage,default export,yes,0,no
+FN-0087,chat/page.tsx,1,end,component,ChatPage,default export,yes,0,no
+FN-0088,agents/page.tsx,1,end,component,AgentsPage,default export,yes,0,no
+FN-0089,dashboard/page.tsx,1,end,component,DashboardPage,default export,yes,0,no
+FN-0090,dashboard/agents/page.tsx,1,end,component,DashboardAgentsPage,default export,yes,0,no
+FN-0091,dashboard/brain-map/page.tsx,1,end,component,BrainMapPage,default export,yes,0,no
+FN-0092,dashboard/brain-map/test/page.tsx,1,end,component,BrainMapTestPage,default export,yes,0,no
+FN-0093,dashboard/knowledge/page.tsx,1,end,component,KnowledgePage,default export,yes,0,no
+FN-0094,dashboard/integrations/page.tsx,1,end,component,IntegrationsPage,default export,yes,0,no
+FN-0095,dashboard/conversations/page.tsx,1,end,component,ConversationsPage,default export,yes,0,no
+FN-0096,dashboard/analytics/page.tsx,1,end,component,AnalyticsPage,default export,yes,0,no
+FN-0097,dashboard/billing/page.tsx,1,end,component,BillingPage,default export,yes,0,no
+FN-0098,dashboard/billing/upgrade/page.tsx,1,end,component,UpgradePage,default export,yes,0,no
+FN-0099,dashboard/credits/page.tsx,1,end,component,CreditsPage,default export,yes,0,no
+FN-0100,dashboard/orders/page.tsx,1,end,component,OrdersPage,default export,yes,0,no
+FN-0101,dashboard/payments/page.tsx,1,end,component,PaymentsPage,default export,yes,0,no
+FN-0102,dashboard/customers/page.tsx,1,end,component,CustomersPage,default export,yes,0,no
+FN-0103,dashboard/settings/page.tsx,1,end,component,SettingsPage,default export,yes,0,no
+FN-0104,contacts/page.tsx,1,end,component,ContactsPage,default export,yes,0,no
+FN-0105,delivery/page.tsx,1,end,component,DeliveryPage,default export,yes,0,no
+FN-0106,privacy/page.tsx,1,end,component,PrivacyPage,default export,yes,0,no
+FN-0107,refund/page.tsx,1,end,component,RefundPage,default export,yes,0,no
+FN-0108,requisites/page.tsx,1,end,component,RequisitesPage,default export,yes,0,no
+FN-0109,terms/page.tsx,1,end,component,TermsPage,default export,yes,0,no
+FN-0110,Navigation.tsx,1,end,component,Navigation,default export,yes,2,no
+FN-0111,DashboardLayout.tsx,1,end,component,DashboardLayout,default export,yes,many,no
+FN-0112,AgentReadyScreen.tsx,1,end,component,AgentReadyScreen,default export,yes,1,no
+FN-0113,AgentBrainAnimation.tsx,1,end,component,AgentBrainAnimation,default export,yes,1,no
+FN-0114,AnimatedCounter.tsx,1,end,component,AnimatedCounter,default export,yes,1,no
+FN-0115,CommandPalette.tsx,1,end,component,CommandPalette,default export,yes,1,no
+FN-0116,ErrorBoundary.tsx,1,end,component,ErrorBoundary,default export,yes,1,no
+FN-0117,InfoTooltip.tsx,1,end,component,InfoTooltip,default export,yes,many,no
+FN-0118,Logo.tsx,1,end,component,Logo,default export + LogoSymbol,yes,2,no
+FN-0119,MagneticButton.tsx,1,end,component,MagneticButton,default export,yes,1,no
+FN-0120,OnboardingTour.tsx,1,end,component,OnboardingTour,default export,yes,1,no
+FN-0121,ScrollProgress.tsx,1,end,component,ScrollProgress,default export,yes,1,no
+FN-0122,ScrollReveal.tsx,1,end,component,ScrollReveal,default export,yes,many,no
+FN-0123,SmoothScroll.tsx,1,end,component,SmoothScroll,default export,yes,1,no
+FN-0124,next.config.js,1,14,config,nextConfig,module.exports,yes,0,no
+FN-0125,ecosystem.config.js,1,38,config,ecosystem,module.exports,yes,0,no
+FN-0126,tailwind.config.js,1,108,config,tailwindConfig,module.exports,yes,0,no
+FN-0127,postcss.config.js,1,6,config,postcssConfig,module.exports,yes,0,no
+FN-0128,docker-compose.yml,1,18,config,docker-compose,"version: '3.8'",no,0,no
+FN-0129,schema.prisma,,,model,Workspace,model Workspace,no,0,no
+FN-0130,schema.prisma,,,model,User,model User,no,0,no
+FN-0131,schema.prisma,,,model,Agent,model Agent,no,0,no
+FN-0132,schema.prisma,,,model,Conversation,model Conversation,no,0,no
+FN-0133,schema.prisma,,,model,Message,model Message,no,0,no
+FN-0134,schema.prisma,,,model,CRMContact,model CRMContact,no,0,no
+FN-0135,schema.prisma,,,model,KnowledgeDocument,model KnowledgeDocument,no,0,no
+FN-0136,schema.prisma,,,model,BillingTransaction,model BillingTransaction,no,0,no

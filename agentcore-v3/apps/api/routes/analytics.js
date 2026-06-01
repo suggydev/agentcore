@@ -2,23 +2,23 @@ const express = require('express');
 const { prisma } = require('../prisma-client');
 const { authenticate } = require('../middleware/auth');
 const { generalLimiter } = require('../middleware/rateLimit');
+const { safeError } = require('../utils/errors');
 
 const router = express.Router();
 
 async function getDashboardData(workspaceId) {
-  const [conversations, messages, agents, customers] = await Promise.all([
+  const [conversations, messages, agents, customers, recentMessages] = await Promise.all([
     prisma.conversation.count({ where: { workspaceId } }),
     prisma.message.count({ where: { conversation: { workspaceId } } }),
     prisma.agent.count({ where: { workspaceId } }),
-    prisma.cRMContact.count({ where: { workspaceId } })
+    prisma.cRMContact.count({ where: { workspaceId } }),
+    prisma.message.findMany({
+      where: { conversation: { workspaceId }, role: 'user' },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      include: { conversation: { select: { title: true } } }
+    })
   ]);
-
-  const recentMessages = await prisma.message.findMany({
-    where: { conversation: { workspaceId }, role: 'user' },
-    orderBy: { createdAt: 'desc' },
-    take: 5,
-    include: { conversation: { select: { title: true } } }
-  });
 
   return {
     conversations,
@@ -39,7 +39,7 @@ router.get('/', authenticate, generalLimiter, async (req, res) => {
   try {
     res.json(await getDashboardData(req.user.workspaceId));
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
@@ -47,7 +47,7 @@ router.get('/dashboard', authenticate, generalLimiter, async (req, res) => {
   try {
     res.json(await getDashboardData(req.user.workspaceId));
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 

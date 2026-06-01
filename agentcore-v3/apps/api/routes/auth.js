@@ -7,6 +7,7 @@ const config = require('../config');
 const { fetchModels, routeToModel } = require('../services/suggy');
 const { authenticate } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/rateLimit');
+const { safeError } = require('../utils/errors');
 
 const router = express.Router();
 
@@ -24,25 +25,27 @@ router.post('/register', authLimiter, async (req, res) => {
     if (existing) return res.status(400).json({ error: 'Email already registered' });
 
     const trialEndsAt = new Date(Date.now() + config.TRIAL_DAYS * 24 * 60 * 60 * 1000);
-
-    const workspace = await prisma.workspace.create({
-      data: {
-        name: data.workspaceName || data.name + "'s Workspace",
-        plan: 'TRIAL',
-        trialEndsAt,
-        settings: {}
-      }
-    });
-
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const user = await prisma.user.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        password: hashedPassword,
-        workspaceId: workspace.id,
-        role: 'OWNER'
-      }
+
+    const { workspace, user } = await prisma.$transaction(async (tx) => {
+      const workspace = await tx.workspace.create({
+        data: {
+          name: data.workspaceName || data.name + "'s Workspace",
+          plan: 'TRIAL',
+          trialEndsAt,
+          settings: {}
+        }
+      });
+      const user = await tx.user.create({
+        data: {
+          name: data.name,
+          email: data.email,
+          password: hashedPassword,
+          workspaceId: workspace.id,
+          role: 'OWNER'
+        }
+      });
+      return { workspace, user };
     });
 
     if (config.CREATE_DEFAULT_AGENTS !== false) {
@@ -65,7 +68,7 @@ router.post('/register', authLimiter, async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ userId: user.id, workspaceId: workspace.id, role: user.role }, config.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user.id, workspaceId: workspace.id, role: user.role, tokenVersion: user.tokenVersion }, config.JWT_SECRET, { expiresIn: '7d' });
     res.json({
       accessToken: token,
       user: { id: user.id, name: user.name, email: user.email },
@@ -75,7 +78,10 @@ router.post('/register', authLimiter, async (req, res) => {
     });
   } catch (err) {
     console.error('Register error:', err);
-    res.status(400).json({ error: err.message || 'Registration failed' });
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: err.flatten() });
+    }
+    safeError(res, err, 400, 'Registration failed');
   }
 });
 
@@ -87,7 +93,7 @@ router.post('/login', authLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     const workspace = await prisma.workspace.findUnique({ where: { id: user.workspaceId } });
-    const token = jwt.sign({ userId: user.id, workspaceId: user.workspaceId, role: user.role }, config.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user.id, workspaceId: user.workspaceId, role: user.role, tokenVersion: user.tokenVersion }, config.JWT_SECRET, { expiresIn: '7d' });
     res.json({
       accessToken: token,
       user: { id: user.id, name: user.name, email: user.email },
@@ -97,7 +103,10 @@ router.post('/login', authLimiter, async (req, res) => {
     });
   } catch (err) {
     console.error('Login error:', err);
-    res.status(400).json({ error: err.message });
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: err.flatten() });
+    }
+    safeError(res, err, 400, 'Login failed');
   }
 });
 
@@ -106,9 +115,15 @@ router.post('/refresh', authenticate, async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    const newTokenVersion = user.tokenVersion + 1;
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { tokenVersion: newTokenVersion }
+    });
+
     const workspace = await prisma.workspace.findUnique({ where: { id: user.workspaceId } });
     const token = jwt.sign(
-      { userId: user.id, workspaceId: user.workspaceId, role: user.role },
+      { userId: user.id, workspaceId: user.workspaceId, role: user.role, tokenVersion: newTokenVersion },
       config.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -122,7 +137,19 @@ router.post('/refresh', authenticate, async (req, res) => {
     });
   } catch (err) {
     console.error('Refresh error:', err);
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
+  }
+});
+
+router.post('/logout', authenticate, async (req, res) => {
+  try {
+    await prisma.user.update({
+      where: { id: req.user.userId },
+      data: { tokenVersion: { increment: 1 } }
+    });
+    res.json({ success: true });
+  } catch (err) {
+    safeError(res, err);
   }
 });
 
@@ -132,7 +159,7 @@ router.get('/me', authenticate, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ id: user.id, name: user.name, email: user.email, role: user.role, workspace: user.workspace });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 

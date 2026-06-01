@@ -214,6 +214,18 @@ export default function CustomersPage() {
     inactive: 'text-ink-500 bg-ink-200',
   };
 
+  const STATUS_LABELS: Record<string, string> = {
+    paid: 'Оплачен',
+    refunded: 'Возврат',
+    failed: 'Ошибка',
+    cancelled: 'Отменён',
+    pending: 'Ожидает',
+    succeeded: 'Успешно',
+    active: 'Активен',
+    draft: 'Черновик',
+    inactive: 'Неактивен',
+  };
+
   const container = {
     hidden: { opacity: 0 },
     show: { opacity: 1, transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
@@ -487,7 +499,7 @@ export default function CustomersPage() {
                                               </div>
                                             </div>
                                             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_MAP[agent.status] || 'text-ink-500 bg-ink-200'}`}>
-                                              {agent.status}
+                                              {STATUS_LABELS[agent.status] || agent.status}
                                             </span>
                                           </div>
                                         ))}
@@ -520,7 +532,7 @@ export default function CustomersPage() {
                                               <td className="py-2 px-3 text-right font-mono text-ink-900">{order.currency} {order.amount.toFixed(2)}</td>
                                               <td className="py-2 px-3 text-center">
                                                 <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${STATUS_MAP[order.status] || STATUS_MAP.paid}`}>
-                                                  {order.status}
+                                                  {STATUS_LABELS[order.status] || order.status}
                                                 </span>
                                               </td>
                                             </tr>
@@ -555,7 +567,7 @@ export default function CustomersPage() {
                                               <td className="py-2 px-3 text-right font-mono text-ink-900">{payment.currency} {payment.amount.toFixed(2)}</td>
                                               <td className="py-2 px-3 text-center">
                                                 <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${STATUS_MAP[payment.status] || STATUS_MAP.paid}`}>
-                                                  {payment.status}
+                                                  {STATUS_LABELS[payment.status] || payment.status}
                                                 </span>
                                               </td>
                                             </tr>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -18,6 +18,7 @@ import {
   LogOut,
   CornerDownLeft,
 } from 'lucide-react';
+import { useAgentStore } from '@/store/agentStore';
 
 interface Command {
   label: string;
@@ -31,76 +32,18 @@ interface CommandPaletteProps {
   onClose: () => void;
 }
 
-const buildCommands = (router: ReturnType<typeof useRouter>): Command[] => [
-  {
-    label: 'Обзор',
-    description: 'Главная страница дашборда',
-    icon: LayoutDashboard,
-    action: () => router.push('/dashboard'),
-  },
-  {
-    label: 'Создать агента',
-    description: 'Создать нового AI-агента',
-    icon: Bot,
-    action: () => router.push('/dashboard/agents'),
-  },
-  {
-    label: 'Brain Map',
-    description: 'Визуальный редактор логики',
-    icon: Workflow,
-    action: () => router.push('/dashboard/brain-map'),
-  },
-  {
-    label: 'Тест агента',
-    description: 'Протестировать агента в чате',
-    icon: FlaskConical,
-    action: () => router.push('/dashboard/brain-map/test'),
-  },
-  {
-    label: 'База знаний',
-    description: 'Документы и FAQ для агентов',
-    icon: BookOpen,
-    action: () => router.push('/dashboard/knowledge'),
-  },
-  {
-    label: 'Интеграции',
-    description: 'Подключить внешние сервисы',
-    icon: Blocks,
-    action: () => router.push('/dashboard/integrations'),
-  },
-  {
-    label: 'Диалоги',
-    description: 'История переписок агентов',
-    icon: MessageSquare,
-    action: () => router.push('/dashboard/conversations'),
-  },
-  {
-    label: 'Аналитика',
-    description: 'Метрики и статистика',
-    icon: BarChart3,
-    action: () => router.push('/dashboard/analytics'),
-  },
-  {
-    label: 'Тарифы',
-    description: 'Управление подпиской',
-    icon: CreditCard,
-    action: () => router.push('/dashboard/billing'),
-  },
-  {
-    label: 'Настройки',
-    description: 'Настройки рабочей области',
-    icon: Settings,
-    action: () => router.push('/dashboard/settings'),
-  },
-  {
-    label: 'Выйти',
-    description: 'Покинуть рабочую область',
-    icon: LogOut,
-    action: () => {
-      localStorage.clear();
-      router.push('/login');
-    },
-  },
+const COMMAND_DEFS: Omit<Command, 'action'>[] = [
+  { label: 'Обзор', description: 'Главная страница дашборда', icon: LayoutDashboard },
+  { label: 'Создать агента', description: 'Создать нового AI-агента', icon: Bot },
+  { label: 'Brain Map', description: 'Визуальный редактор логики', icon: Workflow },
+  { label: 'Тест агента', description: 'Протестировать агента в чате', icon: FlaskConical },
+  { label: 'База знаний', description: 'Документы и FAQ для агентов', icon: BookOpen },
+  { label: 'Интеграции', description: 'Подключить внешние сервисы', icon: Blocks },
+  { label: 'Диалоги', description: 'История переписок агентов', icon: MessageSquare },
+  { label: 'Аналитика', description: 'Метрики и статистика', icon: BarChart3 },
+  { label: 'Тарифы', description: 'Управление подпиской', icon: CreditCard },
+  { label: 'Настройки', description: 'Настройки рабочей области', icon: Settings },
+  { label: 'Выйти', description: 'Покинуть рабочую область', icon: LogOut },
 ];
 
 export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
@@ -108,12 +51,43 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const commands = buildCommands(router);
+  const logout = useAgentStore((s) => s.logout);
 
-  const filtered = commands.filter(
-    (cmd) =>
-      cmd.label.toLowerCase().includes(query.toLowerCase()) ||
-      cmd.description.toLowerCase().includes(query.toLowerCase())
+  const commands = useMemo((): Command[] =>
+    COMMAND_DEFS.map((cmd): Command => {
+      switch (cmd.label) {
+        case 'Обзор': return { ...cmd, action: () => router.push('/dashboard') };
+        case 'Создать агента': return { ...cmd, action: () => router.push('/dashboard/agents') };
+        case 'Brain Map': return { ...cmd, action: () => router.push('/dashboard/brain-map') };
+        case 'Тест агента': return { ...cmd, action: () => router.push('/dashboard/brain-map/test') };
+        case 'База знаний': return { ...cmd, action: () => router.push('/dashboard/knowledge') };
+        case 'Интеграции': return { ...cmd, action: () => router.push('/dashboard/integrations') };
+        case 'Диалоги': return { ...cmd, action: () => router.push('/dashboard/conversations') };
+        case 'Аналитика': return { ...cmd, action: () => router.push('/dashboard/analytics') };
+        case 'Тарифы': return { ...cmd, action: () => router.push('/dashboard/billing') };
+        case 'Настройки': return { ...cmd, action: () => router.push('/dashboard/settings') };
+        case 'Выйти':
+          return {
+            ...cmd,
+            action: () => {
+              logout();
+              router.push('/login');
+            },
+          };
+        default: return { ...cmd, action: () => {} };
+      }
+    }),
+    [router, logout]
+  );
+
+  const filtered = useMemo(
+    () =>
+      commands.filter(
+        (cmd) =>
+          cmd.label.toLowerCase().includes(query.toLowerCase()) ||
+          cmd.description.toLowerCase().includes(query.toLowerCase())
+      ),
+    [commands, query]
   );
 
   useEffect(() => {
@@ -248,11 +222,11 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
               <div className="flex items-center gap-3 px-4 py-2 border-t border-ink-200/40 text-[10px] text-ink-400">
                 <span className="flex items-center gap-1">
-                  <kbd className="inline-flex items-center px-1 py-0.5 rounded bg-ink-100 border border-ink-200/60">↑↓</kbd>
+                  <kbd className="inline-flex items-center px-1 py-0.5 rounded bg-ink-100 border border-ink-200/60">\u2191\u2193</kbd>
                   <span>навигация</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className="inline-flex items-center px-1 py-0.5 rounded bg-ink-100 border border-ink-200/60">↵</kbd>
+                  <kbd className="inline-flex items-center px-1 py-0.5 rounded bg-ink-100 border border-ink-200/60">\u21b5</kbd>
                   <span>выбрать</span>
                 </span>
                 <span className="flex items-center gap-1">

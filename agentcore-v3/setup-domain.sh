@@ -1,46 +1,102 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-echo "=== AgentCore v3 Domain Setup ==="
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+log()  { echo -e "${GREEN}[$1]${NC} $2"; }
+warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+err()  { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CONF_FILE="${SCRIPT_DIR}/nginx/agentcore.work.conf"
+TARGET="/etc/nginx/sites-available/agentcore.work"
+
+echo ""
+echo "============================================"
+echo "  AgentCore v3 — Domain & Nginx Setup"
+echo "============================================"
 echo ""
 
-# 1. Install nginx if missing
-if ! command -v nginx &> /dev/null; then
-    echo "[1/5] Installing nginx..."
-    apt update && apt install -y nginx
+# 1. Install nginx
+log "1/6" "Checking nginx..."
+if command -v nginx &>/dev/null; then
+    log "1/6" "nginx $(nginx -v 2>&1 | cut -d/ -f2) already installed"
 else
-    echo "[1/5] nginx already installed"
+    log "1/6" "Installing nginx..."
+    apt update -qq && apt install -y nginx
 fi
 
 # 2. Copy nginx config
-echo "[2/5] Deploying nginx config..."
-cp nginx/agentcore.work.conf /etc/nginx/sites-available/agentcore.work
-ln -sf /etc/nginx/sites-available/agentcore.work /etc/nginx/sites-enabled/agentcore.work
+log "2/6" "Deploying nginx config..."
+if [ ! -f "$CONF_FILE" ]; then
+    err "Config file not found: $CONF_FILE"
+fi
 
-# 3. Test and reload nginx
-echo "[3/5] Testing nginx config..."
-nginx -t
-systemctl reload nginx
+cp "$CONF_FILE" "$TARGET"
+ln -sf "$TARGET" /etc/nginx/sites-enabled/agentcore.work
 
-# 4. Install certbot and get SSL
-echo "[4/5] Installing certbot..."
-apt install -y certbot python3-certbot-nginx
+# Remove default site
+rm -f /etc/nginx/sites-enabled/default
+
+# 3. Create log directories
+log "3/6" "Setting up log directories..."
+mkdir -p /var/log/agentcore
+chown www-data:www-data /var/log/agentcore 2>/dev/null || true
+
+# 4. Test and reload nginx
+log "4/6" "Testing nginx config..."
+if nginx -t 2>&1; then
+    systemctl reload nginx || systemctl restart nginx
+    log "4/6" "nginx reloaded successfully"
+else
+    err "nginx config test failed — aborting"
+fi
+
+# 5. Certbot / SSL
+log "5/6" "SSL setup..."
+if command -v certbot &>/dev/null; then
+    log "5/6" "certbot found"
+else
+    log "5/6" "Installing certbot..."
+    apt install -y certbot python3-certbot-nginx
+fi
 
 echo ""
-echo "=== Run this after DNS is live: ==="
-echo "  certbot --nginx -d agentcore.work -d www.agentcore.work -d api.agentcore.work"
+echo -e "${YELLOW}============================================${NC}"
+echo -e "${YELLOW}  DNS must be pointing to this server.${NC}"
+echo -e "${YELLOW}  After confirming DNS, run:${NC}"
+echo ""
+echo -e "  ${GREEN}certbot --nginx -d agentcore.work -d www.agentcore.work -d api.agentcore.work${NC}"
+echo ""
+echo -e "${YELLOW}============================================${NC}"
 echo ""
 
-# 5. Rebuild frontend with domain env
-echo "[5/5] Rebuilding frontend..."
-cd apps/web
-npm run build
-cd ../..
+# 6. Rebuild frontend
+log "6/6" "Rebuilding frontend..."
+cd "${SCRIPT_DIR}/apps/web"
+
+if [ -f package.json ]; then
+    npm run build
+    log "6/6" "Frontend build complete"
+else
+    warn "apps/web/package.json not found — skipping build"
+fi
+
+cd "$SCRIPT_DIR"
 
 echo ""
-echo "=== Done! Restart PM2: ==="
-echo "  pm2 restart all"
+echo -e "${GREEN}============================================${NC}"
+echo -e "${GREEN}  Done! Next steps:${NC}"
 echo ""
-echo "=== After DNS + SSL, open: ==="
-echo "  https://agentcore.work"
-echo "  https://api.agentcore.work/api/health"
+echo "  1. Set up DNS A records for agentcore.work, www.agentcore.work, api.agentcore.work"
+echo "  2. Run certbot for SSL:"
+echo "     certbot --nginx -d agentcore.work -d www.agentcore.work -d api.agentcore.work"
+echo "  3. Start app with PM2:"
+echo "     pm2 start ecosystem.config.js"
+echo "     pm2 save && pm2 startup"
+echo ""
+echo "  After SSL, open: https://agentcore.work"
+echo -e "${GREEN}============================================${NC}"

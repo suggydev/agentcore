@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Check, Building2, Users, Briefcase, Target, MessageCircle, Search, UserPlus, Share2, Megaphone, Linkedin, Instagram, Zap, Heart, Star, Send } from 'lucide-react';
+import { useAgentStore } from '@/store/agentStore';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -34,14 +35,12 @@ const PURPOSES = [
   { id: 'other', icon: Star, label: 'Другое', desc: 'Определю позже' },
 ];
 
-// --- Step indicators ---
 const STEPS = [
   { num: 1, label: 'Аккаунт' },
   { num: 2, label: 'О компании' },
   { num: 3, label: 'Запуск' },
 ];
 
-// --- Variants ---
 const slideRight = {
   initial: { opacity: 0, x: 24 },
   animate: { opacity: 1, x: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
@@ -54,19 +53,14 @@ const fadeUp = {
 };
 
 export default function LoginPage() {
-  // Auth mode
   const [isLogin, setIsLogin] = useState(true);
-
-  // Step tracking (register only)
   const [step, setStep] = useState(0);
 
-  // Step 1 fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Step 2 fields
   const [companyName, setCompanyName] = useState('');
   const [companySize, setCompanySize] = useState('');
   const [industry, setIndustry] = useState('');
@@ -76,6 +70,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [stepErrors, setStepErrors] = useState<Record<number, string>>({});
+
+  const setAuth = useAgentStore((s) => s.setAuth);
+
+  const persistAuth = (token: string, user: { id: string; name: string; email: string }, workspaceId: string) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('workspaceId', workspaceId);
+    document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+    setAuth(token, { id: user.id, name: user.name, email: user.email }, workspaceId);
+  };
 
   const getPasswordStrength = (pwd: string): { score: number; label: string; color: string } => {
     if (!pwd) return { score: 0, label: '', color: '' };
@@ -145,10 +149,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Ошибка регистрации');
 
-      localStorage.setItem('token', data.accessToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('workspaceId', data.workspaceId);
-      document.cookie = `token=${data.accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      persistAuth(data.accessToken, data.user, data.workspaceId);
       window.location.href = '/onboarding';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Ошибка регистрации');
@@ -171,10 +172,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Ошибка входа');
 
-      localStorage.setItem('token', data.accessToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('workspaceId', data.workspaceId);
-      document.cookie = `token=${data.accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      persistAuth(data.accessToken, data.user, data.workspaceId);
 
       const meRes = await fetch(`${API_BASE}/api/auth/me`, {
         headers: { Authorization: `Bearer ${data.accessToken}` },
@@ -196,7 +194,6 @@ export default function LoginPage() {
 
   const inputClass = "w-full px-4 py-3 rounded-xl border border-mauve-200 bg-white focus:outline-none focus:ring-2 focus:ring-mauve-400/30 focus:border-mauve-400 transition-all text-ink-900 placeholder:text-ink-300 text-sm";
 
-  // --- Login form ---
   const renderLogin = () => (
     <form onSubmit={handleLogin} className="space-y-4">
       <div>
@@ -227,7 +224,6 @@ export default function LoginPage() {
     </form>
   );
 
-  // --- Register step 1: Account ---
   const renderStep1 = () => (
     <motion.div key="step1" {...slideRight} className="space-y-4">
       <div>
@@ -277,7 +273,6 @@ export default function LoginPage() {
     </motion.div>
   );
 
-  // --- Register step 2: Company ---
   const renderStep2 = () => (
     <motion.div key="step2" {...slideRight} className="space-y-4">
       <div>
@@ -357,7 +352,6 @@ export default function LoginPage() {
     </motion.div>
   );
 
-  // --- Register step 3: Confirm ---
   const renderStep3 = () => (
     <motion.div key="step3" {...slideRight} className="space-y-5">
       <div className="bg-white rounded-2xl p-5 border border-mauve-100 shadow-sm">
@@ -441,7 +435,6 @@ export default function LoginPage() {
     </motion.div>
   );
 
-  // --- Progress bar ---
   const renderProgress = () => (
     <div className="flex items-center justify-center mb-6">
       {STEPS.map((s, i) => (
@@ -476,7 +469,6 @@ export default function LoginPage() {
     </div>
   );
 
-  // --- Background blobs (softer, less sci-fi) ---
   const renderBackground = () => (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
       <motion.div
@@ -537,7 +529,6 @@ export default function LoginPage() {
         className="relative z-10 w-full max-w-lg px-6"
       >
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 overflow-hidden">
-          {/* Trial banner */}
           {!isLogin && (
             <div className="bg-mauve-50/70 border-b border-mauve-200/30 px-6 py-3 flex items-center justify-center gap-2">
               <span className="text-sm font-medium text-mauve-700">7 дней бесплатного доступа при регистрации</span>
@@ -563,7 +554,6 @@ export default function LoginPage() {
               )}
             </AnimatePresence>
 
-            {/* Toggle login/register */}
             <div className="mt-6 flex items-center justify-center">
               <div className="inline-flex bg-mauve-100/60 rounded-xl p-1">
                 <button
@@ -591,7 +581,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer text */}
         <p className="mt-6 text-center text-xs text-ink-400 leading-relaxed">
           Защищено шифрованием. Ваши данные не передаются третьим лицам.
         </p>

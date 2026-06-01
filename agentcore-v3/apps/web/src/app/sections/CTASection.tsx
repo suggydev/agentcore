@@ -52,7 +52,7 @@ export default function CTASection() {
               Создайте ИИ-сотрудника за 60 секунд
             </h2>
             <p className="text-ink-300 max-w-md mx-auto mb-9 text-base">
-              Бесплатно первые 7 дней. Без карты. Без риска.
+              Бесплатно 14 дней + $10 кредитов на AI. Без карты. Без риска.
             </p>
             <MagneticButton strength={0.15}>
               <a href="/login" className="inline-flex items-center gap-2 px-9 py-4 bg-white text-ink-900 rounded-2xl font-semibold text-base hover:bg-ink-50 transition-colors shadow-lg shadow-white/10 cta-pulse-light">

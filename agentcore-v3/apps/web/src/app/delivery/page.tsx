@@ -11,7 +11,7 @@ export default function DeliveryPage() {
           <ArrowLeft className="w-4 h-4" /> На главную
         </Link>
         <h1 className="heading-2 text-ink-900 mb-3">Доставка и оплата</h1>
-        <p className="text-sm text-ink-400 mb-10">Как получить доступ к сервису и оплатить подписку. Last updated: 2026-06-01 (update via Settings → Company Data → lastUpdatedDate)</p>
+        <p className="text-sm text-ink-400 mb-10">Как получить доступ к сервису и оплатить подписку. Последнее обновление: 2026-06-01 (обновите в Настройки → Данные компании → lastUpdatedDate)</p>
 
         <div className="prose prose-sm max-w-none text-ink-600 space-y-6">
           <h2 className="text-lg font-semibold text-ink-900 mt-10 mb-3">1. Тип услуги</h2>
@@ -76,7 +76,7 @@ export default function DeliveryPage() {
           <p>Доступ к платному функционалу активируется мгновенно после подтверждения платежа.</p>
 
           <h2 className="text-lg font-semibold text-ink-900 mt-10 mb-3">6. Продление подписки</h2>
-          <p>Подписка продлевается автоматически каждый месяц. Вы можете отменить автопродление в любой момент в разделе «Billing» личного кабинета. При отмене подписки доступ к платформе сохраняется до конца оплаченного периода.</p>
+          <p>Подписка продлевается автоматически каждый месяц. Вы можете отменить автопродление в любой момент в разделе «Тарифы» личного кабинета. При отмене подписки доступ к платформе сохраняется до конца оплаченного периода.</p>
 
           <h2 className="text-lg font-semibold text-ink-900 mt-10 mb-3">7. Счета и закрывающие документы</h2>
           <p>Для юридических лиц и ИП предоставляются счета на оплату и закрывающие документы (акты выполненных работ). Для получения документов напишите на <a href="mailto:billing@agentcore.work" className="text-mauve-600 underline">billing@agentcore.work</a>.</p>

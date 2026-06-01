@@ -1,12 +1,15 @@
 const express = require('express');
+const { z } = require('zod');
 const { prisma } = require('../prisma-client');
 const config = require('../config');
 const { authenticate } = require('../middleware/auth');
+const { generalLimiter, aiLimiter } = require('../middleware/rateLimit');
 const yookassa = require('../services/yookassa');
+const { safeError } = require('../utils/errors');
 
 const router = express.Router();
 
-router.get('/plan', authenticate, async (req, res) => {
+router.get('/plan', authenticate, generalLimiter, async (req, res) => {
   try {
     const workspace = await prisma.workspace.findUnique({ where: { id: req.user.workspaceId } });
     const plan = workspace?.plan || 'FREE';
@@ -22,11 +25,11 @@ router.get('/plan', authenticate, async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
-router.get('/trial-status', authenticate, async (req, res) => {
+router.get('/trial-status', authenticate, generalLimiter, async (req, res) => {
   try {
     const workspace = await prisma.workspace.findUnique({ where: { id: req.user.workspaceId } });
     if (!workspace) return res.status(404).json({ error: 'Workspace not found' });
@@ -47,11 +50,11 @@ router.get('/trial-status', authenticate, async (req, res) => {
       isExpired: workspace.plan === 'TRIAL' && diffMs <= 0
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
-router.get('/usage', authenticate, async (req, res) => {
+router.get('/usage', authenticate, generalLimiter, async (req, res) => {
   try {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -65,11 +68,11 @@ router.get('/usage', authenticate, async (req, res) => {
     });
     res.json({ messages: messagesCount, conversations: conversationsCount, month: now.toISOString().slice(0, 7) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
-router.get('/suggy-balance', authenticate, async (req, res) => {
+router.get('/suggy-balance', authenticate, generalLimiter, async (req, res) => {
   try {
     const [workspace, topUpSum] = await Promise.all([
       prisma.workspace.findUnique({ where: { id: req.user.workspaceId } }),
@@ -106,17 +109,22 @@ router.get('/suggy-balance', authenticate, async (req, res) => {
       trialActive
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
-router.post('/top-up', authenticate, async (req, res) => {
-  try {
-    const { amount, returnUrl } = req.body;
+const topUpSchema = z.object({
+  amount: z.number().positive(),
+  returnUrl: z.string().url().optional()
+});
 
-    if (!amount || typeof amount !== 'number' || amount <= 0) {
+router.post('/top-up', authenticate, aiLimiter, async (req, res) => {
+  try {
+    const parsed = topUpSchema.safeParse(req.body);
+    if (!parsed.success) {
       return res.status(400).json({ error: 'Сумма пополнения должна быть положительным числом' });
     }
+    const { amount, returnUrl } = parsed.data;
 
     const orderId = `topup-${req.user.workspaceId}-${Date.now()}`;
 
@@ -152,21 +160,11 @@ router.post('/top-up', authenticate, async (req, res) => {
           supported: false
         });
       }
-      if (yookassaErr.response?.data) {
-        const ykMsg = yookassaErr.response.data.description || yookassaErr.response.data.message;
-        return res.status(502).json({
-          error: ykMsg || 'Ошибка платёжной системы',
-          code: yookassaErr.response.status,
-          supported: true
-        });
-      }
       throw yookassaErr;
     }
   } catch (err) {
     console.error('Top-up error:', err.message);
-    const status = err.response?.status || 500;
-    const message = err.response?.data?.description || err.response?.data?.message || err.message || 'Ошибка при создании платежа';
-    res.status(status).json({ error: message });
+    safeError(res, err, 502, 'Платёжная система временно недоступна');
   }
 });
 

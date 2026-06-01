@@ -1,8 +1,30 @@
 const express = require('express');
+const { z } = require('zod');
 const { prisma } = require('../prisma-client');
 const { authenticate } = require('../middleware/auth');
 const { generalLimiter } = require('../middleware/rateLimit');
 const { fetchModels } = require('../services/suggy');
+const { safeError } = require('../utils/errors');
+
+const agentPostSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().optional().default(''),
+  model: z.string().optional(),
+  systemPrompt: z.string().optional().default('You are a helpful AI assistant.'),
+  temperature: z.number().min(0).max(2).optional().default(0.7),
+  maxTokens: z.number().int().min(1).max(32000).optional().default(2000),
+  isActive: z.boolean().optional().default(true)
+});
+
+const agentPutSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().optional(),
+  model: z.string().optional(),
+  systemPrompt: z.string().optional(),
+  temperature: z.number().min(0).max(2).optional(),
+  maxTokens: z.number().int().min(1).max(32000).optional(),
+  isActive: z.boolean().optional()
+});
 
 const router = express.Router();
 
@@ -21,14 +43,9 @@ router.get('/', authenticate, generalLimiter, async (req, res) => {
     ]);
     res.json({ data: agents, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
-
-function normalizeModelId(model) {
-  if (!model || model.includes('/')) return model;
-  return `accounts/fireworks/models/${model}`;
-}
 
 router.get('/:id', authenticate, async (req, res) => {
   try {
@@ -38,27 +55,24 @@ router.get('/:id', authenticate, async (req, res) => {
     if (!agent) return res.status(404).json({ error: 'Agent not found' });
     res.json(agent);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
 router.post('/', authenticate, async (req, res) => {
   try {
-    let { name, description, model, systemPrompt, temperature, maxTokens, isActive } = req.body;
-    console.log('[AGENTS POST] Body:', JSON.stringify(req.body));
-    console.log('[AGENTS POST] User workspaceId:', req.user?.workspaceId);
-
-    // Normalize short model names (e.g., "glm-5p1" -> "accounts/fireworks/models/glm-5p1")
-    if (model) {
-      model = normalizeModelId(model);
+    const parsed = agentPostSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation error', details: parsed.error.flatten() });
     }
+    const { name, description, model: rawModel, systemPrompt, temperature, maxTokens, isActive } = parsed.data;
+
+    let model = rawModel ? normalizeModelId(rawModel) : null;
 
     const models = await fetchModels();
-    console.log('[AGENTS POST] Available models:', models.length);
-    const validModel = models.find(m => m.id === model);
+    const validModel = model ? models.find(m => m.id === model) : null;
     if (model && !validModel) {
-      console.log('[AGENTS POST] Invalid model:', model);
-      return res.status(400).json({ error: 'Invalid model selected', receivedModel: model, availableModels: models.map(m => m.id) });
+      return res.status(400).json({ error: 'Invalid model selected' });
     }
 
     const agent = await prisma.agent.create({
@@ -66,49 +80,49 @@ router.post('/', authenticate, async (req, res) => {
         name,
         description,
         model: model || 'accounts/fireworks/models/glm-5p1',
-        systemPrompt: systemPrompt || 'You are a helpful AI assistant.',
-        temperature: temperature || 0.7,
-        maxTokens: maxTokens || 2000,
-        isActive: isActive !== false,
+        systemPrompt,
+        temperature,
+        maxTokens,
+        isActive,
         workspaceId: req.user.workspaceId
       }
     });
     res.json(agent);
   } catch (err) {
     console.error('[AGENTS POST] Error:', err);
-    res.status(400).json({ error: err.message, code: err.code, meta: err.meta });
+    safeError(res, err, 400, 'Failed to create agent');
   }
 });
 
 router.put('/:id', authenticate, async (req, res) => {
   try {
-    const { name, description, model, systemPrompt, temperature, maxTokens, isActive } = req.body;
+    const parsed = agentPutSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation error', details: parsed.error.flatten() });
+    }
+    const data = parsed.data;
+
     const existing = await prisma.agent.findFirst({
       where: { id: req.params.id, workspaceId: req.user.workspaceId }
     });
     if (!existing) return res.status(404).json({ error: 'Agent not found' });
 
-    if (model) {
-      const normalizedModel = normalizeModelId(model);
+    if (data.model) {
+      const normalizedModel = normalizeModelId(data.model);
       const models = await fetchModels();
-      const validModel = models.find(m => m.id === normalizedModel);
-      if (!validModel) {
-        return res.status(400).json({
-          error: 'Invalid model selected',
-          receivedModel: model,
-          availableModels: models.map(m => m.id)
-        });
+      if (!models.find(m => m.id === normalizedModel)) {
+        return res.status(400).json({ error: 'Invalid model selected' });
       }
     }
 
     const updateData = {};
-    if (name !== undefined) updateData.name = name;
-    if (description !== undefined) updateData.description = description;
-    if (model !== undefined) updateData.model = normalizeModelId(model);
-    if (systemPrompt !== undefined) updateData.systemPrompt = systemPrompt;
-    if (temperature !== undefined) updateData.temperature = temperature;
-    if (maxTokens !== undefined) updateData.maxTokens = maxTokens;
-    if (isActive !== undefined) updateData.isActive = isActive;
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.model !== undefined) updateData.model = normalizeModelId(data.model);
+    if (data.systemPrompt !== undefined) updateData.systemPrompt = data.systemPrompt;
+    if (data.temperature !== undefined) updateData.temperature = data.temperature;
+    if (data.maxTokens !== undefined) updateData.maxTokens = data.maxTokens;
+    if (data.isActive !== undefined) updateData.isActive = data.isActive;
 
     const agent = await prisma.agent.update({
       where: { id: req.params.id },
@@ -116,7 +130,7 @@ router.put('/:id', authenticate, async (req, res) => {
     });
     res.json(agent);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    safeError(res, err, 400, 'Failed to update agent');
   }
 });
 
@@ -128,7 +142,7 @@ router.delete('/:id', authenticate, async (req, res) => {
     if (result.count === 0) return res.status(404).json({ error: 'Agent not found' });
     res.json({ success: true });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    safeError(res, err, 400, 'Failed to delete agent');
   }
 });
 

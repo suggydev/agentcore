@@ -32,6 +32,14 @@ interface Model {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  const ls = localStorage.getItem('token');
+  if (ls) return ls;
+  const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+  return match ? match[1] : null;
+}
+
 export default function ChatPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConv, setCurrentConv] = useState<Conversation | null>(null);
@@ -46,27 +54,33 @@ export default function ChatPage() {
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const modelDropdownRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const touchStartX = useRef<number>(0);
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
+    const token = getToken();
     if (!token) {
       window.location.href = '/login';
       return;
     }
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     const init = async () => {
-      await loadConversations();
-      await fetchModels();
+      await loadConversations(token, controller.signal);
+      await fetchModels(controller.signal);
 
       const params = new URLSearchParams(window.location.search);
       const convId = params.get('id');
       if (convId) {
-        await loadMessages(convId);
+        await loadMessages(convId, token, controller.signal);
       }
       setInitialLoadDone(true);
     };
     init();
-  }, [token]);
+
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -84,21 +98,20 @@ export default function ChatPage() {
     }
   }, [modelDropdownOpen]);
 
-  const fetchModels = async () => {
+  const fetchModels = async (signal?: AbortSignal) => {
     try {
-      const res = await fetch(`${API_BASE}/api/v1/models`);
+      const res = await fetch(`${API_BASE}/api/v1/models`, { signal });
       const data = await res.json();
-      // Only show chat-capable models in the dropdown
-      // Exclude flux image models even if API incorrectly marks supports_chat=true
       const allModels = Array.isArray(data) ? data : (data?.data || []);
-      setModels(allModels.filter((m: any) => m.supports_chat === true && !m.id?.includes('flux')));
+      setModels(allModels.filter((m: { supports_chat?: boolean; id?: string }) => m.supports_chat === true && !m.id?.includes('flux')));
     } catch {}
   };
 
-  const loadConversations = async () => {
+  const loadConversations = async (t: string, signal?: AbortSignal) => {
     try {
       const res = await fetch(`${API_BASE}/api/conversations`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${t}` },
+        signal,
       });
       if (res.ok) {
         const data = await res.json();
@@ -109,6 +122,8 @@ export default function ChatPage() {
   };
 
   const createConversation = async (): Promise<Conversation | null> => {
+    const token = getToken();
+    if (!token) return null;
     try {
       const res = await fetch(`${API_BASE}/api/conversations`, {
         method: 'POST',
@@ -132,10 +147,13 @@ export default function ChatPage() {
     }
   };
 
-  const loadMessages = async (convId: string) => {
+  const loadMessages = async (convId: string, t?: string, signal?: AbortSignal) => {
+    const token = t || getToken();
+    if (!token) return;
     try {
       const res = await fetch(`${API_BASE}/api/conversations/${convId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        signal,
       });
       if (res.ok) {
         const data = await res.json();
@@ -147,6 +165,8 @@ export default function ChatPage() {
   };
 
   const sendMessage = async (messageContent?: string, targetConvId?: string) => {
+    const token = getToken();
+    if (!token) return;
     const convId = targetConvId || currentConv?.id;
     const content = (messageContent ?? input).trim();
     if (!content || !convId || loading) return;
@@ -207,6 +227,8 @@ export default function ChatPage() {
   };
 
   const deleteConversation = async (id: string) => {
+    const token = getToken();
+    if (!token) return;
     try {
       await fetch(`${API_BASE}/api/conversations/${id}`, {
         method: 'DELETE',
@@ -237,7 +259,6 @@ export default function ChatPage() {
 
   return (
     <div className="h-screen flex bg-[#faf8fb] overflow-hidden">
-      {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div 
@@ -250,7 +271,6 @@ export default function ChatPage() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
       <motion.aside 
         className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white border-r border-mauve-100 flex flex-col shadow-xl lg:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-300`}
       >
@@ -335,7 +355,6 @@ export default function ChatPage() {
           )}
         </div>
 
-        {/* Models Info */}
         <div className="p-4 border-t border-mauve-100">
           <p className="text-xs text-mauve-400 mb-2 font-medium">Доступные модели</p>
           <div className="flex flex-wrap gap-1">
@@ -353,9 +372,7 @@ export default function ChatPage() {
         </div>
       </motion.aside>
 
-      {/* Main Chat Area */}
       <main className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
         <header className="flex items-center gap-3 px-4 py-3 border-b border-mauve-100 bg-white/80 backdrop-blur-sm">
           <button 
             onClick={() => setSidebarOpen(true)}
@@ -385,7 +402,6 @@ export default function ChatPage() {
             )}
           </div>
 
-          {/* Model selector */}
           {currentConv && (
             <div className="relative" ref={modelDropdownRef}>
               <button
@@ -437,7 +453,6 @@ export default function ChatPage() {
           </a>
         </header>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {!currentConv ? (
             <div className="h-full flex flex-col items-center justify-center text-center px-6">
@@ -458,12 +473,12 @@ export default function ChatPage() {
               </div>
               <div className="flex flex-wrap justify-center gap-2">
                 {[
-                  { icon: '💡', text: 'Explain quantum computing in simple terms' },
-                  { icon: '🔧', text: 'Debug this React useEffect infinite loop' },
-                  { icon: '📊', text: 'Create a Python script to analyze CSV data' },
-                  { icon: '🎨', text: 'Design a REST API for a task manager app' },
-                  { icon: '📝', text: 'Напиши SQL-запрос для поиска дубликатов' },
-                  { icon: '🚀', text: 'Optimize this Node.js API for performance' },
+                  { icon: '\ud83d\udca1', text: 'Explain quantum computing in simple terms' },
+                  { icon: '\ud83d\udd27', text: 'Debug this React useEffect infinite loop' },
+                  { icon: '\ud83d\udcca', text: 'Create a Python script to analyze CSV data' },
+                  { icon: '\ud83c\udfa8', text: 'Design a REST API for a task manager app' },
+                  { icon: '\ud83d\udcdd', text: 'Напиши SQL-запрос для поиска дубликатов' },
+                  { icon: '\ud83d\ude80', text: 'Optimize this Node.js API for performance' },
                 ].map(item => (
                   <button
                     key={item.text}
@@ -542,7 +557,6 @@ export default function ChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
         {currentConv && (
           <div className="p-4 bg-white/80 backdrop-blur-sm border-t border-mauve-100">
             <div className="max-w-4xl mx-auto flex gap-3">

@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const { prisma } = require('../prisma-client');
 const config = require('../config');
 const { authenticate } = require('../middleware/auth');
+const { generalLimiter } = require('../middleware/rateLimit');
+const { safeError } = require('../utils/errors');
 
 const router = express.Router();
 
@@ -24,7 +26,7 @@ function generateWebhookSecret() {
   return 'whsec_' + crypto.randomBytes(20).toString('hex');
 }
 
-router.get('/', authenticate, async (req, res) => {
+router.get('/', authenticate, generalLimiter, async (req, res) => {
   try {
     const workspace = await prisma.workspace.findUnique({ where: { id: req.user.workspaceId } });
     if (!workspace) return res.status(404).json({ error: 'Workspace not found' });
@@ -62,11 +64,11 @@ router.get('/', authenticate, async (req, res) => {
     });
   } catch (err) {
     console.error('Integrations GET error:', err);
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
-router.post('/:name/connect', authenticate, async (req, res) => {
+router.post('/:name/connect', authenticate, generalLimiter, async (req, res) => {
   try {
     const { name } = req.params;
     const key = name.toLowerCase();
@@ -125,11 +127,11 @@ router.post('/:name/connect', authenticate, async (req, res) => {
     res.json({ success: true, integration: integrations[key] });
   } catch (err) {
     console.error('Integration connect error:', err);
-    res.status(400).json({ error: err.message });
+    safeError(res, err, 400, 'Failed to connect integration');
   }
 });
 
-router.delete('/:name/disconnect', authenticate, async (req, res) => {
+router.delete('/:name/disconnect', authenticate, generalLimiter, async (req, res) => {
   try {
     const { name } = req.params;
     const key = name.toLowerCase();
@@ -154,11 +156,11 @@ router.delete('/:name/disconnect', authenticate, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Integration disconnect error:', err);
-    res.status(400).json({ error: err.message });
+    safeError(res, err, 400, 'Failed to disconnect integration');
   }
 });
 
-router.get('/telegram/check', authenticate, async (req, res) => {
+router.get('/telegram/check', authenticate, generalLimiter, async (req, res) => {
   try {
     const workspace = await prisma.workspace.findUnique({ where: { id: req.user.workspaceId } });
     if (!workspace) return res.status(404).json({ error: 'Workspace not found' });
@@ -179,7 +181,7 @@ router.get('/telegram/check', authenticate, async (req, res) => {
       res.status(400).json({ connected: false, error: 'Invalid bot token or Telegram API unreachable' });
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 

@@ -5,6 +5,64 @@ export type AgentTone = 'formal' | 'friendly' | 'expert' | 'salesy' | 'reserved'
 export type ResponseSpeed = 'instant' | 'fast' | 'natural' | 'thoughtful';
 export type AggressionHandling = 'calm' | 'empathy' | 'redirect' | 'escalate';
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface WorkspaceSettings {
+  name: string;
+  companyName: string;
+  companySize: string;
+  industry: string;
+  geography: string;
+  website: string;
+  crm: string;
+  legalName: string;
+  bin: string;
+  ogrn: string;
+  legalAddress: string;
+  physicalAddress: string;
+  phone: string;
+  email: string;
+  workingHours: string;
+  telegram: string;
+  whatsapp: string;
+  instagram: string;
+  privacyText: string;
+  termsText: string;
+  refundText: string;
+  deliveryText: string;
+  channels: {
+    webChat: boolean;
+    telegram: boolean;
+    whatsapp: boolean;
+    slack: boolean;
+    discord: boolean;
+    email: boolean;
+  };
+  agentDefaults: {
+    model: string;
+    temperature: number;
+    maxTokens: number;
+  };
+  notifications: {
+    emailNotifications: boolean;
+    weeklyReport: boolean;
+  };
+}
+
+export interface BillingState {
+  balance: number;
+  toppedUpBalance: number;
+  subscriptionCredit: number;
+  subscriptionActive: boolean;
+  plan: string | null;
+  trialDaysLeft: number;
+  isTrialing: boolean;
+}
+
 export interface WorkspaceData {
   companyName: string;
   companySize: string;
@@ -56,9 +114,27 @@ export interface OnboardingState {
 }
 
 export interface AgentStore {
+  auth: {
+    token: string;
+    isAuthenticated: boolean;
+    user: UserProfile | null;
+    workspaceId: string;
+  };
+  billing: BillingState;
+  workspaceSettings: Partial<WorkspaceSettings>;
   onboarding: OnboardingState;
   onboardingTourCompleted: boolean;
+  ui: {
+    sidebarMobileOpen: boolean;
+    commandPaletteOpen: boolean;
+    onBoardingTourVisible: boolean;
+  };
+
+  setAuth: (token: string, user: UserProfile | null, workspaceId: string) => void;
+  clearAuth: () => void;
+  setBilling: (billing: Partial<BillingState>) => void;
   setWorkspace: (workspace: Partial<WorkspaceData>) => void;
+  setWorkspaceSettings: (settings: Partial<WorkspaceSettings>) => void;
   setPersona: (persona: Partial<AgentPersona>) => void;
   setKnowledge: (knowledge: Partial<KnowledgeConfig>) => void;
   setGoal: (goal: AgentGoal | null) => void;
@@ -67,6 +143,10 @@ export interface AgentStore {
   resetOnboarding: () => void;
   startTrial: () => void;
   getTrialDaysLeft: () => number;
+  setSidebarMobileOpen: (open: boolean) => void;
+  setCommandPaletteOpen: (open: boolean) => void;
+  setOnboardingTourVisible: (visible: boolean) => void;
+  logout: () => void;
 }
 
 const defaultWorkspace: WorkspaceData = {
@@ -103,7 +183,7 @@ const defaultKnowledge: KnowledgeConfig = {
   googleDriveUrl: '',
 };
 
-const defaultState: OnboardingState = {
+const defaultOnboarding: OnboardingState = {
   workspace: defaultWorkspace,
   persona: defaultPersona,
   knowledge: defaultKnowledge,
@@ -113,11 +193,55 @@ const defaultState: OnboardingState = {
   trialDays: 7,
 };
 
+const defaultBilling: BillingState = {
+  balance: 0,
+  toppedUpBalance: 0,
+  subscriptionCredit: 0,
+  subscriptionActive: false,
+  plan: null,
+  trialDaysLeft: 0,
+  isTrialing: false,
+};
+
 export const useAgentStore = create<AgentStore>()(
   persist(
     (set, get) => ({
-      onboarding: defaultState,
+      auth: {
+        token: '',
+        isAuthenticated: false,
+        user: null,
+        workspaceId: '',
+      },
+      billing: defaultBilling,
+      workspaceSettings: {},
+      onboarding: defaultOnboarding,
       onboardingTourCompleted: false,
+      ui: {
+        sidebarMobileOpen: false,
+        commandPaletteOpen: false,
+        onBoardingTourVisible: false,
+      },
+
+      setAuth: (token, user, workspaceId) =>
+        set({
+          auth: {
+            token,
+            isAuthenticated: !!token,
+            user,
+            workspaceId,
+          },
+        }),
+
+      clearAuth: () =>
+        set({
+          auth: { token: '', isAuthenticated: false, user: null, workspaceId: '' },
+          billing: defaultBilling,
+        }),
+
+      setBilling: (billing) =>
+        set((state) => ({
+          billing: { ...state.billing, ...billing },
+        })),
 
       setWorkspace: (workspace) =>
         set((state) => ({
@@ -125,6 +249,11 @@ export const useAgentStore = create<AgentStore>()(
             ...state.onboarding,
             workspace: { ...state.onboarding.workspace, ...workspace },
           },
+        })),
+
+      setWorkspaceSettings: (settings) =>
+        set((state) => ({
+          workspaceSettings: { ...state.workspaceSettings, ...settings },
         })),
 
       setPersona: (persona) =>
@@ -163,8 +292,8 @@ export const useAgentStore = create<AgentStore>()(
         set({ onboardingTourCompleted: true }),
 
       resetOnboarding: () =>
-        set(() => ({
-          onboarding: defaultState,
+        set((state) => ({
+          onboarding: defaultOnboarding,
         })),
 
       startTrial: () =>
@@ -184,9 +313,40 @@ export const useAgentStore = create<AgentStore>()(
         const daysPassed = Math.floor(diff / (1000 * 60 * 60 * 24));
         return Math.max(0, state.onboarding.trialDays - daysPassed);
       },
+
+      setSidebarMobileOpen: (open) =>
+        set((state) => ({
+          ui: { ...state.ui, sidebarMobileOpen: open },
+        })),
+
+      setCommandPaletteOpen: (open) =>
+        set((state) => ({
+          ui: { ...state.ui, commandPaletteOpen: open },
+        })),
+
+      setOnboardingTourVisible: (visible) =>
+        set((state) => ({
+          ui: { ...state.ui, onBoardingTourVisible: visible },
+        })),
+
+      logout: () => {
+        if (typeof window !== 'undefined') {
+          localStorage.clear();
+          document.cookie = 'token=; path=/; max-age=0; SameSite=Lax';
+        }
+        set({
+          auth: { token: '', isAuthenticated: false, user: null, workspaceId: '' },
+          billing: defaultBilling,
+        });
+      },
     }),
     {
       name: 'agentcore-agent-store',
+      partialize: (state) => ({
+        onboarding: state.onboarding,
+        onboardingTourCompleted: state.onboardingTourCompleted,
+        workspaceSettings: state.workspaceSettings,
+      }),
     }
   )
 );

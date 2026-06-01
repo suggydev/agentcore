@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Coins, ArrowRight, Clock, Info, Wallet, CreditCard, Plus, Loader2, Gift, Shield, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
@@ -21,12 +21,17 @@ export default function CreditsPage() {
   const [topUpError, setTopUpError] = useState('');
   const [topUpSuccess, setTopUpSuccess] = useState('');
 
+  const acRef = useRef<AbortController | null>(null);
+
   const fetchBalance = useCallback(() => {
     const token = localStorage.getItem('token');
     if (!token) { window.location.href = '/login'; return; }
     setBalanceError('');
+    if (acRef.current) acRef.current.abort();
+    acRef.current = new AbortController();
     fetch(`${API_BASE}/api/billing/suggy-balance`, {
       headers: { Authorization: `Bearer ${token}` },
+      signal: acRef.current.signal,
     })
       .then((res) => res.ok ? res.json() : Promise.reject(res))
       .then((data) => {
@@ -37,13 +42,15 @@ export default function CreditsPage() {
         setPlan(data.plan ?? '');
       })
       .catch((err) => {
-        console.error('Failed to fetch balance:', err);
-        setBalanceError('Не удалось загрузить баланс');
+        if (err.name !== 'AbortError') {
+          console.error('Failed to fetch balance:', err);
+          setBalanceError('Не удалось загрузить баланс');
+        }
       })
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetchBalance(); }, [fetchBalance]);
+  useEffect(() => { fetchBalance(); return () => acRef.current?.abort(); }, [fetchBalance]);
 
   const handleTopUp = async () => {
     const amount = parseFloat(topUpAmount);

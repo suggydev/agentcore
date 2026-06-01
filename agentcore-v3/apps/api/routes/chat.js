@@ -1,21 +1,48 @@
 const express = require('express');
 const axios = require('axios');
+const { z } = require('zod');
 const { prisma } = require('../prisma-client');
 const config = require('../config');
 const { authenticate } = require('../middleware/auth');
 const { checkTrial } = require('../middleware/auth');
 const { aiLimiter } = require('../middleware/rateLimit');
 const { fetchModels, routeToModel } = require('../services/suggy');
+const { safeError } = require('../utils/errors');
 
 const router = express.Router();
 
+const messageItemSchema = z.object({
+  role: z.enum(['system', 'user', 'assistant', 'tool']),
+  content: z.string()
+});
+
+const completionsSchema = z.object({
+  messages: z.array(messageItemSchema).min(1),
+  model: z.string().optional(),
+  agentId: z.string().uuid().optional(),
+  temperature: z.number().min(0).max(2).optional().default(0.7),
+  max_tokens: z.number().int().min(1).max(32000).optional().default(2000),
+  stream: z.boolean().optional().default(false)
+});
+
+const imageGenSchema = z.object({
+  prompt: z.string().min(1).max(4000),
+  n: z.number().int().min(1).max(10).optional().default(1),
+  size: z.string().optional().default('1024x1024'),
+  model: z.string().optional()
+});
+
 router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res) => {
   try {
-    const { messages, model, agentId, temperature = 0.7, max_tokens = 2000, stream = false } = req.body;
+    const parsed = completionsSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation error', details: parsed.error.flatten() });
+    }
+    const { messages, model, agentId, temperature, max_tokens: maxTokens, stream } = parsed.data;
 
     let selectedModel = model;
 
-    if (!selectedModel && messages && messages.length > 0) {
+    if (!selectedModel && messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
       const models = await fetchModels();
       const routed = routeToModel(lastMessage.role, lastMessage.content, models);
@@ -35,9 +62,9 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
       `${config.SUGGY_BASE_URL}/chat/completions`,
       {
         model: selectedModel,
-        messages: messages,
+        messages,
         temperature,
-        max_tokens,
+        max_tokens: maxTokens,
         stream
       },
       {
@@ -51,7 +78,6 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
       }
     );
 
-    // Persist conversation before sending to AI (for both streaming and non-streaming)
     const conversation = await prisma.conversation.create({
       data: {
         workspaceId: req.user.workspaceId,
@@ -121,7 +147,7 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
         console.error('Streaming error:', err.message);
         if (!streamEnded) {
           streamEnded = true;
-          await saveAssistantMessage(fullContent || `[Streaming error: ${err.message}]`);
+          await saveAssistantMessage(fullContent || '[Streaming error]');
         }
       });
 
@@ -129,7 +155,6 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
       return;
     }
 
-    // Save AI response for non-streaming
     const aiMessage = response.data.choices?.[0]?.message;
     if (aiMessage) {
       await prisma.message.create({
@@ -151,23 +176,24 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
       }
     });
   } catch (err) {
-    console.error('Chat completion error:', err.response?.data || err.message);
+    console.error('Chat completion error:', err.code || err.response?.status || err.message);
     if (err.code === 'ECONNABORTED') {
-      return res.status(504).json({ error: 'Превышено время ожидания от AI-модели', model: req.body.model || 'auto-routed' });
+      return res.status(504).json({ error: 'Превышено время ожидания от AI-модели' });
     }
     if (err.response?.status === 429) {
-      return res.status(429).json({ error: 'Слишком много запросов. Подождите.', model: req.body.model || 'auto-routed' });
+      return res.status(429).json({ error: 'Слишком много запросов. Подождите.' });
     }
-    res.status(err.response?.status || 500).json({
-      error: err.response?.data?.error?.message || err.message,
-      model: req.body.model || 'auto-routed'
-    });
+    safeError(res, err, 502, 'AI service unavailable');
   }
 });
 
 router.post('/images/generations', authenticate, checkTrial, aiLimiter, async (req, res) => {
   try {
-    const { prompt, n = 1, size = '1024x1024', model } = req.body;
+    const parsed = imageGenSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation error', details: parsed.error.flatten() });
+    }
+    const { prompt, n, size, model } = parsed.data;
 
     const models = await fetchModels();
     const imageModel = model ||
@@ -193,10 +219,8 @@ router.post('/images/generations', authenticate, checkTrial, aiLimiter, async (r
       _meta: { model_used: imageModel }
     });
   } catch (err) {
-    console.error('Image generation error:', err.response?.data || err.message);
-    res.status(err.response?.status || 500).json({
-      error: err.response?.data?.error?.message || err.message
-    });
+    console.error('Image generation error:', err.code || err.response?.status || err.message);
+    safeError(res, err, 502, 'Image generation service unavailable');
   }
 });
 

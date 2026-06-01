@@ -1,11 +1,29 @@
 const express = require('express');
 const axios = require('axios');
+const { z } = require('zod');
 const { prisma } = require('../prisma-client');
 const config = require('../config');
 const { authenticate } = require('../middleware/auth');
 const { checkTrial } = require('../middleware/auth');
 const { generalLimiter, aiLimiter } = require('../middleware/rateLimit');
 const { fetchModels, routeToModel } = require('../services/suggy');
+const { safeError } = require('../utils/errors');
+
+const createConversationSchema = z.object({
+  title: z.string().min(1).max(500).optional(),
+  agentId: z.string().uuid().optional().nullable()
+});
+
+const updateConversationSchema = z.object({
+  title: z.string().min(1).max(500).optional(),
+  agentId: z.string().uuid().optional().nullable()
+});
+
+const messageSchema = z.object({
+  content: z.string().min(1),
+  role: z.enum(['user', 'assistant', 'system']).optional().default('user'),
+  model: z.string().optional()
+});
 
 const router = express.Router();
 
@@ -25,13 +43,17 @@ router.get('/', authenticate, generalLimiter, async (req, res) => {
     ]);
     res.json({ data: conversations, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
 router.post('/', authenticate, async (req, res) => {
   try {
-    const { title, agentId } = req.body;
+    const parsed = createConversationSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation error', details: parsed.error.flatten() });
+    }
+    const { title, agentId } = parsed.data;
     const conversation = await prisma.conversation.create({
       data: {
         title: title || 'New Conversation',
@@ -41,7 +63,7 @@ router.post('/', authenticate, async (req, res) => {
     });
     res.json(conversation);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    safeError(res, err, 400, 'Failed to create conversation');
   }
 });
 
@@ -54,13 +76,18 @@ router.get('/:id', authenticate, async (req, res) => {
     if (!conversation) return res.status(404).json({ error: 'Not found' });
     res.json(conversation);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
 router.post('/:id/messages', authenticate, checkTrial, aiLimiter, async (req, res) => {
   try {
-    const { content, role = 'user', model } = req.body;
+    const parsed = messageSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation error', details: parsed.error.flatten() });
+    }
+    const { content, role, model } = parsed.data;
+
     const conversation = await prisma.conversation.findFirst({
       where: { id: req.params.id, workspaceId: req.user.workspaceId }
     });
@@ -82,7 +109,7 @@ router.post('/:id/messages', authenticate, checkTrial, aiLimiter, async (req, re
       let selectedModel = model;
 
       const agent = conversation.agentId
-        ? await prisma.agent.findUnique({ where: { id: conversation.agentId } })
+        ? await prisma.agent.findFirst({ where: { id: conversation.agentId, workspaceId: req.user.workspaceId } })
         : null;
 
       if (!selectedModel && agent?.model) {
@@ -99,14 +126,14 @@ router.post('/:id/messages', authenticate, checkTrial, aiLimiter, async (req, re
         orderBy: { order: 'asc' }
       });
 
-      const messages = history.map(m => ({ role: m.role, content: m.content }));
-
-      let systemPrompt = agent?.systemPrompt || null;
-
       const knowledgeDocs = await prisma.knowledgeDocument.findMany({
         where: { workspaceId: req.user.workspaceId },
         select: { title: true, content: true }
       });
+
+      const messages = history.map(m => ({ role: m.role, content: m.content }));
+
+      let systemPrompt = agent?.systemPrompt || null;
 
       if (knowledgeDocs.length > 0) {
         const kbContext = knowledgeDocs.map(d => `## ${d.title}\n${d.content}`).join('\n\n');
@@ -147,14 +174,14 @@ router.post('/:id/messages', authenticate, checkTrial, aiLimiter, async (req, re
             content: aiContent,
             role: 'assistant',
             model: selectedModel,
-            order: count + 1,
+            order: message.order + 1,
             conversationId: req.params.id
           }
         });
 
         return res.json({ userMessage: message, aiMessage, response: aiMessage.content, model_used: selectedModel });
       } catch (aiErr) {
-        console.error('AI response error:', aiErr.response?.data || aiErr.message);
+        console.error('AI response error:', aiErr.code || aiErr.response?.status || aiErr.message);
         let errorContent;
         let httpStatus = 502;
         if (aiErr.code === 'ECONNABORTED') {
@@ -164,14 +191,14 @@ router.post('/:id/messages', authenticate, checkTrial, aiLimiter, async (req, re
           errorContent = 'Слишком много запросов. Подождите.';
           httpStatus = 429;
         } else {
-          errorContent = `Error: ${aiErr.response?.data?.error?.message || aiErr.message}. Model tried: ${selectedModel}`;
+          errorContent = 'Не удалось получить ответ от AI. Попробуйте позже.';
         }
         const errorMessage = await prisma.message.create({
           data: {
             content: errorContent,
             role: 'system',
             model: selectedModel,
-            order: count + 1,
+            order: message.order + 1,
             conversationId: req.params.id
           }
         });
@@ -182,23 +209,12 @@ router.post('/:id/messages', authenticate, checkTrial, aiLimiter, async (req, re
           error: errorContent
         });
       }
-        const errorMessage = await prisma.message.create({
-          data: {
-            content: errorContent,
-            role: 'system',
-            model: selectedModel,
-            order: count + 1,
-            conversationId: req.params.id
-          }
-        });
-        return res.json({ userMessage: message, aiMessage: errorMessage, response: errorMessage.content, model_used: selectedModel, error: true });
-      }
     }
 
     res.json({ message });
   } catch (err) {
     console.error('Message error:', err);
-    res.status(400).json({ error: err.message });
+    safeError(res, err, 400, 'Failed to send message');
   }
 });
 
@@ -210,13 +226,18 @@ router.delete('/:id', authenticate, async (req, res) => {
     if (result.count === 0) return res.status(404).json({ error: 'Conversation not found' });
     res.json({ success: true });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    safeError(res, err, 400, 'Failed to delete conversation');
   }
 });
 
 router.patch('/:id', authenticate, async (req, res) => {
   try {
-    const { title, agentId } = req.body;
+    const parsed = updateConversationSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation error', details: parsed.error.flatten() });
+    }
+    const { title, agentId } = parsed.data;
+
     const existing = await prisma.conversation.findFirst({
       where: { id: req.params.id, workspaceId: req.user.workspaceId }
     });
@@ -232,7 +253,7 @@ router.patch('/:id', authenticate, async (req, res) => {
     });
     res.json(conversation);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    safeError(res, err, 400, 'Failed to update conversation');
   }
 });
 

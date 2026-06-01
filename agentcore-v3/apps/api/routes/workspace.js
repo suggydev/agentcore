@@ -2,10 +2,12 @@ const express = require('express');
 const { z } = require('zod');
 const { prisma } = require('../prisma-client');
 const { authenticate } = require('../middleware/auth');
+const { generalLimiter } = require('../middleware/rateLimit');
+const { safeError } = require('../utils/errors');
 
 const router = express.Router();
 
-router.get('/', authenticate, async (req, res) => {
+router.get('/', authenticate, generalLimiter, async (req, res) => {
   try {
     const workspace = await prisma.workspace.findUnique({ where: { id: req.user.workspaceId } });
     if (!workspace) return res.status(404).json({ error: 'Workspace not found' });
@@ -22,11 +24,11 @@ router.get('/', authenticate, async (req, res) => {
     });
   } catch (err) {
     console.error('Workspace GET error:', err);
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
-router.put('/', authenticate, async (req, res) => {
+router.put('/', authenticate, generalLimiter, async (req, res) => {
   try {
     const schema = z.object({
       workspaceName: z.string().min(1).optional(),
@@ -59,7 +61,10 @@ router.put('/', authenticate, async (req, res) => {
     res.json({ success: true, settings: updated.settings });
   } catch (err) {
     console.error('Onboarding error:', err);
-    res.status(400).json({ error: err.message });
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: err.flatten() });
+    }
+    safeError(res, err, 400, 'Failed to update workspace');
   }
 });
 

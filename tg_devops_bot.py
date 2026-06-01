@@ -15,13 +15,19 @@ import subprocess
 import asyncio
 from datetime import datetime
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+except ImportError:
+    pass
+
 # === CONFIG ===
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"  # Get from @BotFather
-ALLOWED_USERS = []  # Telegram user IDs that can control the bot
+BOT_TOKEN = os.environ['BOT_TOKEN']
+ALLOWED_USERS = [uid.strip() for uid in os.environ.get('ALLOWED_USERS', '').split(',') if uid.strip()]
 
 SERVER_HOST = '31.76.102.116'
 SERVER_USER = 'root'
-SERVER_PASS = '&86TQtlQX7GuWqlR'
+SERVER_PASS = os.environ['SERVER_PASS']
 SERVER_PROJECT = '/opt/agentcore-v3'
 
 HELP_TEXT = """
@@ -44,7 +50,7 @@ HELP_TEXT = """
 
 def check_auth(user_id):
     """Check if user is allowed"""
-    return str(user_id) in ALLOWED_USERS
+    return str(user_id) in [str(uid) for uid in ALLOWED_USERS]
 
 async def deploy(send_msg):
     """Run deploy.py"""
@@ -173,6 +179,23 @@ async def handle_message(text, user_id, send_msg):
     elif cmd == '/update':
         await deploy(send_msg)
         await restart_services(send_msg)
+    elif cmd == '/check':
+        await send_msg("🔍 Запускаю проверку кода...")
+        try:
+            project_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'agentcore-v3')
+            proc = await asyncio.create_subprocess_exec(
+                sys.executable, '-m', 'py_compile',
+                os.path.join(project_dir, 'apps', 'api', 'server.js'),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await proc.communicate()
+            if proc.returncode == 0 and not stderr:
+                await send_msg("✅ Проверка пройдена успешно")
+            else:
+                await send_msg(f"❌ Ошибки проверки:\n<pre>{stderr.decode()[:2000]}</pre>")
+        except Exception as e:
+            await send_msg(f"❌ Ошибка при проверке: {str(e)}")
     elif cmd.startswith('/task'):
         await send_msg("📋 <b>Актуальные задачи AgentCore:</b>\n\n"
                        "1. Фикс анимаций на лендинге ✅\n"
@@ -206,7 +229,7 @@ async def main_polling():
         text = update.message.text
         
         async def send(msg):
-            for chunk in [msg[i:i:4000] for i in range(0, len(msg), 4000)]:
+            for chunk in [msg[i:i+4000] for i in range(0, len(msg), 4000)]:
                 await update.message.reply_text(chunk, parse_mode='HTML')
         
         await handle_message(text, user_id, send)

@@ -4,6 +4,14 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 
+function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  const ls = localStorage.getItem('token');
+  if (ls) return ls;
+  const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+  return match ? match[1] : null;
+}
+
 export default function DashboardRootLayout({
   children,
 }: {
@@ -12,7 +20,7 @@ export default function DashboardRootLayout({
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     if (!token) {
       router.push('/login');
     }

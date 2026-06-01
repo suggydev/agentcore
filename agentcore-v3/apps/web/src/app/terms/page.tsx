@@ -29,7 +29,7 @@ export default function TermsPage() {
           <ArrowLeft className="w-4 h-4" /> На главную
         </Link>
         <h1 className="heading-2 text-ink-900 mb-3">Пользовательское соглашение</h1>
-        <p className="text-sm text-ink-400 mb-10">Публичная оферта. Last updated: {lastUpdated}</p>
+        <p className="text-sm text-ink-400 mb-10">Публичная оферта. Последнее обновление: {lastUpdated}</p>
 
         <div className="prose prose-sm max-w-none text-ink-600 space-y-6">
           <h2 className="text-lg font-semibold text-ink-900 mt-10 mb-3">1. Общие положения</h2>

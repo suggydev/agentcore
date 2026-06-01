@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   MessageSquare,
@@ -19,6 +19,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import InfoTooltip from '../../components/InfoTooltip';
+import { useAgentStore } from '@/store/agentStore';
 
 interface StatCard {
   label: string;
@@ -72,49 +73,58 @@ export default function DashboardPage() {
   const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const user = useAgentStore((s) => s.auth.user);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
     if (!token) {
       window.location.href = '/login';
       return;
     }
-    if (userStr) {
-      try {
-        setUser(JSON.parse(userStr));
-      } catch {}
-    }
 
+    if (abortRef.current) abortRef.current.abort();
+    abortRef.current = new AbortController();
+
+    let cancelled = false;
     const load = async () => {
       try {
         const [dashRes, agentsRes, trialRes] = await Promise.all([
           fetch(`${API_BASE}/api/analytics/dashboard`, {
             headers: { Authorization: `Bearer ${token}` },
+            signal: abortRef.current!.signal,
           }),
           fetch(`${API_BASE}/api/agents`, {
             headers: { Authorization: `Bearer ${token}` },
+            signal: abortRef.current!.signal,
           }),
           fetch(`${API_BASE}/api/billing/trial-status`, {
             headers: { Authorization: `Bearer ${token}` },
+            signal: abortRef.current!.signal,
           }),
         ]);
 
+        if (cancelled) return;
         if (dashRes.ok) setDashboardData(await dashRes.json());
         if (agentsRes.ok) {
           const agentsData = await agentsRes.json();
           setAgents(Array.isArray(agentsData) ? agentsData : (agentsData?.data || []));
         }
         if (trialRes.ok) setTrialStatus(await trialRes.json());
-      } catch {
-        setError('Не удалось загрузить данные дашборда. Попробуйте снова.');
+      } catch (err: unknown) {
+        if (!cancelled && (err as Error)?.name !== 'AbortError') {
+          setError('Не удалось загрузить данные дашборда. Попробуйте снова.');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     load();
+    return () => {
+      cancelled = true;
+      abortRef.current?.abort();
+    };
   }, []);
 
   const formatTimeAgo = (dateStr: string) => {

@@ -78,29 +78,35 @@ export default function BillingPage() {
       window.location.href = '/login';
       return;
     }
+    const ac = new AbortController();
+    let cancelled = false;
     const load = async () => {
       try {
         const [trialRes, planRes, balanceRes] = await Promise.all([
           fetch(`${API_BASE}/api/billing/trial-status`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}` }, signal: ac.signal,
           }),
           fetch(`${API_BASE}/api/billing/plan`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}` }, signal: ac.signal,
           }),
           fetch(`${API_BASE}/api/billing/suggy-balance`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}` }, signal: ac.signal,
           }),
         ]);
+        if (cancelled) return;
         if (trialRes.ok) setTrial(await trialRes.json());
         if (planRes.ok) setPlan(await planRes.json());
         if (balanceRes.ok) setBalanceData(await balanceRes.json());
-      } catch {
-        setError('Не удалось загрузить информацию о тарифах.');
+      } catch (err: unknown) {
+        if (!cancelled && (err as Error)?.name !== 'AbortError') {
+          setError('Не удалось загрузить информацию о тарифах.');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     load();
+    return () => { cancelled = true; ac.abort(); };
   }, []);
 
   const container = {

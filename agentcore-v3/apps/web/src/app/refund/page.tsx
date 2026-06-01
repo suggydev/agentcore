@@ -11,7 +11,7 @@ export default function RefundPage() {
           <ArrowLeft className="w-4 h-4" /> На главную
         </Link>
         <h1 className="heading-2 text-ink-900 mb-3">Возврат и обмен</h1>
-        <p className="text-sm text-ink-400 mb-10">Условия возврата средств. Last updated: 2026-06-01 (update via Settings → Company Data → lastUpdatedDate)</p>
+        <p className="text-sm text-ink-400 mb-10">Условия возврата средств. Последнее обновление: 2026-06-01 (обновите в Настройки → Данные компании → lastUpdatedDate)</p>
 
         <div className="prose prose-sm max-w-none text-ink-600 space-y-6">
           <h2 className="text-lg font-semibold text-ink-900 mt-10 mb-3">1. Общие условия возврата</h2>
@@ -45,7 +45,7 @@ export default function RefundPage() {
           <p>Частичный возврат средств за неиспользованный период подписки НЕ предусмотрен. Вы можете отменить подписку в любой момент — доступ к платформе сохранится до конца оплаченного периода, но средства за оставшиеся дни не возвращаются.</p>
 
           <h2 className="text-lg font-semibold text-ink-900 mt-10 mb-3">7. Отмена подписки</h2>
-          <p>Отменить подписку можно в разделе «Billing» личного кабинета. После отмены подписка не будет автоматически продлена на следующий период. Доступ к платформе при этом сохраняется до конца оплаченного периода.</p>
+          <p>Отменить подписку можно в разделе «Тарифы» личного кабинета. После отмены подписка не будет автоматически продлена на следующий период. Доступ к платформе при этом сохраняется до конца оплаченного периода.</p>
 
           <h2 className="text-lg font-semibold text-ink-900 mt-10 mb-3">8. Спорные ситуации</h2>
           <p>Если вы считаете, что списание средств произошло ошибочно, или у вас возникли вопросы по платежу — свяжитесь с нами: <a href="mailto:billing@agentcore.work" className="text-mauve-600 underline">billing@agentcore.work</a>. Мы рассмотрим ваш запрос в течение 2 рабочих дней.</p>

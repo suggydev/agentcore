@@ -29,7 +29,7 @@ export default function PrivacyPage() {
           <ArrowLeft className="w-4 h-4" /> На главную
         </Link>
         <h1 className="heading-2 text-ink-900 mb-3">Политика конфиденциальности</h1>
-        <p className="text-sm text-ink-400 mb-10">Last updated: {lastUpdated}</p>
+        <p className="text-sm text-ink-400 mb-10">Последнее обновление: {lastUpdated}</p>
         
         <div className="prose prose-sm max-w-none text-ink-600 space-y-6">
           <p>Настоящая Политика конфиденциальности описывает, как AgentCore («мы», «наш») собирает, использует и защищает персональные данные пользователей («вы», «ваш») при использовании платформы AgentCore (agentcore.work) и связанных с ней сервисов.</p>

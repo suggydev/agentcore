@@ -98,10 +98,10 @@ export default function UseCasesSection() {
                 </div>
 
                 <a
-                  href={useCase.href}
+                  href="/login"
                   className="mt-5 inline-flex items-center gap-1.5 text-xs font-semibold text-mauve-600 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0"
                 >
-                  Подробнее <ArrowUpRight className="w-3.5 h-3.5" />
+                  Попробовать <ArrowUpRight className="w-3.5 h-3.5" />
                 </a>
               </div>
             </motion.div>

@@ -211,7 +211,7 @@ export default function HeroSection() {
               </a>
             </MagneticButton>
             <span className="text-xs text-ink-400 font-medium">
-              7 дней без карты
+              14 дней без карты
             </span>
           </div>
 

@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const { prisma } = require('../../prisma-client');
 const config = require('../../config');
+const { aiLimiter } = require('../../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ async function getWorkspaceByTelegramToken(token) {
   return null;
 }
 
-router.post('/webhook', async (req, res) => {
+router.post('/webhook', aiLimiter, async (req, res) => {
   try {
     const { message, callback_query, my_chat_member } = req.body;
 
@@ -138,19 +139,23 @@ async function processWithAgent(botToken, chatId, text, workspaceId, agent, user
     });
   }
 
-  const count = await prisma.message.count({ where: { conversationId: conversation.id } });
-  await prisma.message.create({
-    data: {
-      content: `[${username}]: ${text}`,
-      role: 'user',
-      order: count,
-      conversationId: conversation.id
-    }
+  let messageOrder = 0;
+  await prisma.$transaction(async (tx) => {
+    const count = await tx.message.count({ where: { conversationId: conversation.id } });
+    messageOrder = count;
+    await tx.message.create({
+      data: {
+        content: `[${username}]: ${text}`,
+        role: 'user',
+        order: count,
+        conversationId: conversation.id
+      }
+    });
   });
 
   try {
-    const models = require('../services/suggy').fetchModels;
-    const routeToModel = require('../services/suggy').routeToModel;
+    const models = require('../../services/suggy').fetchModels;
+    const routeToModel = require('../../services/suggy').routeToModel;
     const availableModels = await models();
 
     const selectedModel = agent.model ||
@@ -194,7 +199,7 @@ async function processWithAgent(botToken, chatId, text, workspaceId, agent, user
         content: aiContent,
         role: 'assistant',
         model: selectedModel,
-        order: count + 1,
+        order: messageOrder + 1,
         conversationId: conversation.id
       }
     });
@@ -214,8 +219,7 @@ async function processWithAgent(botToken, chatId, text, workspaceId, agent, user
 router.get('/status', async (req, res) => {
   res.json({
     status: 'ok',
-    message: 'Telegram webhook endpoint is active',
-    webhookUrl: `${config.CLIENT_URL || 'https://api.agentcore.work'}/api/channels/telegram/webhook`
+    message: 'Telegram webhook endpoint is active'
   });
 });
 

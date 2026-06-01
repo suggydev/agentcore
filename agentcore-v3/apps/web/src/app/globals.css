@@ -45,7 +45,7 @@ html.lenis, html.lenis body {
 }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
   background-color: var(--bg-primary);
   color: var(--ink-900);
   overflow-x: hidden;

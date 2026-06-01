@@ -7,18 +7,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Plan {
+  TRIAL
+  FREE
+  PRO
+  BUSINESS
+  ENTERPRISE
+}
+
+enum UserRole {
+  OWNER
+}
+
+enum ContactStatus {
+  lead
+  contact
+  customer
+  archived
+}
+
+enum KnowledgeDocType {
+  text
+  url
+  file
+}
+
+enum BillingType {
+  subscription
+  topup
+  refund
+}
+
+enum BillingStatus {
+  pending
+  completed
+  failed
+}
+
 model Workspace {
-  id                  String               @id @default(cuid())
+  id                  String    @id @default(cuid())
   name                String
-  plan                String               @default("TRIAL")
+  plan                Plan      @default(TRIAL)
   trialEndsAt         DateTime?
-  subscriptionActive  Boolean              @default(false)
+  subscriptionActive  Boolean   @default(false)
   subscriptionStartsAt DateTime?
-  /// @deprecated Field not yet used — reserved for future subscription lifecycle.
-  subscriptionEndsAt   DateTime?
   settings            Json?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
   users               User[]
   agents              Agent[]
   conversations       Conversation[]
@@ -28,16 +63,18 @@ model Workspace {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  name         String
-  email        String    @unique
-  password     String
-  /// RBAC not yet implemented — role always "OWNER".
-  role         String    @default("OWNER")
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  workspaceId  String
-  workspace    Workspace @relation(fields: [workspaceId], references: [id])
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          UserRole  @default(OWNER)
+  tokenVersion  Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId])
 }
 
 model Agent {
@@ -56,6 +93,7 @@ model Agent {
   conversations Conversation[]
 
   @@index([workspaceId])
+  @@index([workspaceId, isActive])
 }
 
 model Conversation {
@@ -65,21 +103,26 @@ model Conversation {
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
   agentId     String?
   agent       Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
-  /// @deprecated Dead column — never populated or read.
-  userId      String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   messages    Message[]
 
   @@index([workspaceId])
   @@index([workspaceId, updatedAt])
+  @@index([workspaceId, title])
   @@index([agentId])
+}
+
+enum MessageRole {
+  system
+  user
+  assistant
 }
 
 model Message {
   id              String       @id @default(cuid())
   content         String
-  role            String
+  role            MessageRole
   model           String?
   order           Int          @default(0)
   createdAt       DateTime     @default(now())
@@ -88,20 +131,21 @@ model Message {
 
   @@index([conversationId])
   @@index([conversationId, order])
+  @@index([conversationId, role])
   @@index([createdAt])
 }
 
 model CRMContact {
-  id          String    @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
   email       String?
   phone       String?
-  status      String    @default("lead")
+  status      ContactStatus @default(lead)
   notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
 
   @@index([workspaceId])
   @@index([workspaceId, status])
@@ -109,31 +153,28 @@ model CRMContact {
 }
 
 model KnowledgeDocument {
-  id          String    @id @default(cuid())
+  id          String            @id @default(cuid())
   title       String
   content     String
-  /// Valid types: "text", "url", "file". Currently only "text" is used.
-  type        String    @default("text")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  type        KnowledgeDocType  @default(text)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id])
 
   @@index([workspaceId])
 }
 
 model BillingTransaction {
-  id                 String    @id @default(cuid())
-  /// Valid values: "subscription", "topup", "refund".
-  type               String
+  id                 String        @id @default(cuid())
+  type               BillingType
   amount             Float
   description        String?
-  /// Valid values: "pending", "completed", "failed".
-  status             String    @default("completed")
+  status             BillingStatus @default(completed)
   providerPaymentId  String?
-  createdAt          DateTime  @default(now())
+  createdAt          DateTime      @default(now())
   workspaceId        String
-  workspace          Workspace @relation(fields: [workspaceId], references: [id])
+  workspace          Workspace     @relation(fields: [workspaceId], references: [id])
 
   @@index([workspaceId])
   @@index([workspaceId, createdAt])

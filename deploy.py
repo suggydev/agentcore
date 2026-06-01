@@ -8,9 +8,15 @@ import tarfile
 import io
 import time
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+except ImportError:
+    pass
+
 HOST = '31.76.102.116'
 USER = 'root'
-PASS = '&86TQtlQX7GuWqlR'
+PASS = os.environ['SERVER_PASS']
 SERVER_PROJECT = '/opt/agentcore-v3'
 
 LOCAL_PROJECT = r'C:\Users\mtsbo\OneDrive\Документы\AgentCore\agentcore-v3'

@@ -162,8 +162,8 @@ export default function OnboardingPage() {
       }
 
       window.location.href = '/dashboard';
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Не удалось сохранить данные');
     } finally {
       setLoading(false);
     }

@@ -63,10 +63,10 @@ export default function PricingSection() {
         >
           <motion.span variants={headerItem} className="label text-mauve-600 mb-3 block">Стоимость</motion.span>
           <motion.h2 variants={headerItem} className="heading-2 text-ink-900 mb-3">
-            7 дней бесплатно, потом $29 в месяц
+            14 дней бесплатно, потом $29 в месяц
           </motion.h2>
           <motion.p variants={headerItem} className="body-large max-w-lg mx-auto">
-            Никаких скрытых платежей. Отменить можно в любой момент.
+            $10 кредитов на AI в пробном периоде. Никаких скрытых платежей. Отменить можно в любой момент.
           </motion.p>
         </motion.div>
 
@@ -153,7 +153,7 @@ export default function PricingSection() {
                   <h3 className="font-mono-display font-semibold text-sm text-ink-900 mb-0.5">
                     Старт
                   </h3>
-                  <p className="text-xs text-ink-400">Бесплатно первые 7 дней — без карты, полный доступ</p>
+                  <p className="text-xs text-ink-400">Бесплатно 14 дней — $10 кредитов на AI, полный доступ, без карты</p>
                 </div>
                 <Link href="/login" className="px-4 py-2 rounded-lg font-semibold text-xs btn-secondary whitespace-nowrap inline-block">
                   Попробовать

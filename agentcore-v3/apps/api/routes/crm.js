@@ -3,6 +3,15 @@ const { z } = require('zod');
 const { prisma } = require('../prisma-client');
 const { authenticate } = require('../middleware/auth');
 const { generalLimiter } = require('../middleware/rateLimit');
+const { safeError } = require('../utils/errors');
+
+const crmUpdateSchema = z.object({
+  name: z.string().min(1).max(255).optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().max(50).optional().or(z.literal('')),
+  status: z.enum(['lead', 'contact', 'customer', 'archived']).optional(),
+  notes: z.string().max(2000).optional().or(z.literal(''))
+});
 
 const router = express.Router();
 
@@ -21,7 +30,7 @@ router.get('/', authenticate, generalLimiter, async (req, res) => {
     ]);
     res.json({ data: customers, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
@@ -40,7 +49,10 @@ router.post('/', authenticate, async (req, res) => {
     });
     res.json(customer);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: err.flatten() });
+    }
+    safeError(res, err, 400, 'Failed to create contact');
   }
 });
 
@@ -52,24 +64,29 @@ router.get('/:id', authenticate, async (req, res) => {
     if (!contact) return res.status(404).json({ error: 'Contact not found' });
     res.json(contact);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeError(res, err);
   }
 });
 
 router.put('/:id', authenticate, async (req, res) => {
   try {
-    const { name, email, phone, status, notes } = req.body;
+    const parsed = crmUpdateSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation error', details: parsed.error.flatten() });
+    }
+    const data = parsed.data;
+
     const existing = await prisma.cRMContact.findFirst({
       where: { id: req.params.id, workspaceId: req.user.workspaceId }
     });
     if (!existing) return res.status(404).json({ error: 'Contact not found' });
 
     const updateData = {};
-    if (name !== undefined) updateData.name = name;
-    if (email !== undefined) updateData.email = email || null;
-    if (phone !== undefined) updateData.phone = phone || null;
-    if (status !== undefined) updateData.status = status;
-    if (notes !== undefined) updateData.notes = notes || null;
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.email !== undefined) updateData.email = data.email || null;
+    if (data.phone !== undefined) updateData.phone = data.phone || null;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.notes !== undefined) updateData.notes = data.notes || null;
 
     const contact = await prisma.cRMContact.update({
       where: { id: req.params.id },
@@ -77,7 +94,7 @@ router.put('/:id', authenticate, async (req, res) => {
     });
     res.json(contact);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    safeError(res, err, 400, 'Failed to update contact');
   }
 });
 
@@ -89,7 +106,7 @@ router.delete('/:id', authenticate, async (req, res) => {
     if (result.count === 0) return res.status(404).json({ error: 'Contact not found' });
     res.json({ success: true });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    safeError(res, err, 400, 'Failed to delete contact');
   }
 });
 

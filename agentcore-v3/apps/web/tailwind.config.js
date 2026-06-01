@@ -39,9 +39,9 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Onest', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['Unbounded', 'Onest', 'monospace'],
+        sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['var(--font-onest)', 'Onest', 'var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-unbounded)', 'Unbounded', 'var(--font-onest)', 'Onest', 'monospace'],
       },
       letterSpacing: {
         'tight': '-0.03em',
