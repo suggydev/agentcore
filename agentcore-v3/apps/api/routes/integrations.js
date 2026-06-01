@@ -8,14 +8,13 @@ const { safeError } = require('../utils/errors');
 
 const router = express.Router();
 
-const KNOWN_INTEGRATIONS = [
-  'hubspot', 'salesforce', 'pipedrive', 'zoho', 'bitrix24', 'amocrm',
-  'telegram', 'whatsapp', 'slack', 'discord', 'instagram', 'messenger',
-  'gmail', 'outlook', 'sendgrid',
-  'notion', 'gdrive', 'dropbox', 'airtable',
-  'zapier', 'make', 'webhooks', 'restapi',
-  'stripe', 'shopify', 'woocommerce',
-  'gcal', 'calendly'
+const RF_INTEGRATIONS = [
+  'amocrm', 'bitrix24', '1c',
+  'telegram', 'whatsapp', 'vk', 'yandexmessenger', 'avito',
+  'yandex360', 'mailru', 'unisender', 'gdrive',
+  'albato', 'yandexcloud', 'webhooks', 'restapi',
+  'yookassa', 'robokassa', 'tbank',
+  'yandexcalendar',
 ];
 
 function generateApiKey() {
@@ -44,15 +43,12 @@ router.get('/', authenticate, generalLimiter, async (req, res) => {
 
     const crmCount = await prisma.cRMContact.count({ where: { workspaceId: req.user.workspaceId } });
 
-    const telegramWebhookUrl = `${config.CLIENT_URL || 'https://api.agentcore.work'}/api/channels/telegram/webhook`;
-
     res.json({
       integrations,
       crmContactCount: crmCount,
-      telegramWebhookUrl,
       webchatEmbedCode: `<script>
 (function() {
-  var w = window.WEBBYRT || {};
+  var w = window.AGENTCORE || {};
   w.workspaceId = '${req.user.workspaceId}';
   w.apiKey = '${integrations.webchat?.apiKey || ''}';
   w.apiUrl = '${config.CLIENT_URL || 'https://api.agentcore.work'}/api/channels/webchat/message';
@@ -99,24 +95,33 @@ router.post('/:name/connect', authenticate, generalLimiter, async (req, res) => 
       if (verifyToken) integrationData.verifyToken = verifyToken;
     }
 
-    if (key === 'gmail' || key === 'outlook' || key === 'sendgrid') {
-      const { email, smtpHost, smtpPort, imapHost, imapPort } = req.body || {};
-      if (email) integrationData.email = email;
-      if (smtpHost) integrationData.smtpHost = smtpHost;
-      if (smtpPort) integrationData.smtpPort = smtpPort;
-      if (imapHost) integrationData.imapHost = imapHost;
-      if (imapPort) integrationData.imapPort = imapPort;
+    if (key === 'yookassa') {
+      const { shopId, secretKey } = req.body || {};
+      if (shopId) integrationData.shopId = shopId;
+      if (secretKey) integrationData.secretKey = secretKey;
     }
 
-    if (['hubspot', 'salesforce', 'pipedrive'].includes(key)) {
-      const { apiKey, instanceUrl } = req.body || {};
+    if (['amocrm', 'bitrix24'].includes(key)) {
+      const { domain, apiKey, clientId, clientSecret } = req.body || {};
+      if (domain) integrationData.domain = domain;
       if (apiKey) integrationData.apiKey = apiKey;
-      if (instanceUrl) integrationData.instanceUrl = instanceUrl;
+      if (clientId) integrationData.clientId = clientId;
+      if (clientSecret) integrationData.clientSecret = clientSecret;
       integrationData.contactsSynced = await prisma.cRMContact.count({ where: { workspaceId: req.user.workspaceId } });
     }
 
-    integrations[key] = { ...(integrations[key] || {}), ...integrationData };
+    if (key === 'gdrive' || key === 'yandex360' || key === 'mailru') {
+      const { email, token: driveToken } = req.body || {};
+      if (email) integrationData.email = email;
+      if (driveToken) integrationData.token = driveToken;
+    }
 
+    if (key === 'webhooks') {
+      const { url } = req.body || {};
+      if (url) integrationData.url = url;
+    }
+
+    integrations[key] = { ...(integrations[key] || {}), ...integrationData };
     currentSettings.integrations = integrations;
 
     await prisma.workspace.update({
@@ -147,16 +152,10 @@ router.delete('/:name/disconnect', authenticate, generalLimiter, async (req, res
     }
 
     currentSettings.integrations = integrations;
-
-    await prisma.workspace.update({
-      where: { id: req.user.workspaceId },
-      data: { settings: currentSettings }
-    });
-
+    await prisma.workspace.update({ where: { id: req.user.workspaceId }, data: { settings: currentSettings } });
     res.json({ success: true });
   } catch (err) {
-    console.error('Integration disconnect error:', err);
-    safeError(res, err, 400, 'Failed to disconnect integration');
+    safeError(res, err, 400, 'Failed to disconnect');
   }
 });
 
@@ -169,16 +168,14 @@ router.get('/telegram/check', authenticate, generalLimiter, async (req, res) => 
     const integrations = settings.integrations || {};
     const tg = integrations.telegram;
 
-    if (!tg || !tg.token) {
-      return res.status(400).json({ error: 'Telegram bot token not configured' });
-    }
+    if (!tg || !tg.token) return res.status(400).json({ error: 'Telegram bot token not configured' });
 
     try {
       const axios = require('axios');
       const response = await axios.get(`https://api.telegram.org/bot${tg.token}/getMe`, { timeout: 10000 });
-      res.json({ connected: true, bot: response.data.result, webhookUrl: tg.webhookUrl });
+      res.json({ connected: true, bot: response.data.result });
     } catch (apiErr) {
-      res.status(400).json({ connected: false, error: 'Invalid bot token or Telegram API unreachable' });
+      res.status(400).json({ connected: false, error: 'Invalid bot token' });
     }
   } catch (err) {
     safeError(res, err);
