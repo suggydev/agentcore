@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -9,24 +9,23 @@ import {
   Loader2,
   AlertCircle,
   ChevronDown,
-  Filter,
   X,
-  User,
   Bot,
   Trash2,
+  Info,
 } from 'lucide-react';
-import DashboardLayout from '../../../components/DashboardLayout';
-
-const API_BASE = 'http://31.76.102.116:4000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface Conversation {
   id: string;
   title: string;
-  agentName: string;
-  lastMessage: string;
-  messageCount: number;
+  agentName?: string;
+  lastMessage?: string;
+  messageCount?: number;
   updatedAt: string;
-  status: 'active' | 'resolved' | 'pending';
+  status?: 'active' | 'resolved' | 'pending';
+  agent?: { id: string; name: string } | null;
+  _count?: { messages: number };
 }
 
 const PAGE_SIZE = 15;
@@ -36,10 +35,12 @@ export default function ConversationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'today' | 'week' | 'active' | 'resolved'>('all');
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchConversations = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -50,13 +51,13 @@ export default function ConversationsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        const list = Array.isArray(data) ? data : data.conversations ?? [];
+        const list = Array.isArray(data) ? data : (data.data || []);
         setConversations(list.slice(0, PAGE_SIZE));
       }
-    } catch {} finally {
-      setLoading(false);
-    }
-  }, []);
+      } catch (err) { setError('Не удалось загрузить диалоги.'); } finally {
+        setLoading(false);
+      }
+    }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -78,11 +79,15 @@ export default function ConversationsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        const list = Array.isArray(data) ? data : data.conversations ?? [];
-        setConversations((prev) => [...prev, ...list]);
+        const list: Conversation[] = Array.isArray(data) ? data : (data.data || []);
+        setConversations((prev) => {
+          const existingIds = new Set(prev.map((c: Conversation) => c.id));
+          const newItems = list.filter((c: Conversation) => !existingIds.has(c.id));
+          return [...prev, ...newItems];
+        });
         setPage((p) => p + 1);
       }
-    } catch {} finally {
+    } catch (err) { console.error('Failed to load more conversations:', err); } finally {
       setLoadingMore(false);
     }
   };
@@ -96,18 +101,25 @@ export default function ConversationsPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setConversations((prev) => prev.filter((c) => c.id !== id));
-    } catch {}
+    } catch (err) { console.error('Failed to delete conversation:', err); }
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(value);
+    }, 300);
   };
 
   const filtered = useMemo(() => {
     let list = conversations;
-    if (search) {
-      const q = search.toLowerCase();
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
       list = list.filter(
         (c) =>
           c.title?.toLowerCase().includes(q) ||
-          c.agentName?.toLowerCase().includes(q) ||
-          c.lastMessage?.toLowerCase().includes(q)
+          c.agent?.name?.toLowerCase().includes(q)
       );
     }
     const now = Date.now();
@@ -129,26 +141,26 @@ export default function ConversationsPage() {
         break;
     }
     return list;
-  }, [conversations, search, filter]);
+  }, [conversations, debouncedSearch, filter]);
 
   const formatTimeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1) return 'Только что';
+    if (mins < 60) return `${mins}м назад`;
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return `${hours}ч назад`;
     const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d ago`;
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    if (days < 7) return `${days}д назад`;
+    return new Date(dateStr).toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' });
   };
 
   const filters = [
-    { key: 'all' as const, label: 'All' },
-    { key: 'today' as const, label: 'Today' },
-    { key: 'week' as const, label: 'This Week' },
-    { key: 'active' as const, label: 'Active' },
-    { key: 'resolved' as const, label: 'Resolved' },
+    { key: 'all' as const, label: 'Все' },
+    { key: 'today' as const, label: 'Сегодня' },
+    { key: 'week' as const, label: 'Неделя' },
+    { key: 'active' as const, label: 'Активные' },
+    { key: 'resolved' as const, label: 'Решённые' },
   ];
 
   const container = {
@@ -162,34 +174,36 @@ export default function ConversationsPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <>
         <div className="flex items-center justify-center min-h-[80vh]">
           <Loader2 className="w-8 h-8 text-mauve-500 animate-spin" />
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout>
+      <>
         <div className="flex flex-col items-center justify-center min-h-[80vh] gap-4">
           <AlertCircle className="w-10 h-10 text-red-400" />
           <p className="text-ink-500">{error}</p>
-          <button onClick={() => window.location.reload()} className="btn-primary text-sm px-6 py-2.5">Retry</button>
+          <button onClick={() => window.location.reload()} className="btn-primary text-sm px-6 py-2.5">Повторить</button>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="p-6 lg:p-10 max-w-7xl mx-auto">
         <motion.div variants={container} initial="hidden" animate="show" className="mb-10">
           <motion.div variants={item}>
-            <p className="text-[11px] font-semibold uppercase tracking-label text-mauve-500 mb-2">Conversations</p>
-            <h1 className="font-display font-bold text-3xl text-ink-900 tracking-tight">All Conversations</h1>
-            <p className="text-ink-500 mt-1 text-sm">Track and manage agent conversations across all channels.</p>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-mauve-500 mb-2">Диалоги</p>
+            <h1 className="font-display font-bold text-3xl text-ink-900 tracking-tight">Все диалоги</h1>
+            <p className="text-ink-500 mt-2 text-sm max-w-2xl leading-relaxed">
+              Диалоги — это история всех разговоров ваших AI-агентов с клиентами. Здесь вы можете просматривать, искать и анализировать общение.
+            </p>
           </motion.div>
         </motion.div>
 
@@ -200,9 +214,9 @@ export default function ConversationsPage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
               <input
                 type="text"
-                placeholder="Search by title, agent, or message..."
+                placeholder="Поиск по названию, агенту или сообщению..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="w-full pl-11 pr-10 py-2.5 bg-white rounded-xl border border-mauve-100 shadow-sm text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200"
               />
               {search && (
@@ -215,7 +229,7 @@ export default function ConversationsPage() {
               )}
             </div>
           </motion.div>
-          <motion.div variants={item} className="flex flex-wrap gap-2 mt-4">
+          <motion.div variants={item} className="flex flex-wrap items-center gap-2 mt-4">
             {filters.map((f) => (
               <button
                 key={f.key}
@@ -232,6 +246,28 @@ export default function ConversationsPage() {
           </motion.div>
         </motion.div>
 
+        {/* Status legend */}
+        <motion.div variants={item} className="flex flex-wrap gap-3 sm:gap-5 mb-6 px-4 py-3 bg-white/70 rounded-xl border border-mauve-100 text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 text-ink-600 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Активен
+            </span>
+            <span className="text-ink-400">— разговор идёт</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 text-ink-600 font-medium">
+              <span className="w-2 h-2 rounded-full bg-amber-500" /> Ожидает
+            </span>
+            <span className="text-ink-400">— ждёт ответа агента</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 text-ink-600 font-medium">
+              <span className="w-2 h-2 rounded-full bg-mauve-400" /> Решён
+            </span>
+            <span className="text-ink-400">— вопрос закрыт</span>
+          </div>
+        </motion.div>
+
         {/* Conversations List */}
         <motion.div variants={container} initial="hidden" animate="show">
           {filtered.length === 0 ? (
@@ -243,16 +279,17 @@ export default function ConversationsPage() {
                 <MessageSquare className="w-7 h-7 text-mauve-400" />
               </div>
               <p className="text-ink-500 font-medium text-lg mb-1">
-                {search || filter !== 'all' ? 'No conversations match your filters' : 'No conversations yet'}
+                {debouncedSearch || filter !== 'all' ? 'Нет диалогов по фильтрам' : 'Пока нет диалогов'}
               </p>
               <p className="text-ink-400 text-sm">
-                {search || filter !== 'all' ? 'Try adjusting your search or filters.' : 'Your agent conversations will appear here.'}
+                {debouncedSearch || filter !== 'all' ? 'Попробуйте изменить поиск' : 'Здесь появятся диалоги агентов'}
               </p>
             </motion.div>
           ) : (
             <div className="space-y-3">
               {filtered.map((conv) => {
                 const isExpanded = expandedId === conv.id;
+                const statusLabel = conv.status === 'active' ? 'активен' : conv.status === 'resolved' ? 'решён' : 'ожидает';
                 return (
                   <motion.div
                     key={conv.id}
@@ -280,7 +317,7 @@ export default function ConversationsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-0.5">
-                          <h3 className="font-semibold text-ink-900 text-sm truncate">{conv.title || 'Untitled'}</h3>
+                          <h3 className="font-semibold text-ink-900 text-sm truncate">{conv.title || 'Без названия'}</h3>
                           <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border flex-shrink-0 ${
                             conv.status === 'active'
                               ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
@@ -288,16 +325,23 @@ export default function ConversationsPage() {
                               ? 'bg-mauve-50 text-mauve-600 border-mauve-200'
                               : 'bg-amber-50 text-amber-600 border-amber-200'
                           }`}>
-                            {conv.status}
+                            {statusLabel}
                           </span>
                         </div>
                         <p className="text-sm text-ink-500 truncate">{conv.lastMessage || '—'}</p>
                       </div>
-                      <div className="hidden sm:flex items-center gap-6 flex-shrink-0">
-                        <div className="text-right">
-                          <p className="text-xs font-semibold text-ink-700">{conv.agentName || 'Agent'}</p>
-                          <p className="text-xs text-ink-400">{conv.messageCount ?? 0} messages</p>
-                        </div>
+                        <div className="hidden sm:flex items-center gap-6 flex-shrink-0">
+                          <div className="text-right">
+                            <p className="text-xs font-semibold text-ink-700">{conv.agentName || 'Агент'}</p>
+                            <div className="group relative inline-flex items-center gap-1">
+                              <p className="text-xs text-ink-400">{conv.messageCount ?? 0} сообщ.</p>
+                              <Info className="w-3 h-3 text-mauve-300 cursor-help" />
+                              <div className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1.5 bg-ink-800 text-white text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none shadow-lg">
+                                Количество сообщений в диалоге
+                                <div className="absolute top-full right-3 w-2 h-2 bg-ink-800 rotate-45 -mt-1" />
+                              </div>
+                            </div>
+                          </div>
                         <div className="flex items-center gap-1 text-xs text-ink-400 w-16 justify-end">
                           <Clock className="w-3 h-3" />
                           <span>{formatTimeAgo(conv.updatedAt)}</span>
@@ -324,8 +368,8 @@ export default function ConversationsPage() {
                                 <Bot className="w-4 h-4 text-mauve-600" />
                               </div>
                               <div>
-                                <p className="text-xs font-semibold text-ink-700">{conv.agentName || 'Agent'}</p>
-                                <p className="text-[10px] text-ink-400">Last active {formatTimeAgo(conv.updatedAt)}</p>
+                                <p className="text-xs font-semibold text-ink-700">{conv.agentName || 'Агент'}</p>
+                                <p className="text-[10px] text-ink-400">Активность {formatTimeAgo(conv.updatedAt)}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
@@ -334,14 +378,21 @@ export default function ConversationsPage() {
                                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-mauve-600 text-white text-xs font-semibold hover:bg-mauve-700 transition-all"
                               >
                                 <MessageSquare className="w-3.5 h-3.5" />
-                                Open Chat
+                                Открыть чат
                               </a>
+                              <div className="group relative">
+                                <Info className="w-3.5 h-3.5 text-mauve-400 cursor-help" />
+                                <div className="absolute bottom-full left-0 mb-1.5 px-2.5 py-1.5 bg-ink-800 text-white text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none shadow-lg">
+                                  Нажмите, чтобы открыть полный диалог с агентом
+                                  <div className="absolute top-full left-3 w-2 h-2 bg-ink-800 rotate-45 -mt-1" />
+                                </div>
+                              </div>
                               <button
                                 onClick={(e) => { e.stopPropagation(); handleDelete(conv.id); }}
                                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-all"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
-                                Delete
+                                Удалить
                               </button>
                             </div>
                           </div>
@@ -368,13 +419,13 @@ export default function ConversationsPage() {
               className="px-6 py-2.5 rounded-xl border border-mauve-200 bg-white text-ink-700 text-sm font-medium hover:bg-mauve-50 transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
             >
               {loadingMore ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronDown className="w-4 h-4" />}
-              {loadingMore ? 'Loading...' : 'Load More'}
+              {loadingMore ? 'Загрузка...' : 'Загрузить ещё'}
             </button>
           </motion.div>
         )}
 
         <div className="h-8" />
       </div>
-    </DashboardLayout>
+    </>
   );
 }

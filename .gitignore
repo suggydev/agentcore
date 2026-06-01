@@ -9,3 +9,40 @@ Thumbs.db
 backups/
 source/
 working/
+
+# Диагностические скрипты (не продакшен)
+debug_*.py
+check_*.py
+verify_*.py
+run_tests_*.py
+rebuild_*.py
+deploy_*.py
+run_specific_tests.py
+quick_check.py
+quick_deploy.py
+safe_check.py
+final_check.py
+restart_frontend.py
+restore_env.py
+start_api.py
+start_frontend.py
+clean_rebuild.py
+diagnostic.py
+diagnostic2.py
+diagnostic3.py
+diagnostic_agent.py
+tg_devops_bot.py
+test_real_key.py
+
+# Тестовые артефакты
+jest-results*.txt
+test_real_key_results.txt
+build-error.txt
+api_logs.txt
+web_logs.txt
+frontend.html
+PROJECT_AUDIT.md
+
+# Темп
+*.pyc
+__pycache__/

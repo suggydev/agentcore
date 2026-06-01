@@ -14,10 +14,11 @@ import {
   Calendar,
   Check,
   ChevronRight,
+  Heart,
 } from 'lucide-react';
 import Logo from '../../components/Logo';
 
-const API_BASE = 'http://31.76.102.116:4000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface FormData {
   companyName: string;
@@ -32,50 +33,50 @@ interface FormData {
 
 const COMPANY_SIZES = ['1-10', '11-50', '51-200', '201-1000', '1000+'];
 const INDUSTRIES = [
-  'Technology', 'Finance', 'Healthcare', 'E-commerce', 'Education',
-  'Real Estate', 'Consulting', 'Manufacturing', 'Other',
+  'Технологии', 'Финансы', 'Медицина', 'E-commerce', 'Образование',
+  'Недвижимость', 'Консалтинг', 'Производство', 'Другое',
 ];
 const GEOGRAPHIES = [
-  'Global', 'Europe', 'North America', 'Asia',
-  'South America', 'Africa', 'Middle East', 'Russia/CIS',
+  'Весь мир', 'Европа', 'Сев. Америка', 'Азия',
+  'Юж. Америка', 'Африка', 'Бл. Восток', 'Россия/СНГ',
 ];
 const CHANNELS = [
-  'Web Chat', 'Telegram', 'WhatsApp', 'Email', 'Phone', 'Slack', 'Discord',
+  'Веб-чат', 'Telegram', 'WhatsApp', 'Email', 'Телефон', 'Slack', 'Discord',
 ];
 const CRMS = [
-  'None', 'HubSpot', 'Salesforce', 'Pipedrive', 'Zoho', 'Bitrix24', 'AmoCRM', 'Custom',
+  'Нет', 'HubSpot', 'Salesforce', 'Pipedrive', 'Zoho', 'Bitrix24', 'AmoCRM', 'Своя',
 ];
 
 const GOALS = [
   {
     id: 'sales',
     icon: TrendingUp,
-    label: 'Sales',
-    description: 'Generate leads, qualify, increase conversion',
+    label: 'Продажи',
+    description: 'Генерация лидов, квалификация, увеличение конверсии',
   },
   {
     id: 'support',
     icon: Headphones,
-    label: 'Support',
-    description: 'Answer questions, resolve issues, reduce tickets',
+    label: 'Поддержка',
+    description: '24/7 ответы, снижение нагрузки на команду',
   },
   {
     id: 'consulting',
     icon: MessageCircle,
-    label: 'Consulting',
-    description: 'Qualify clients, schedule meetings, provide info',
+    label: 'Консультации',
+    description: 'Квалификация клиентов, запись на встречи',
   },
   {
     id: 'internal',
     icon: Building2,
-    label: 'Internal',
-    description: 'Automate internal processes, onboarding, training',
+    label: 'Автоматизация',
+    description: 'Внутренние процессы, онбординг, обучение',
   },
   {
     id: 'custom',
     icon: Pen,
-    label: 'Custom',
-    description: 'Define your own scenario',
+    label: 'Другое',
+    description: 'Свой сценарий',
   },
 ];
 
@@ -130,10 +131,6 @@ export default function OnboardingPage() {
     form.industry !== '' &&
     form.geography !== '';
 
-  const handleSkip = () => {
-    window.location.href = '/dashboard';
-  };
-
   const handleSubmit = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -156,15 +153,15 @@ export default function OnboardingPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, onboardingCompleted: true }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to save onboarding data');
+        throw new Error(data.error || 'Не удалось сохранить данные');
       }
 
-      window.location.href = '/dashboard/agents';
+      window.location.href = '/dashboard';
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -214,25 +211,32 @@ export default function OnboardingPage() {
           </div>
           <div>
             <p className="text-sm font-semibold text-mauve-700">
-              Welcome! You have 7 days of full access
+              Добро пожаловать! 7 дней полного доступа
             </p>
-            <p className="text-xs text-mauve-500 mt-0.5">No card required</p>
+            <p className="text-xs text-mauve-500 mt-0.5">Без привязки карты. При подписке — $10/мес на AI-баланс</p>
           </div>
         </motion.div>
 
-        {/* Error */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm text-center"
-          >
-            {error}
-          </motion.div>
-        )}
-
         {/* Card */}
-        <div className="bg-white rounded-2xl border border-mauve-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-mauve-100 shadow-sm overflow-hidden relative">
+          <div className="px-8 pt-5 pb-0 flex items-center justify-between">
+            <span className="text-xs font-medium text-mauve-400">Шаг {step + 1} из 2</span>
+            <div className="flex items-center gap-2">
+              <div className={`w-16 h-1 rounded-full transition-all duration-500 ${step === 0 ? 'bg-mauve-600' : 'bg-mauve-200'}`} />
+              <div className={`w-16 h-1 rounded-full transition-all duration-500 ${step === 1 ? 'bg-mauve-600' : 'bg-mauve-200'}`} />
+            </div>
+          </div>
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mx-8 mt-3 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm text-center"
+            >
+              {error}
+            </motion.div>
+          )}
+
           <AnimatePresence mode="wait">
             {step === 0 ? (
               <Step1
@@ -261,7 +265,7 @@ export default function OnboardingPage() {
                     className="flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-600 transition-colors font-medium"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    Back
+                    Назад
                   </button>
                 )}
               </div>
@@ -273,7 +277,7 @@ export default function OnboardingPage() {
                   disabled={loading}
                   className="text-sm text-ink-400 hover:text-ink-600 transition-colors font-medium"
                 >
-                  Skip for now
+                  Пропустить
                 </button>
 
                 {step === 0 ? (
@@ -283,7 +287,7 @@ export default function OnboardingPage() {
                     onClick={() => setStep(1)}
                     className="btn-primary text-sm px-6 py-2.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:hover:bg-mauve-600"
                   >
-                    Continue <ChevronRight className="w-4 h-4" />
+                    Далее <ChevronRight className="w-4 h-4" />
                   </button>
                 ) : (
                   <button
@@ -295,11 +299,11 @@ export default function OnboardingPage() {
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Saving...
+                        Сохранение...
                       </>
                     ) : (
                       <>
-                        Get Started <ArrowRight className="w-4 h-4" />
+                        Запустить <ArrowRight className="w-4 h-4" />
                       </>
                     )}
                   </button>
@@ -342,10 +346,10 @@ function Step1({
     <motion.div {...slideUp} className="px-8 pt-8 pb-2">
       <div className="mb-7">
         <h2 className="font-display font-bold text-2xl text-ink-900 mb-1.5">
-          Tell us about your workspace
+          Настройка рабочей области
         </h2>
         <p className="text-sm text-ink-400">
-          Help us configure AgentCore for your needs
+          Расскажите о вашей компании
         </p>
       </div>
 
@@ -353,48 +357,48 @@ function Step1({
         {/* Company Name */}
         <div className="p-4 rounded-xl border border-mauve-100 bg-[#F8F9FB] transition-all focus-within:ring-2 focus-within:ring-mauve-400/20 focus-within:border-mauve-400 focus-within:bg-white">
           <label className="block text-xs font-semibold uppercase tracking-label text-mauve-500 mb-2">
-            Company Name
+            Название компании
           </label>
           <input
             type="text"
             value={form.companyName}
             onChange={e => update('companyName', e.target.value)}
-            placeholder="Acme Inc."
+            placeholder="ООО «Ромашка»"
             className="w-full bg-transparent text-ink-900 text-sm placeholder:text-ink-300 outline-none"
           />
         </div>
 
         {/* Company Size */}
         <SelectField
-          label="Company Size"
+          label="Размер команды"
           value={form.companySize}
           onChange={v => update('companySize', v)}
           options={COMPANY_SIZES}
-          placeholder="Select size"
+          placeholder="Выберите размер"
         />
 
         {/* Industry */}
         <SelectField
-          label="Industry"
+          label="Индустрия"
           value={form.industry}
           onChange={v => update('industry', v)}
           options={INDUSTRIES}
-          placeholder="Select industry"
+          placeholder="Выберите индустрию"
         />
 
         {/* Geography */}
         <SelectField
-          label="Geography"
+          label="Регион"
           value={form.geography}
           onChange={v => update('geography', v)}
           options={GEOGRAPHIES}
-          placeholder="Select region"
+          placeholder="Выберите регион"
         />
 
         {/* Communication Channels */}
         <div className="p-4 rounded-xl border border-mauve-100 bg-[#F8F9FB]">
           <label className="block text-xs font-semibold uppercase tracking-label text-mauve-500 mb-3">
-            Primary Communication Channels
+            Каналы общения
           </label>
           <div className="flex flex-wrap gap-2">
             {CHANNELS.map(ch => {
@@ -406,8 +410,8 @@ function Step1({
                   onClick={() => toggleChannel(ch)}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
                     selected
-                      ? 'bg-mauve-600 text-white border-mauve-600 shadow-sm shadow-mauve-600/10'
-                      : 'bg-white text-ink-500 border-ink-200 hover:border-mauve-300 hover:text-mauve-600'
+                      ? 'bg-mauve-600 text-white border-mauve-600 shadow-md shadow-mauve-600/20 scale-105'
+                      : 'bg-white text-ink-600 border-mauve-200 hover:border-mauve-400 hover:bg-mauve-50 hover:text-mauve-700'
                   }`}
                 >
                   {selected && <Check className="w-3 h-3" />}
@@ -421,7 +425,7 @@ function Step1({
         {/* Website URL */}
         <div className="p-4 rounded-xl border border-mauve-100 bg-[#F8F9FB] transition-all focus-within:ring-2 focus-within:ring-mauve-400/20 focus-within:border-mauve-400 focus-within:bg-white">
           <label className="block text-xs font-semibold uppercase tracking-label text-mauve-500 mb-2">
-            Website URL
+            Сайт компании
           </label>
           <input
             type="url"
@@ -438,7 +442,7 @@ function Step1({
           value={form.crm}
           onChange={v => update('crm', v)}
           options={CRMS}
-          placeholder="Select CRM"
+          placeholder="Выберите CRM"
         />
       </div>
     </motion.div>
@@ -458,10 +462,10 @@ function Step2({
     <motion.div {...slideUp} className="px-8 pt-8 pb-2">
       <div className="mb-7">
         <h2 className="font-display font-bold text-2xl text-ink-900 mb-1.5">
-          What should your agent do?
+          Что будет делать ваш агент?
         </h2>
         <p className="text-sm text-ink-400">
-          Choose the primary goal for your AI agent
+          Выберите основную задачу для AI-агента
         </p>
       </div>
 
@@ -473,13 +477,13 @@ function Step2({
             <motion.button
               key={goal.id}
               type="button"
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.99 }}
+              whileHover={selected ? { scale: 1.01 } : { y: -3, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => update('agentGoal', goal.id)}
               className={`flex items-start gap-4 p-4 rounded-xl border text-left transition-all duration-300 ${
                 selected
-                  ? 'bg-mauve-50 border-mauve-400 shadow-md shadow-mauve-400/10 ring-1 ring-mauve-400/30'
-                  : 'bg-[#F8F9FB] border-mauve-100 hover:border-mauve-300 hover:shadow-sm hover:bg-white'
+                  ? 'bg-mauve-50 border-mauve-400 shadow-lg shadow-mauve-400/15 ring-1 ring-mauve-400/30'
+                  : 'bg-[#F8F9FB] border-mauve-100 hover:border-mauve-400 hover:shadow-lg hover:shadow-mauve-400/10 hover:bg-white'
               }`}
             >
               <div
@@ -521,27 +525,28 @@ function Step2({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="p-4 rounded-xl border border-mauve-200 bg-gradient-to-br from-mauve-50/60 to-white"
+          className="p-5 rounded-xl border border-mauve-200 bg-gradient-to-br from-mauve-50/80 to-white shadow-md"
         >
-          <p className="text-xs font-semibold uppercase tracking-label text-mauve-500 mb-3">
-            Create your first agent
+          <p className="text-xs font-semibold uppercase tracking-label text-mauve-500 mb-4">
+            Создать первого агента
           </p>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-mauve-500 to-mauve-300 flex items-center justify-center shadow-sm shadow-mauve-400/20">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-mauve-500 to-mauve-400 flex items-center justify-center shadow-lg shadow-mauve-400/30">
               {(() => {
                 const goal = GOALS.find(g => g.id === form.agentGoal);
                 if (!goal) return null;
                 const Icon = goal.icon;
-                return <Icon className="w-4 h-4 text-white" />;
+                return <Icon className="w-5 h-5 text-white" />;
               })()}
             </div>
             <div>
               <p className="text-sm font-semibold text-ink-900">
-                {GOALS.find(g => g.id === form.agentGoal)?.label} Agent
+                {GOALS.find(g => g.id === form.agentGoal)?.label} Агент
               </p>
-              <p className="text-xs text-ink-400 mt-0.5">
-                Ready to configure after onboarding
-              </p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Heart className="w-3.5 h-3.5 text-mauve-400" />
+                <p className="text-xs text-mauve-500">При подписке — $10/мес на AI-запросы</p>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -566,30 +571,36 @@ function SelectField({
   placeholder: string;
 }) {
   return (
-    <div className="p-4 rounded-xl border border-mauve-100 bg-[#F8F9FB] transition-all focus-within:ring-2 focus-within:ring-mauve-400/20 focus-within:border-mauve-400 focus-within:bg-white">
+    <div className="relative p-4 rounded-xl border border-mauve-100 bg-[#F8F9FB] transition-all focus-within:ring-2 focus-within:ring-mauve-400/30 focus-within:border-mauve-400 focus-within:bg-white">
       <label className="block text-xs font-semibold uppercase tracking-label text-mauve-500 mb-2">
         {label}
       </label>
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full bg-transparent text-ink-900 text-sm outline-none cursor-pointer appearance-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239BA0B0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'right 4px center',
-          paddingRight: '24px',
-        }}
-      >
-        <option value="" disabled>
-          {placeholder}
-        </option>
-        {options.map(opt => (
-          <option key={opt} value={opt}>
-            {opt}
+      <div className="relative">
+        <select
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-full bg-transparent text-ink-900 text-sm outline-none cursor-pointer appearance-none pr-8"
+        >
+          <option value="" disabled>
+            {placeholder}
           </option>
-        ))}
-      </select>
+          {options.map(opt => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
+          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1.5L6 6.5L11 1.5" stroke="#9BA0B0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+        {value && (
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
+            <div className="w-1.5 h-1.5 rounded-full bg-mauve-400" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

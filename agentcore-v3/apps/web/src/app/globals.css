@@ -4,23 +4,18 @@
 
 :root {
   --bg-primary: #F8F9FB;
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #F0F1F5;
+  /* --bg-surface: #FFFFFF; (documented in DESIGN_SYSTEM.md) */
+  /* --bg-elevated: #F0F1F5; (documented in DESIGN_SYSTEM.md) */
   --bg-warm: #FDF7FE;
   --ink-900: #111318;
   --ink-700: #2D313A;
   --ink-500: #6B7080;
+  --ink-400: #9BA0B0;
   --ink-300: #C5C9D4;
-  --mauve-200: #F4D3F9;
+  --ink-200: #E2E4EB;
   --mauve-300: #D4B6D8;
   --mauve-400: #A896AB;
-  --mauve-500: #817080;
   --mauve-600: #5A4D59;
-  --mauve-light: rgba(168, 150, 171, 0.12);
-  --mauve-soft: rgba(129, 112, 128, 0.08);
-  --accent: #5A4D59;
-  --accent-light: #A896AB;
-  --accent-glow: rgba(90, 77, 89, 0.12);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -76,6 +71,22 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ink-500);
+}
+
+.dark-section {
+  scrollbar-color: var(--ink-500) var(--ink-900);
+}
+
+.dark-section::-webkit-scrollbar-track {
+  background: var(--ink-900);
+}
+
+.dark-section::-webkit-scrollbar-thumb {
+  background: var(--ink-500);
+}
+
+.dark-section::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-400);
 }
 
 @layer components {
@@ -363,7 +374,7 @@ body {
   }
 
   .float-slow {
-    animation: floatSlow 6s ease-in-out infinite;
+    animation: floatSlow 8s ease-in-out infinite;
   }
   .float-medium {
     animation: floatMedium 4s ease-in-out infinite;
@@ -420,8 +431,8 @@ body {
 }
 
 @keyframes floatSlow {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(1deg); }
 }
 
 @keyframes floatMedium {
@@ -473,4 +484,20 @@ body {
 @keyframes breathe {
   0%, 100% { opacity: 0.4; transform: scale(1); }
   50% { opacity: 0.7; transform: scale(1.02); }
+}
+
+.cta-pulse {
+  animation: ctaPulse 3s ease-in-out infinite;
+}
+@keyframes ctaPulse {
+  0%, 100% { box-shadow: 0 8px 25px rgba(90, 77, 89, 0.18); transform: scale(1); }
+  50% { box-shadow: 0 12px 35px rgba(90, 77, 89, 0.28); transform: scale(1.02); }
+}
+
+.cta-pulse-light {
+  animation: ctaPulseLight 3s ease-in-out infinite;
+}
+@keyframes ctaPulseLight {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(168, 150, 171, 0.2); }
+  50% { box-shadow: 0 0 0 8px rgba(168, 150, 171, 0); }
 }

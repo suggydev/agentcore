@@ -3,38 +3,166 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Bot, Plus, Loader2, Trash2, ArrowRight, ArrowLeft, Brain,
-  MessageCircle, Shield, Zap, Smile, AlertTriangle, Clock,
-  Sparkles, FileText, Globe, BookOpen, Check, Pen, X, Save,
+  Plus, Loader2, Trash2, Brain, Wand2,
+  Code, Cpu, Zap, ArrowLeft, Sparkles
 } from 'lucide-react';
-import DashboardLayout from '../../../components/DashboardLayout';
+import AgentBrainAnimation from '../../../components/AgentBrainAnimation';
+import AgentReadyScreen from '../../../components/AgentReadyScreen';
+import { AGENT_TEMPLATES, AgentTemplate } from '../../../data/agentTemplates';
+import { useAgentStore } from '../../../store/agentStore';
 
-const API_BASE = 'http://31.76.102.116:4000';
-
-const STEPS = ['Role & Personality', 'Knowledge', 'Review'];
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface Agent {
   id: string; name: string; description: string | null; model: string;
   systemPrompt: string; temperature: number; isActive: boolean; createdAt: string;
 }
 
+type ViewState = 'list' | 'create' | 'ready';
+
+const INDUSTRIES = [
+  'Технологии', 'Финансы', 'Медицина', 'E-commerce', 'Образование',
+  'Недвижимость', 'Консалтинг', 'Производство', 'Ритейл', 'HoReCa',
+  'Маркетинг', 'Логистика', 'Авто', 'Другое',
+] as const;
+
+const TONES = ['Профессиональный', 'Дружелюбный', 'Продающий', 'Формальный'] as const;
+
+const AUTO_MODELS = [
+  { id: 'accounts/fireworks/models/deepseek-v4-pro', name: 'deepseek-v4-pro', icon: Code, for: ['Профессиональный', 'Формальный'] },
+  { id: 'accounts/fireworks/models/glm-5p1', name: 'glm-5p1', icon: Cpu, for: ['Дружелюбный', 'Продающий'] },
+];
+
+const INDUSTRY_TEMPLATE_MAP: Record<string, string> = {
+  'Технологии': 'saas',
+  'Финансы': 'finance',
+  'Медицина': 'healthcare',
+  'E-commerce': 'ecommerce',
+  'Образование': 'education',
+  'Недвижимость': 'realestate',
+  'Консалтинг': 'consulting',
+  'Ритейл': 'retail',
+  'HoReCa': 'hospitality',
+};
+
+function findTemplate(industry: string): AgentTemplate | null {
+  const templateId = INDUSTRY_TEMPLATE_MAP[industry];
+  if (!templateId) return null;
+  return AGENT_TEMPLATES.find(t => t.id === templateId) || null;
+}
+
+function selectModel(tone: string, industry: string): { id: string; name: string; icon: typeof Code } {
+  for (const m of AUTO_MODELS) {
+    if (m.for.includes(tone)) return m;
+  }
+  if (['Финансы', 'Консалтинг', 'Медицина'].includes(industry)) return AUTO_MODELS[0];
+  return AUTO_MODELS[1];
+}
+
+function selectTemperature(tone: string): number {
+  if (tone === 'Профессиональный' || tone === 'Формальный') return 0.3;
+  return 0.7;
+}
+
+function resolveTone(tone: string): 'formal' | 'friendly' | 'expert' | 'salesy' | 'reserved' {
+  const map: Record<string, 'formal' | 'friendly' | 'expert' | 'salesy' | 'reserved'> = {
+    'Профессиональный': 'expert',
+    'Дружелюбный': 'friendly',
+    'Продающий': 'salesy',
+    'Формальный': 'formal',
+  };
+  return map[tone] || 'friendly';
+}
+
+function resolveResponseSpeed(tone: string): string {
+  const map: Record<string, string> = {
+    'Профессиональный': 'thoughtful',
+    'Дружелюбный': 'fast',
+    'Продающий': 'natural',
+    'Формальный': 'thoughtful',
+  };
+  return map[tone] || 'natural';
+}
+
+function buildToneGuide(tone: string): string {
+  switch (tone) {
+    case 'Профессиональный':
+      return '- Стиль: профессиональный, деловой\n- Говори строго по делу, используй профессиональную лексику\n- Соблюдай деловой этикет';
+    case 'Дружелюбный':
+      return '- Стиль: дружелюбный, тёплый\n- Общайся по-человечески, с эмпатией\n- Используй эмодзи где уместно';
+    case 'Продающий':
+      return '- Стиль: продающий, энергичный\n- Подчёркивай выгоды и преимущества\n- Веди клиента к целевому действию';
+    case 'Формальный':
+      return '- Стиль: формальный, официальный\n- Соблюдай строгий деловой тон\n- Избегай эмоций и разговорной лексики';
+    default:
+      return '- Стиль: дружелюбный, профессиональный\n- Общайся тепло но по делу';
+  }
+}
+
+function generateSystemPrompt(
+  name: string, industry: string, task: string, tone: string,
+  rules: string, companyName: string, template: AgentTemplate | null
+): string {
+  if (template) {
+    const prompt = template.systemPrompt(name, companyName, industry);
+    if (rules.trim()) {
+      return prompt + `\n\n# ДОПОЛНИТЕЛЬНЫЕ ПРАВИЛА\n${rules}`;
+    }
+    return prompt;
+  }
+
+  const toneGuide = buildToneGuide(tone);
+  const rulesSection = rules.trim()
+    ? `# ПРАВИЛА\n${rules}`
+    : `# ПРАВИЛА\n- Всегда начинай с приветствия и предложения помощи\n- Внимательно слушай и уточняй потребности\n- Предлагай конкретные решения, а не общие фразы\n- Если не знаешь ответ — честно признай и предложи альтернативу\n- Сохраняй контекст разговора`;
+
+  return `# РОЛЬ
+Ты — ${name}, AI-ассистент компании ${companyName}.
+Твоя сфера: ${industry}.
+
+# ЗАДАЧА
+${task}
+
+# ТОН ОБЩЕНИЯ
+${toneGuide}
+
+# ЯЗЫК
+- Общение на русском языке
+
+${rulesSection}`;
+}
+
+function getDefaultPersona(tone: string) {
+  const t = resolveTone(tone);
+  const isEmoji = t === 'friendly' || t === 'salesy';
+  return {
+    tone: t,
+    responseSpeed: resolveResponseSpeed(tone),
+    useEmoji: isEmoji,
+    useHumor: isEmoji,
+    showEmotions: isEmoji,
+    forbiddenWords: 'бот, ИИ, программа, искусственный интеллект, нейросеть',
+    aggressionHandling: (isEmoji ? 'empathy' : 'calm') as string,
+  };
+}
+
 export default function AgentsPage() {
-  const [step, setStep] = useState(0);
+  const [view, setView] = useState<ViewState>('list');
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
   const [token, setToken] = useState('');
+  const store = useAgentStore();
 
-  const [form, setForm] = useState({
-    name: '', description: '', model: '',
-    communicationStyle: 'friendly', forbiddenWords: '',
-    aggressionHandling: 'defuse', canJoke: true,
-    canExpressEmotion: true, responseSpeed: 'thoughtful',
-    useEmoji: false, greeting: '',
-    knowledgeDocs: [] as string[],
-    systemPrompt: 'You are a helpful AI assistant.',
-    temperature: 0.7,
-  });
+  const [agentName, setAgentName] = useState('');
+  const [industry, setIndustry] = useState('');
+  const [task, setTask] = useState('');
+  const [tone, setTone] = useState('');
+  const [rules, setRules] = useState('');
+
+  const [createdAgent, setCreatedAgent] = useState<Agent | null>(null);
+  const [testPrompts, setTestPrompts] = useState<string[]>([]);
 
   useEffect(() => {
     const t = localStorage.getItem('token');
@@ -45,380 +173,361 @@ export default function AgentsPage() {
 
   const loadAgents = async (t: string) => {
     try {
-      const res = await fetch(`${API_BASE}/api/agents`, {
-        headers: { Authorization: `Bearer ${t}` }
-      });
-      if (res.ok) setAgents(await res.json());
+      const res = await fetch(`${API_BASE}/api/agents`, { headers: { Authorization: `Bearer ${t}` } });
+      if (res.ok) {
+        const agentsData = await res.json();
+        setAgents(Array.isArray(agentsData) ? agentsData : (agentsData?.data || []));
+      }
     } catch {}
     setLoading(false);
   };
 
-  const createAgent = async () => {
+  const deleteAgent = async (id: string) => {
+    await fetch(`${API_BASE}/api/agents/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    setAgents(prev => prev.filter(a => a.id !== id));
+  };
+
+  const isFormValid = agentName.trim() && industry && task.trim() && tone;
+  const modelInfo = isFormValid ? selectModel(tone, industry) : null;
+  const matchedTemplate = industry ? findTemplate(industry) : null;
+
+  const handleCreate = async () => {
+    if (!token || !isFormValid) return;
     setCreating(true);
-    const prompt = buildSystemPrompt();
+
     try {
+      const companyName = store.onboarding.workspace.companyName || 'Ваша компания';
+      const sysPrompt = generateSystemPrompt(
+        agentName.trim(), industry, task.trim(), tone, rules.trim(), companyName, matchedTemplate
+      );
+      const templatePersona = matchedTemplate ? {
+        tone: matchedTemplate.tone,
+        responseSpeed: matchedTemplate.responseSpeed,
+        useEmoji: matchedTemplate.useEmoji,
+        useHumor: matchedTemplate.useHumor,
+        showEmotions: matchedTemplate.showEmotions,
+        forbiddenWords: matchedTemplate.forbiddenWords,
+        aggressionHandling: matchedTemplate.aggressionHandling,
+      } : null;
+      const defaults = getDefaultPersona(tone);
+
+      const persona = templatePersona || {
+        tone: defaults.tone,
+        responseSpeed: defaults.responseSpeed,
+        useEmoji: defaults.useEmoji,
+        useHumor: defaults.useHumor,
+        showEmotions: defaults.showEmotions,
+        forbiddenWords: defaults.forbiddenWords,
+        aggressionHandling: defaults.aggressionHandling,
+      };
+
       const res = await fetch(`${API_BASE}/api/agents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          name: form.name,
-          description: form.description,
-          model: form.model || 'accounts/fireworks/models/glm-5p1',
-          systemPrompt: prompt,
-          temperature: form.temperature,
-        })
+          name: agentName.trim(),
+          description: task.substring(0, 200),
+          model: modelInfo!.id,
+          systemPrompt: sysPrompt,
+          temperature: selectTemperature(tone),
+          goal: matchedTemplate?.goal || 'general',
+          industry,
+          persona: {
+            ...persona,
+            greeting: `Здравствуйте! Я ${agentName.trim()}, готов помочь.`,
+            admitNotKnowing: true,
+            adaptToUserStyle: true,
+            rememberContext: true,
+            notPushy: true,
+          },
+          brainTemplate: matchedTemplate?.brainTemplate,
+          testPrompts: matchedTemplate?.testPrompts || [],
+        }),
       });
+
       if (res.ok) {
-        const agent = await res.json();
-        setAgents(prev => [agent, ...prev]);
-        resetForm();
-        setStep(0);
+        const data = await res.json();
+        setCreatedAgent(data.agent || data);
+        setTestPrompts(matchedTemplate?.testPrompts || []);
+        setAgents(prev => [data.agent || data, ...prev]);
+        setShowAnimation(true);
+      } else {
+        throw new Error('Creation failed');
       }
-    } catch {}
-    setCreating(false);
+    } catch (err) {
+      console.error('Agent creation failed:', err instanceof Error ? err.message : err);
+    } finally {
+      setCreating(false);
+    }
   };
 
-  const buildSystemPrompt = () => {
-    const parts = [
-      'You are an AI agent named ' + (form.name || 'Assistant') + '.',
-      'Role: ' + (form.description || 'General assistant') + '.',
-      '',
-      'COMMUNICATION STYLE:',
-      form.communicationStyle === 'formal' && '- Be formal and professional. Use proper titles and formal address.',
-      form.communicationStyle === 'friendly' && '- Be friendly and warm. Use conversational tone.',
-      form.communicationStyle === 'expert' && '- Be authoritative and knowledgeable. Cite facts confidently.',
-      form.communicationStyle === 'consultative' && '- Be consultative. Ask questions, understand needs first.',
-      form.communicationStyle === 'reserved' && '- Be reserved and concise. Minimal words, maximum clarity.',
-      '',
-      form.forbiddenWords && 'FORBIDDEN: Never use these words/phrases: ' + form.forbiddenWords + '.',
-      '',
-      'AGGRESSION HANDLING:',
-      form.aggressionHandling === 'defuse' && 'When facing aggression: politely defuse, acknowledge concerns, stay professional.',
-      form.aggressionHandling === 'escalate' && 'When facing aggression: immediately escalate to human operator.',
-      form.aggressionHandling === 'neutral' && 'When facing aggression: remain neutral, do not engage, redirect to topic.',
-      form.aggressionHandling === 'end' && 'When facing aggression: politely end the conversation.',
-      '',
-      'ADDITIONAL BEHAVIORS:',
-      form.canJoke ? '- You may use appropriate humor.' : '- Do NOT joke.',
-      form.canExpressEmotion ? '- You may express emotions naturally.' : '- Keep emotions neutral.',
-      form.useEmoji ? '- You may use emojis when appropriate.' : '- Do NOT use emojis.',
-      form.responseSpeed === 'instant' && '- Respond instantly, no delays.',
-      form.responseSpeed === 'thoughtful' && '- Take a moment to think before responding.',
-      form.responseSpeed === 'deliberate' && '- Be thorough and deliberate in responses.',
-      '',
-      'GENERAL RULES:',
-      '- Sound human, not like a bot.',
-      '- Adapt to the users communication style.',
-      '- Remember context throughout the conversation.',
-      '- Admit when you do not know something.',
-      '- Be helpful but not pushy.',
-      form.greeting && 'GREETING: ' + form.greeting,
-    ].filter(Boolean);
-    return parts.join('\n');
+  const handleAnimationComplete = () => {
+    setShowAnimation(false);
+    setView('ready');
   };
 
-  const resetForm = () => setForm({
-    name: '', description: '', model: '',
-    communicationStyle: 'friendly', forbiddenWords: '',
-    aggressionHandling: 'defuse', canJoke: true,
-    canExpressEmotion: true, responseSpeed: 'thoughtful',
-    useEmoji: false, greeting: '',
-    knowledgeDocs: [],
-    systemPrompt: 'You are a helpful AI assistant.',
-    temperature: 0.7,
-  });
+  const handleReadyClose = () => {
+    setView('list');
+    setAgentName('');
+    setIndustry('');
+    setTask('');
+    setTone('');
+    setRules('');
+    setCreatedAgent(null);
+    setTestPrompts([]);
+  };
 
-  const deleteAgent = async (id: string) => {
-    await fetch(`${API_BASE}/api/agents/${id}`, {
-      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
-    });
-    setAgents(prev => prev.filter(a => a.id !== id));
+  const openCreate = () => {
+    setView('create');
+    setAgentName('');
+    setIndustry('');
+    setTask('');
+    setTone('');
+    setRules('');
   };
 
   if (loading) return (
-    <DashboardLayout>
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 text-mauve-500 animate-spin" />
-      </div>
-    </DashboardLayout>
+    <div className="flex items-center justify-center h-96">
+      <Loader2 className="w-8 h-8 text-mauve-500 animate-spin" />
+    </div>
   );
 
   return (
-    <DashboardLayout>
-      <div className="p-6 lg:p-10 max-w-5xl">
+    <div className="p-6 lg:p-10 max-w-6xl mx-auto">
+      <AnimatePresence>
+        {showAnimation && (
+          <AgentBrainAnimation agentName={agentName || 'Агент'} isVisible={true} onComplete={handleAnimationComplete} />
+        )}
+      </AnimatePresence>
+
+      {!showAnimation && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-2xl font-display font-bold text-ink-900">AI Agents</h1>
-              <p className="text-ink-400 text-sm mt-1">Create and manage your digital employees</p>
+              <h1 className="text-2xl font-display font-bold text-ink-900">
+                {view === 'list' ? 'AI-агенты' : view === 'ready' ? 'Готово' : 'Новый агент'}
+              </h1>
+              <p className="text-ink-400 text-sm mt-1">
+                {view === 'list' ? 'Ваши цифровые сотрудники' : view === 'ready' ? 'Агент настроен и готов к работе' : 'Настройте агента под ваши задачи'}
+              </p>
             </div>
-            <button
-              onClick={() => { resetForm(); setStep(0); }}
-              className="btn-primary text-sm gap-2"
-            >
-              <Plus className="w-4 h-4" /> Create Agent
-            </button>
+            {view === 'list' && (
+              <button onClick={openCreate} className="btn-primary text-sm gap-2">
+                <Plus className="w-4 h-4" /> Создать
+              </button>
+            )}
+            {view === 'create' && (
+              <button onClick={() => setView('list')} className="btn-secondary text-sm gap-2">
+                <ArrowLeft className="w-4 h-4" /> К списку
+              </button>
+            )}
           </div>
         </motion.div>
+      )}
 
-        {/* Wizard */}
-        <AnimatePresence mode="wait">
-          {step > 0 || form.name ? (
-            <motion.div
-              key="wizard"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-white rounded-2xl border border-mauve-100 shadow-sm overflow-hidden"
-            >
-              {/* Step indicator */}
-              <div className="px-6 pt-6 pb-4 border-b border-ink-100">
-                <div className="flex items-center gap-1 mb-2">
-                  {STEPS.map((s, i) => (
-                    <button key={s} onClick={() => i < 2 && setStep(i)} className="flex items-center gap-2">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                        i <= step ? 'bg-mauve-600 text-white' : 'bg-ink-100 text-ink-400'
-                      }`}>
-                        {i + 1}
-                      </div>
-                      <span className={`text-xs font-medium hidden sm:block ${i <= step ? 'text-mauve-600' : 'text-ink-400'}`}>{s}</span>
-                      {i < 2 && <div className={`w-8 h-px ${i < step ? 'bg-mauve-600' : 'bg-ink-200'}`} />}
-                    </button>
-                  ))}
+      {/* Agent List */}
+      {view === 'list' && !showAnimation && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {agents.map((agent, i) => (
+            <motion.div key={agent.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-5 group">
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-mauve-500 to-mauve-300 flex items-center justify-center">
+                  <Brain className="w-5 h-5 text-white" />
+                </div>
+                <button onClick={() => deleteAgent(agent.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-ink-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <h3 className="font-bold text-ink-900">{agent.name}</h3>
+              <p className="text-ink-400 text-sm mt-1 line-clamp-2">{agent.description || 'Нет описания'}</p>
+              <div className="flex items-center gap-2 mt-3 p-2.5 rounded-xl bg-gradient-to-r from-mauve-50 to-white border border-mauve-100/80">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-mauve-500 to-mauve-300 flex items-center justify-center flex-shrink-0">
+                  {agent.model.includes('deepseek') ? <Code className="w-3.5 h-3.5 text-white" /> :
+                   agent.model.includes('kimi') ? <Zap className="w-3.5 h-3.5 text-white" /> :
+                   <Cpu className="w-3.5 h-3.5 text-white" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-mauve-400">Модель</p>
+                  <p className="text-sm font-bold text-mauve-800 truncate">{agent.model.split('/').pop()}</p>
                 </div>
               </div>
-
-              {/* Step 0: Role */}
-              <AnimatePresence mode="wait">
-                {step === 0 && (
-                  <motion.div key="s0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-6 space-y-5">
-                    <h3 className="font-semibold text-ink-900">Define your agents identity</h3>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium text-ink-700">Agent Name *</label>
-                        <input value={form.name} onChange={e => setForm({...form, name: e.target.value})}
-                          className="w-full mt-1.5 px-4 py-2.5 rounded-xl border border-mauve-200 focus:ring-2 focus:ring-mauve-400/30 focus:border-mauve-400 text-ink-900 placeholder:text-ink-300 text-sm"
-                          placeholder="e.g. SalesBot Pro" />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-ink-700">Purpose</label>
-                        <input value={form.description} onChange={e => setForm({...form, description: e.target.value})}
-                          className="w-full mt-1.5 px-4 py-2.5 rounded-xl border border-mauve-200 focus:ring-2 focus:ring-mauve-400/30 focus:border-mauve-400 text-ink-900 placeholder:text-ink-300 text-sm"
-                          placeholder="e.g. Sales qualification assistant" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-ink-700 mb-2 block">Communication Style</label>
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                        {['formal', 'friendly', 'expert', 'consultative', 'reserved'].map(s => (
-                          <button key={s} onClick={() => setForm({...form, communicationStyle: s})}
-                            className={`px-3 py-2.5 rounded-lg text-xs font-medium capitalize transition-all ${
-                              form.communicationStyle === s
-                                ? 'bg-mauve-600 text-white shadow-md'
-                                : 'bg-ink-50 text-ink-500 hover:bg-mauve-50 hover:text-mauve-600 border border-ink-100'
-                            }`}>
-                            {s}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-ink-700">Forbidden words/phrases</label>
-                      <input value={form.forbiddenWords} onChange={e => setForm({...form, forbiddenWords: e.target.value})}
-                        className="w-full mt-1.5 px-4 py-2.5 rounded-xl border border-mauve-200 focus:ring-2 focus:ring-mauve-400/30 focus:border-mauve-400 text-ink-900 placeholder:text-ink-300 text-sm"
-                        placeholder="Comma-separated: stupid, whatever, ..." />
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="text-sm font-medium text-ink-700 block mb-2">Aggression</label>
-                        <select value={form.aggressionHandling} onChange={e => setForm({...form, aggressionHandling: e.target.value})}
-                          className="w-full px-4 py-2.5 rounded-xl border border-mauve-200 bg-white focus:ring-2 focus:ring-mauve-400/30 text-sm text-ink-900">
-                          <option value="defuse">Defuse politely</option>
-                          <option value="escalate">Escalate immediately</option>
-                          <option value="neutral">Stay neutral</option>
-                          <option value="end">End conversation</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-ink-700 block mb-2">Response Speed</label>
-                        <select value={form.responseSpeed} onChange={e => setForm({...form, responseSpeed: e.target.value})}
-                          className="w-full px-4 py-2.5 rounded-xl border border-mauve-200 bg-white focus:ring-2 focus:ring-mauve-400/30 text-sm text-ink-900">
-                          <option value="instant">Instant</option>
-                          <option value="thoughtful">Thoughtful</option>
-                          <option value="deliberate">Deliberate</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-ink-700 block mb-2">Custom Greeting</label>
-                        <input value={form.greeting} onChange={e => setForm({...form, greeting: e.target.value})}
-                          className="w-full px-4 py-2.5 rounded-xl border border-mauve-200 focus:ring-2 focus:ring-mauve-400/30 text-sm text-ink-900"
-                          placeholder="Hello! How can I help?" />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-3">
-                      {[
-                        { label: 'Can joke', key: 'canJoke', icon: Smile },
-                        { label: 'Express emotion', key: 'canExpressEmotion', icon: Sparkles },
-                        { label: 'Use emoji', key: 'useEmoji', icon: Pen },
-                      ].map(t => (
-                        <button key={t.key} onClick={() => setForm({...form, [t.key]: !(form as any)[t.key]})}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
-                            (form as any)[t.key] ? 'bg-mauve-50 border-mauve-300 text-mauve-600' : 'bg-white border-ink-200 text-ink-500'
-                          }`}>
-                          <t.icon className="w-3.5 h-3.5" /> {t.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex justify-end pt-2">
-                      <button onClick={() => setStep(1)} disabled={!form.name}
-                        className="btn-primary text-sm gap-2 disabled:opacity-50">
-                        Continue <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Step 1: Knowledge */}
-                {step === 1 && (
-                  <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-6 space-y-5">
-                    <h3 className="font-semibold text-ink-900">Knowledge Base</h3>
-
-                    <div className="border-2 border-dashed border-mauve-200 rounded-2xl p-8 text-center hover:border-mauve-400 transition-colors cursor-pointer">
-                      <FileText className="w-10 h-10 text-mauve-400 mx-auto mb-3" />
-                      <p className="text-sm text-ink-500">Drag & drop files here, or click to upload</p>
-                      <p className="text-xs text-ink-400 mt-1">PDF, CSV, TXT, DOCX</p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-3">
-                      {[
-                        { icon: Globe, label: 'Website URL', action: 'Parse' },
-                        { icon: BookOpen, label: 'Notion', action: 'Connect' },
-                        { icon: Bot, label: 'Google Drive', action: 'Connect' },
-                      ].map(src => (
-                        <button key={src.label}
-                          className="flex items-center gap-3 p-3 rounded-xl border border-mauve-100 hover:border-mauve-300 bg-white hover:bg-mauve-50 transition-all text-sm">
-                          <src.icon className="w-5 h-5 text-mauve-500" />
-                          <div className="text-left flex-1">
-                            <div className="font-medium text-ink-700">{src.label}</div>
-                            <div className="text-xs text-mauve-500">{src.action}</div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex justify-between pt-2">
-                      <button onClick={() => setStep(0)} className="btn-secondary text-sm gap-2">
-                        <ArrowLeft className="w-4 h-4" /> Back
-                      </button>
-                      <button onClick={() => setStep(2)} className="btn-primary text-sm gap-2">
-                        Review <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Step 2: Review */}
-                {step === 2 && (
-                  <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-6 space-y-5">
-                    <h3 className="font-semibold text-ink-900">Review Your Agent</h3>
-
-                    <div className="bg-ink-50 rounded-xl p-5 space-y-3">
-                      {[
-                        { label: 'Name', value: form.name },
-                        { label: 'Purpose', value: form.description || '-' },
-                        { label: 'Style', value: form.communicationStyle },
-                        { label: 'Aggression', value: form.aggressionHandling },
-                        { label: 'Speed', value: form.responseSpeed },
-                        { label: 'Jokes', value: form.canJoke ? 'Yes' : 'No' },
-                        { label: 'Emotions', value: form.canExpressEmotion ? 'Yes' : 'No' },
-                        { label: 'Emoji', value: form.useEmoji ? 'Yes' : 'No' },
-                      ].map(item => (
-                        <div key={item.label} className="flex justify-between text-sm">
-                          <span className="text-ink-500">{item.label}</span>
-                          <span className="font-medium text-ink-900">{item.value}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="bg-mauve-50 rounded-xl p-4 border border-mauve-100">
-                      <p className="text-sm font-medium text-mauve-600 mb-1">System Prompt Preview</p>
-                      <pre className="text-xs text-mauve-800 whitespace-pre-wrap max-h-40 overflow-y-auto">{buildSystemPrompt()}</pre>
-                    </div>
-
-                    <div className="flex justify-between pt-2">
-                      <button onClick={() => setStep(1)} className="btn-secondary text-sm gap-2">
-                        <ArrowLeft className="w-4 h-4" /> Back
-                      </button>
-                      <button onClick={createAgent} disabled={creating}
-                        className="btn-primary text-sm gap-2 disabled:opacity-50">
-                        {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {creating ? 'Creating...' : 'Create Agent'}
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <span className={`inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-md font-semibold transition-colors ${
+                  agent.isActive ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/50' : 'bg-ink-100 text-ink-500 ring-1 ring-ink-200/50'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${agent.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-ink-400'}`} />
+                  {agent.isActive ? 'Активен' : 'Неактивен'}
+                </span>
+              </div>
             </motion.div>
-          ) : (
-            /* Agent List */
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {agents.map((agent, i) => (
-                <motion.div key={agent.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }} className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-5 group">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-mauve-500 to-mauve-300 flex items-center justify-center">
-                      <Brain className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => deleteAgent(agent.id)}
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-ink-400 hover:text-red-600 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                  <h3 className="font-bold text-ink-900">{agent.name}</h3>
-                  <p className="text-ink-400 text-sm mt-1 line-clamp-2">{agent.description || 'No description'}</p>
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-mauve-100 text-mauve-700 font-medium">
-                      {agent.model.split('/').pop() || 'Auto'}
-                    </span>
-                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                      agent.isActive ? 'bg-green-50 text-green-700' : 'bg-ink-100 text-ink-500'
-                    }`}>
-                      {agent.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
-                  <div className="flex gap-2 mt-4">
-                    <a href={`/dashboard/brain-map?agent=${agent.id}`}
-                      className="flex-1 text-center text-xs font-medium px-3 py-1.5 rounded-lg bg-mauve-50 text-mauve-600 hover:bg-mauve-100 transition-colors">
-                      Brain Map
-                    </a>
-                    <a href={`/dashboard/brain-map/test?agent=${agent.id}`}
-                      className="flex-1 text-center text-xs font-medium px-3 py-1.5 rounded-lg bg-ink-50 text-ink-600 hover:bg-ink-100 transition-colors">
-                      Test
-                    </a>
-                  </div>
-                </motion.div>
-              ))}
-              {agents.length === 0 && (
-                <div className="col-span-full text-center py-16">
-                  <Brain className="w-12 h-12 text-mauve-300 mx-auto mb-4" />
-                  <p className="text-ink-500 mb-4">No agents yet. Create your first digital employee!</p>
-                  <button onClick={() => setStep(0)} className="btn-primary text-sm">
-                    <Plus className="w-4 h-4" /> Create Agent
-                  </button>
-                </div>
-              )}
-            </motion.div>
+          ))}
+          {agents.length === 0 && (
+            <div className="col-span-full text-center py-16">
+              <Brain className="w-12 h-12 text-mauve-300 mx-auto mb-4" />
+              <p className="text-ink-500 mb-4">Пока нет агентов. Создайте первого!</p>
+              <button onClick={openCreate} className="btn-primary text-sm"><Plus className="w-4 h-4 inline mr-1" />Создать</button>
+            </div>
           )}
-        </AnimatePresence>
-      </div>
-    </DashboardLayout>
+        </motion.div>
+      )}
+
+      {/* Create Form */}
+      {view === 'create' && !showAnimation && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-6">
+          <div className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-6 space-y-5">
+            <div className="flex items-center gap-2 mb-1">
+              <Wand2 className="w-5 h-5 text-mauve-600" />
+              <h2 className="font-semibold text-ink-900">Параметры агента</h2>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ink-700 mb-1.5">Имя агента</label>
+              <input
+                type="text"
+                value={agentName}
+                onChange={e => setAgentName(e.target.value)}
+                placeholder="Введите имя агента..."
+                maxLength={50}
+                className="w-full px-4 py-3 rounded-xl border border-mauve-200 bg-[#F8F9FB] focus:ring-2 focus:ring-mauve-400/30 focus:border-mauve-400 text-sm text-ink-900 placeholder:text-ink-300 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ink-700 mb-1.5">Сфера / Индустрия</label>
+              <select
+                value={industry}
+                onChange={e => setIndustry(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-mauve-200 bg-[#F8F9FB] focus:ring-2 focus:ring-mauve-400/30 focus:border-mauve-400 text-sm text-ink-900 outline-none appearance-none"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center', paddingRight: '40px' }}
+              >
+                <option value="" disabled>Выберите индустрию...</option>
+                {INDUSTRIES.map(ind => (
+                  <option key={ind} value={ind}>{ind}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ink-700 mb-1.5">Задача агента</label>
+              <textarea
+                value={task}
+                onChange={e => setTask(e.target.value)}
+                placeholder="Опишите, что должен делать агент. Например: консультировать клиентов по продуктам компании, обрабатывать заявки, отвечать на вопросы о доставке и возвратах..."
+                rows={4}
+                maxLength={600}
+                className="w-full px-4 py-3 rounded-xl border border-mauve-200 bg-[#F8F9FB] focus:ring-2 focus:ring-mauve-400/30 focus:border-mauve-400 text-sm text-ink-900 placeholder:text-ink-300 outline-none resize-none"
+              />
+              <span className="text-[10px] text-ink-300 tabular-nums">{task.length}/600</span>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ink-700 mb-1.5">Тон общения</label>
+              <div className="grid grid-cols-2 gap-2">
+                {TONES.map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTone(t)}
+                    className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                      tone === t
+                        ? 'border-mauve-400 bg-mauve-50 text-mauve-700 shadow-sm'
+                        : 'border-mauve-200 bg-white text-ink-600 hover:border-mauve-300 hover:bg-mauve-50/50'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ink-700 mb-1.5">Ключевые правила</label>
+              <textarea
+                value={rules}
+                onChange={e => setRules(e.target.value)}
+                placeholder="Особые инструкции для агента. Например: не предлагать товары дороже 5000₽, всегда уточнять контактный телефон, не работать с юрлицами..."
+                rows={3}
+                maxLength={500}
+                className="w-full px-4 py-3 rounded-xl border border-mauve-200 bg-[#F8F9FB] focus:ring-2 focus:ring-mauve-400/30 focus:border-mauve-400 text-sm text-ink-900 placeholder:text-ink-300 outline-none resize-none"
+              />
+              <span className="text-[10px] text-ink-300 tabular-nums">{rules.length}/500</span>
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {isFormValid && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="bg-gradient-to-br from-mauve-50 to-white rounded-2xl border border-mauve-200 shadow-sm p-6"
+              >
+                <h3 className="font-semibold text-ink-900 mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-mauve-600" />
+                  Предпросмотр агента
+                </h3>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-white border border-mauve-100">
+                    <p className="text-[10px] text-mauve-400 uppercase tracking-wide mb-0.5">Имя</p>
+                    <p className="text-sm font-bold text-mauve-800">{agentName}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white border border-mauve-100">
+                    <p className="text-[10px] text-mauve-400 uppercase tracking-wide mb-0.5">Сфера</p>
+                    <p className="text-sm font-bold text-mauve-800">{industry}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white border border-mauve-100">
+                    <p className="text-[10px] text-mauve-400 uppercase tracking-wide mb-0.5">Тон общения</p>
+                    <p className="text-sm font-bold text-mauve-800">{tone}</p>
+                  </div>
+                  {modelInfo && (
+                    <div className="p-3 rounded-xl bg-white border border-mauve-100">
+                      <p className="text-[10px] text-mauve-400 uppercase tracking-wide mb-0.5">Модель</p>
+                      <div className="flex items-center gap-1.5">
+                        <modelInfo.icon className="w-3.5 h-3.5 text-mauve-600" />
+                        <p className="text-sm font-bold text-mauve-800">{modelInfo.name}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center gap-2"
+          >
+            <button
+              onClick={handleCreate}
+              disabled={creating || !isFormValid}
+              className="btn-primary text-base px-10 py-3.5 gap-3 shadow-lg shadow-mauve-600/20 hover:shadow-xl hover:shadow-mauve-600/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+            >
+              {creating ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Sparkles className="w-5 h-5" />
+              )}
+              Создать агента
+            </button>
+            {!isFormValid && (
+              <p className="text-xs text-ink-400">
+                Заполните: {!agentName.trim() && 'имя '}{!industry && 'сферу '}{!task.trim() && 'задачу '}{!tone && 'тон'}
+              </p>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Ready Screen */}
+        {view === 'ready' && createdAgent && (
+        <AgentReadyScreen
+          agent={{ id: createdAgent.id, name: createdAgent.name, description: createdAgent.description || '', model: createdAgent.model }}
+          testPrompts={testPrompts}
+          onClose={handleReadyClose}
+        />
+      )}
+    </div>
   );
 }

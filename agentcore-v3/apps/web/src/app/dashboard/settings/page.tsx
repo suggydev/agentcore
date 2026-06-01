@@ -14,14 +14,14 @@ import {
   Save,
   CheckCircle2,
   MessageSquare,
-  PhoneIcon,
+  Phone,
   Mail,
   User,
   ChevronDown,
 } from 'lucide-react';
-import DashboardLayout from '../../../components/DashboardLayout';
+import InfoTooltip from '../../../components/InfoTooltip';
 
-const API_BASE = 'http://31.76.102.116:4000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface WorkspaceData {
   name: string;
@@ -30,6 +30,22 @@ interface WorkspaceData {
   geography: string;
   website: string;
   crm: string;
+  companyName: string;
+  legalName: string;
+  bin: string;
+  ogrn: string;
+  legalAddress: string;
+  physicalAddress: string;
+  phone: string;
+  email: string;
+  workingHours: string;
+  telegram: string;
+  whatsapp: string;
+  instagram: string;
+  privacyText: string;
+  termsText: string;
+  refundText: string;
+  deliveryText: string;
   channels: {
     webChat: boolean;
     telegram: boolean;
@@ -56,6 +72,22 @@ const defaultWorkspace: WorkspaceData = {
   geography: '',
   website: '',
   crm: '',
+  companyName: '',
+  legalName: '',
+  bin: '',
+  ogrn: '',
+  legalAddress: '',
+  physicalAddress: '',
+  phone: '',
+  email: '',
+  workingHours: '',
+  telegram: '',
+  whatsapp: '',
+  instagram: '',
+  privacyText: '',
+  termsText: '',
+  refundText: '',
+  deliveryText: '',
   channels: {
     webChat: true,
     telegram: false,
@@ -76,9 +108,9 @@ const defaultWorkspace: WorkspaceData = {
 };
 
 const companySizes = ['1–10', '11–50', '51–200', '201–500', '501–1000', '1000+'];
-const industries = ['Technology', 'Healthcare', 'Finance', 'E-commerce', 'Education', 'Real Estate', 'Marketing', 'Legal', 'Other'];
-const geographies = ['North America', 'Europe', 'Asia Pacific', 'Latin America', 'Middle East', 'Africa', 'Global'];
-const crms = ['HubSpot', 'Salesforce', 'Pipedrive', 'Zoho', 'Bitrix24', 'AmoCRM', 'None'];
+const industries = ['Технологии', 'Медицина', 'Финансы', 'E-commerce', 'Образование', 'Недвижимость', 'Маркетинг', 'Юриспруденция', 'Другое'];
+const geographies = ['Сев. Америка', 'Европа', 'Азия', 'Лат. Америка', 'Бл. Восток', 'Африка', 'Весь мир'];
+const crms = ['HubSpot', 'Salesforce', 'Pipedrive', 'Zoho', 'Bitrix24', 'AmoCRM', 'Нет'];
 const models = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'claude-3-opus', 'claude-3-sonnet', 'gemini-2.0-flash'];
 
 interface SectionHeaderProps {
@@ -94,7 +126,7 @@ function SectionHeader({ icon: Icon, title, description, saved, onSave }: Sectio
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-5 border-b border-ink-100">
       <div className="flex items-start gap-3">
         <div className="w-9 h-9 rounded-lg bg-mauve-50 flex items-center justify-center ring-1 ring-mauve-100/60 flex-shrink-0 mt-0.5">
-          <Icon className="w-4.5 h-4.5 text-mauve-600" />
+          <Icon className="w-[18px] h-[18px] text-mauve-600" />
         </div>
         <div>
           <h3 className="font-semibold text-ink-900">{title}</h3>
@@ -113,12 +145,12 @@ function SectionHeader({ icon: Icon, title, description, saved, onSave }: Sectio
         {saved ? (
           <>
             <CheckCircle2 className="w-4 h-4" />
-            Saved
+            Сохранено
           </>
         ) : (
           <>
             <Save className="w-4 h-4" />
-            Save
+            Сохранить
           </>
         )}
       </button>
@@ -149,12 +181,29 @@ export default function SettingsPage() {
         if (res.ok) {
           const user = await res.json();
           if (user.workspace) {
+            const settings = user.workspace.settings || {};
             setWorkspace((prev) => ({
               ...prev,
               ...user.workspace,
               channels: { ...prev.channels, ...user.workspace?.channels },
               agentDefaults: { ...prev.agentDefaults, ...user.workspace?.agentDefaults },
               notifications: { ...prev.notifications, ...user.workspace?.notifications },
+              companyName: settings.companyName || prev.companyName || '',
+              legalName: settings.legalName || prev.legalName || '',
+              bin: settings.bin || prev.bin || '',
+              ogrn: settings.ogrn || prev.ogrn || '',
+              legalAddress: settings.legalAddress || prev.legalAddress || '',
+              physicalAddress: settings.physicalAddress || prev.physicalAddress || '',
+              phone: settings.phone || prev.phone || '',
+              email: settings.email || prev.email || '',
+              workingHours: settings.workingHours || prev.workingHours || '',
+              telegram: settings.telegram || prev.telegram || '',
+              whatsapp: settings.whatsapp || prev.whatsapp || '',
+              instagram: settings.instagram || prev.instagram || '',
+              privacyText: settings.privacyText || prev.privacyText || '',
+              termsText: settings.termsText || prev.termsText || '',
+              refundText: settings.refundText || prev.refundText || '',
+              deliveryText: settings.deliveryText || prev.deliveryText || '',
             }));
           } else if (user.workspaceName) {
             setWorkspace((prev) => ({ ...prev, name: user.workspaceName }));
@@ -196,7 +245,7 @@ export default function SettingsPage() {
     const token = localStorage.getItem('token');
     if (!token) return;
     try {
-      await fetch(`${API_BASE}/api/workspace/onboarding`, {
+      await fetch(`${API_BASE}/api/workspace/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(workspace),
@@ -225,9 +274,9 @@ export default function SettingsPage() {
   };
 
   const channelItems = [
-    { key: 'webChat' as const, label: 'Web Chat', icon: MessageSquare },
+    { key: 'webChat' as const, label: 'Веб-чат', icon: MessageSquare },
     { key: 'telegram' as const, label: 'Telegram', icon: MessageSquare },
-    { key: 'whatsapp' as const, label: 'WhatsApp', icon: PhoneIcon },
+    { key: 'whatsapp' as const, label: 'WhatsApp', icon: Phone },
     { key: 'slack' as const, label: 'Slack', icon: MessageSquare },
     { key: 'discord' as const, label: 'Discord', icon: MessageSquare },
     { key: 'email' as const, label: 'Email', icon: Mail },
@@ -244,54 +293,155 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <>
         <div className="flex items-center justify-center min-h-[80vh]">
           <Loader2 className="w-8 h-8 text-mauve-500 animate-spin" />
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout>
+      <>
         <div className="flex flex-col items-center justify-center min-h-[80vh] gap-4">
           <AlertCircle className="w-10 h-10 text-red-400" />
           <p className="text-ink-500">{error}</p>
-          <button onClick={() => window.location.reload()} className="btn-primary text-sm px-6 py-2.5">Retry</button>
+          <button onClick={() => window.location.reload()} className="btn-primary text-sm px-6 py-2.5">Повторить</button>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="p-6 lg:p-10 max-w-7xl mx-auto">
         <motion.div variants={container} initial="hidden" animate="show" className="mb-10">
           <motion.div variants={item}>
-            <p className="text-[11px] font-semibold uppercase tracking-label text-mauve-500 mb-2">Settings</p>
-            <h1 className="font-display font-bold text-3xl text-ink-900 tracking-tight">Workspace Settings</h1>
-            <p className="text-ink-500 mt-1 text-sm">Manage your workspace configuration and preferences.</p>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-mauve-500 mb-2">Настройки</p>
+            <h1 className="font-display font-bold text-3xl text-ink-900 tracking-tight">Настройки workspace</h1>
+            <p className="text-ink-500 mt-1 text-sm">Управляйте настройками и предпочтениями workspace.</p>
           </motion.div>
         </motion.div>
 
         <div className="space-y-6">
+          {/* Company Data */}
+          <motion.div variants={item} className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-6">
+            <SectionHeader
+              icon={Building2}
+              title="Данные компании"
+              description="Публичная информация о компании, контакты и юридические страницы. Эти данные используются на публичных страницах и в ответах агентов."
+              saved={savedSections.has('companyData')}
+              onSave={() => saveSection('companyData')}
+            />
+            <div className="max-w-2xl space-y-5">
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-label text-mauve-500 mb-2">Информация</h4>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Название</label>
+                    <input type="text" value={workspace.companyName} onChange={(e) => updateWorkspace('companyName', e.target.value)} placeholder='например: AgentCore' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Юр. название / Полное имя</label>
+                    <input type="text" value={workspace.legalName} onChange={(e) => updateWorkspace('legalName', e.target.value)} placeholder='ТОО «AgentCore»' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">БИН/ИНН</label>
+                    <input type="text" value={workspace.bin} onChange={(e) => updateWorkspace('bin', e.target.value)} placeholder='123456789012' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">ОГРН (опционально)</label>
+                    <input type="text" value={workspace.ogrn} onChange={(e) => updateWorkspace('ogrn', e.target.value)} placeholder='1234567890123' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Юр. адрес</label>
+                    <input type="text" value={workspace.legalAddress} onChange={(e) => updateWorkspace('legalAddress', e.target.value)} placeholder='г. Алматы, ул. Примерная, 1' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Физ. адрес</label>
+                    <input type="text" value={workspace.physicalAddress} onChange={(e) => updateWorkspace('physicalAddress', e.target.value)} placeholder='г. Алматы, ул. Байзакова, 280' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Телефон</label>
+                    <input type="text" value={workspace.phone} onChange={(e) => updateWorkspace('phone', e.target.value)} placeholder='+7 (700) 000-00-00' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Email</label>
+                    <input type="text" value={workspace.email} onChange={(e) => updateWorkspace('email', e.target.value)} placeholder='hello@agentcore.work' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Часы работы</label>
+                    <input type="text" value={workspace.workingHours} onChange={(e) => updateWorkspace('workingHours', e.target.value)} placeholder='Пн-Пт 10:00–19:00 (GMT+5)' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-label text-mauve-500 mb-2">Соцсети / Контакты</h4>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Telegram</label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">@</span>
+                      <input type="text" value={workspace.telegram} onChange={(e) => updateWorkspace('telegram', e.target.value)} placeholder='agentcore' className="w-full pl-7 pr-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">WhatsApp</label>
+                    <input type="text" value={workspace.whatsapp} onChange={(e) => updateWorkspace('whatsapp', e.target.value)} placeholder='+77000000000' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Instagram</label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-ink-400">@</span>
+                      <input type="text" value={workspace.instagram} onChange={(e) => updateWorkspace('instagram', e.target.value)} placeholder='agentcore' className="w-full pl-7 pr-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-label text-mauve-500 mb-2">Юридические страницы</h4>
+                <p className="text-xs text-ink-400 mb-3">Редактируемый контент для публичных юридических страниц.</p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Конфиденциальность</label>
+                    <textarea value={workspace.privacyText} onChange={(e) => updateWorkspace('privacyText', e.target.value)} rows={4} placeholder='Текст политики конфиденциальности...' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200 resize-y" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Условия</label>
+                    <textarea value={workspace.termsText} onChange={(e) => updateWorkspace('termsText', e.target.value)} rows={4} placeholder='Текст условий использования...' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200 resize-y" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Возврат</label>
+                    <textarea value={workspace.refundText} onChange={(e) => updateWorkspace('refundText', e.target.value)} rows={4} placeholder='Текст политики возврата...' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200 resize-y" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1.5">Доставка и оплата</label>
+                    <textarea value={workspace.deliveryText} onChange={(e) => updateWorkspace('deliveryText', e.target.value)} rows={4} placeholder='Текст доставки и оплаты...' className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200 resize-y" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Workspace Info */}
           <motion.div variants={item} className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-6">
             <SectionHeader
               icon={Settings}
-              title="Workspace Info"
-              description="Basic workspace identification."
+              title="О workspace"
+              description="Основная информация о workspace."
               saved={savedSections.has('name')}
               onSave={() => saveSection('name')}
             />
             <div className="max-w-md">
-              <label className="block text-xs font-semibold text-ink-700 mb-1.5">Workspace Name</label>
+              <label className="block text-xs font-semibold text-ink-700 mb-1.5">Название workspace</label>
               <input
                 type="text"
                 value={workspace.name}
                 onChange={(e) => updateWorkspace('name', e.target.value)}
-                placeholder="My Workspace"
+                placeholder="Моя рабочая область"
                 className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200"
               />
             </div>
@@ -301,37 +451,37 @@ export default function SettingsPage() {
           <motion.div variants={item} className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-6">
             <SectionHeader
               icon={Building2}
-              title="Company Details"
-              description="Information about your company for agent context."
+              title="Детали компании"
+              description="Информация о компании для контекста агентов."
               saved={savedSections.has('company')}
               onSave={() => saveSection('company')}
             />
             <div className="grid sm:grid-cols-2 gap-4 max-w-2xl">
               <div>
-                <label className="block text-xs font-semibold text-ink-700 mb-1.5">Company Size</label>
+                <label className="block text-xs font-semibold text-ink-700 mb-1.5">Размер</label>
                 <div className="relative">
                   <select
                     value={workspace.companySize}
                     onChange={(e) => updateWorkspace('companySize', e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 appearance-none focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200 pr-10"
                   >
-                    <option value="">Select size...</option>
+                    <option value="">Выберите размер...</option>
                     {companySizes.map((s) => (
-                      <option key={s} value={s}>{s} employees</option>
+                      <option key={s} value={s}>{s} сотрудников</option>
                     ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 pointer-events-none" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-ink-700 mb-1.5">Industry</label>
+                <label className="block text-xs font-semibold text-ink-700 mb-1.5">Индустрия</label>
                 <div className="relative">
                   <select
                     value={workspace.industry}
                     onChange={(e) => updateWorkspace('industry', e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 appearance-none focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200 pr-10"
                   >
-                    <option value="">Select industry...</option>
+                    <option value="">Выберите индустрию...</option>
                     {industries.map((s) => (
                       <option key={s} value={s}>{s}</option>
                     ))}
@@ -340,14 +490,14 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-ink-700 mb-1.5">Geography</label>
+                <label className="block text-xs font-semibold text-ink-700 mb-1.5">Регион</label>
                 <div className="relative">
                   <select
                     value={workspace.geography}
                     onChange={(e) => updateWorkspace('geography', e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 appearance-none focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200 pr-10"
                   >
-                    <option value="">Select region...</option>
+                    <option value="">Выберите регион...</option>
                     {geographies.map((s) => (
                       <option key={s} value={s}>{s}</option>
                     ))}
@@ -356,7 +506,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-ink-700 mb-1.5">Website</label>
+                <label className="block text-xs font-semibold text-ink-700 mb-1.5">Сайт</label>
                 <input
                   type="url"
                   value={workspace.website}
@@ -373,7 +523,7 @@ export default function SettingsPage() {
                     onChange={(e) => updateWorkspace('crm', e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 appearance-none focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200 pr-10"
                   >
-                    <option value="">None</option>
+                    <option value="">Нет</option>
                     {crms.map((s) => (
                       <option key={s} value={s}>{s}</option>
                     ))}
@@ -388,8 +538,8 @@ export default function SettingsPage() {
           <motion.div variants={item} className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-6">
             <SectionHeader
               icon={Globe}
-              title="Communication Channels"
-              description="Choose which channels your agents operate on."
+              title="Каналы связи"
+              description="Выберите каналы, через которые агенты будут принимать и отправлять сообщения. Требуется настройка интеграций."
               saved={savedSections.has('channels')}
               onSave={() => saveSection('channels')}
             />
@@ -425,14 +575,14 @@ export default function SettingsPage() {
           <motion.div variants={item} className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-6">
             <SectionHeader
               icon={Bot}
-              title="Agent Defaults"
-              description="Default settings applied to new agents."
+              title="Настройки агентов"
+              description="Настройки по умолчанию для новых агентов. Температура влияет на креативность: 0 — точные ответы, 2 — более разнообразные и творческие."
               saved={savedSections.has('agentDefaults')}
               onSave={() => saveSection('agentDefaults')}
             />
             <div className="grid sm:grid-cols-3 gap-4 max-w-2xl">
               <div>
-                <label className="block text-xs font-semibold text-ink-700 mb-1.5">Default Model</label>
+                <label className="block text-xs font-semibold text-ink-700 mb-1.5">Модель по умолчанию</label>
                 <div className="relative">
                   <select
                     value={workspace.agentDefaults.model}
@@ -447,21 +597,28 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-ink-700 mb-1.5">
-                  Temperature <span className="font-mono text-ink-400">{workspace.agentDefaults.temperature}</span>
+                <label className="block text-xs font-semibold text-ink-700 mb-1.5 flex items-center gap-1">
+                  Температура <span className="font-mono text-ink-400">{workspace.agentDefaults.temperature.toFixed(1)}</span>
+                  <InfoTooltip content="Творческая свобода модели. 0 — точные и предсказуемые ответы. 2 — более креативные и разнообразные. Рекомендуется 0.7 для большинства задач." iconSize={12} />
                 </label>
-                <input
-                  type="range"
-                  min={0}
-                  max={2}
-                  step={0.1}
-                  value={workspace.agentDefaults.temperature}
-                  onChange={(e) => updateNested('agentDefaults', 'temperature', parseFloat(e.target.value))}
-                  className="w-full accent-mauve-600"
-                />
+                <div className="relative pt-1">
+                  <input
+                    type="range"
+                    min={0}
+                    max={2}
+                    step={0.1}
+                    value={workspace.agentDefaults.temperature}
+                    onChange={(e) => updateNested('agentDefaults', 'temperature', parseFloat(e.target.value))}
+                    className="w-full accent-mauve-600 h-2 rounded-full appearance-none bg-mauve-100 cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-mauve-600 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:active:scale-95"
+                  />
+                  <div className="flex justify-between text-[10px] text-ink-400 mt-1">
+                    <span>0 — точный</span>
+                    <span>2 — креативный</span>
+                  </div>
+                </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-ink-700 mb-1.5">Max Tokens</label>
+                <label className="block text-xs font-semibold text-ink-700 mb-1.5 flex items-center gap-1">Макс. токенов <InfoTooltip content="Максимальная длина ответа агента в токенах. 1 токен ≈ 4 символа. Чем выше значение, тем длиннее ответы." iconSize={12} /></label>
                 <div className="relative">
                   <select
                     value={workspace.agentDefaults.maxTokens}
@@ -469,7 +626,7 @@ export default function SettingsPage() {
                     className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 appearance-none focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200 pr-10"
                   >
                     {[256, 512, 1024, 2048, 4096, 8192, 16384].map((t) => (
-                      <option key={t} value={t}>{t.toLocaleString()}</option>
+                      <option key={t} value={t}>{t.toLocaleString('ru-RU')}</option>
                     ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 pointer-events-none" />
@@ -482,18 +639,18 @@ export default function SettingsPage() {
           <motion.div variants={item} className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-6">
             <SectionHeader
               icon={Bell}
-              title="Notifications"
-              description="Configure notification preferences for your workspace."
+              title="Уведомления"
+              description="Настройте уведомления для вашего workspace."
               saved={savedSections.has('notifications')}
               onSave={() => saveSection('notifications')}
             />
             <div className="space-y-4 max-w-md">
               <label className="flex items-center justify-between py-2 cursor-pointer">
                 <div>
-                  <p className="text-sm font-semibold text-ink-900">Email Notifications</p>
-                  <p className="text-xs text-ink-500 mt-0.5">Receive updates about conversations and agent activity.</p>
+                  <p className="text-sm font-semibold text-ink-900">Email-уведомления</p>
+                  <p className="text-xs text-ink-500 mt-0.5">Получайте обновления о диалогах и активности агентов.</p>
                 </div>
-                <div className="relative">
+                <div className="relative flex items-center">
                   <input
                     type="checkbox"
                     checked={workspace.notifications.emailNotifications}
@@ -503,13 +660,13 @@ export default function SettingsPage() {
                   />
                   <label
                     htmlFor="email-notif"
-                    className={`block w-10 h-6 rounded-full cursor-pointer transition-all duration-200 ${
+                    className={`block w-11 h-7 rounded-full cursor-pointer transition-all duration-300 ease-out p-0.5 ${
                       workspace.notifications.emailNotifications ? 'bg-mauve-600' : 'bg-ink-200'
                     }`}
                   >
                     <span
-                      className={`block w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform duration-200 mt-1 ${
-                        workspace.notifications.emailNotifications ? 'translate-x-5 ml-0.5' : 'translate-x-1'
+                      className={`block w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ease-out ${
+                        workspace.notifications.emailNotifications ? 'translate-x-4' : 'translate-x-0'
                       }`}
                     />
                   </label>
@@ -517,10 +674,10 @@ export default function SettingsPage() {
               </label>
               <label className="flex items-center justify-between py-2 cursor-pointer">
                 <div>
-                  <p className="text-sm font-semibold text-ink-900">Weekly Report</p>
-                  <p className="text-xs text-ink-500 mt-0.5">Receive a weekly analytics summary every Monday.</p>
+                  <p className="text-sm font-semibold text-ink-900">Еженедельный отчёт</p>
+                  <p className="text-xs text-ink-500 mt-0.5">Еженедельная сводка аналитики каждый понедельник.</p>
                 </div>
-                <div className="relative">
+                <div className="relative flex items-center">
                   <input
                     type="checkbox"
                     checked={workspace.notifications.weeklyReport}
@@ -530,13 +687,13 @@ export default function SettingsPage() {
                   />
                   <label
                     htmlFor="weekly-report"
-                    className={`block w-10 h-6 rounded-full cursor-pointer transition-all duration-200 ${
+                    className={`block w-11 h-7 rounded-full cursor-pointer transition-all duration-300 ease-out p-0.5 ${
                       workspace.notifications.weeklyReport ? 'bg-mauve-600' : 'bg-ink-200'
                     }`}
                   >
                     <span
-                      className={`block w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform duration-200 mt-1 ${
-                        workspace.notifications.weeklyReport ? 'translate-x-5 ml-0.5' : 'translate-x-1'
+                      className={`block w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ease-out ${
+                        workspace.notifications.weeklyReport ? 'translate-x-4' : 'translate-x-0'
                       }`}
                     />
                   </label>
@@ -548,16 +705,19 @@ export default function SettingsPage() {
           {/* Danger Zone */}
           <motion.div
             variants={item}
-            className="bg-white rounded-2xl border-2 border-red-200 shadow-sm p-6"
+            className="bg-white rounded-2xl border-2 border-red-200/60 shadow-sm p-6 relative overflow-hidden"
           >
+            <div className="absolute inset-0 bg-gradient-to-br from-red-50/30 via-transparent to-transparent pointer-events-none" />
+            <div className="relative">
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center ring-1 ring-red-200 flex-shrink-0 mt-0.5">
-                <AlertTriangle className="w-4.5 h-4.5 text-red-600" />
+              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center ring-1 ring-red-200 flex-shrink-0 mt-0.5">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
               <div>
-                <h3 className="font-semibold text-ink-900">Danger Zone</h3>
-                <p className="text-xs text-ink-500 mt-0.5">
-                  Permanently delete your workspace and all associated data. This action cannot be undone.
+                <h3 className="font-semibold text-ink-900">Опасная зона</h3>
+                <p className="text-xs text-ink-500 mt-0.5 flex items-center gap-1">
+                  Безвозвратное удаление workspace и всех связанных данных. Это действие нельзя отменить.
+                  <InfoTooltip content="При удалении workspace будут безвозвратно удалены: все агенты, диалоги, документы базы знаний, настройки и интеграции. Восстановление невозможно." iconSize={12} />
                 </p>
               </div>
             </div>
@@ -565,9 +725,9 @@ export default function SettingsPage() {
             {!showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="px-4 py-2 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-semibold hover:bg-red-100 transition-all duration-200"
+                className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-all duration-200 shadow-sm shadow-red-600/10 hover:shadow-md hover:shadow-red-600/20"
               >
-                Delete Workspace
+                Удалить workspace
               </button>
             ) : (
               <AnimatePresence>
@@ -577,43 +737,44 @@ export default function SettingsPage() {
                   exit={{ opacity: 0, height: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="p-4 rounded-xl bg-red-50 border border-red-200 mb-4">
-                    <p className="text-sm text-red-700 font-semibold mb-2">Are you absolutely sure?</p>
-                    <p className="text-xs text-red-600 mb-3">
-                      This will permanently delete your workspace, all agents, conversations, knowledge base, and settings.
-                      Type <strong className="select-none">DELETE</strong> below to confirm.
+                  <div className="p-5 rounded-xl bg-red-50 border border-red-200 mb-0">
+                    <p className="text-sm text-red-800 font-semibold mb-2">Вы абсолютно уверены?</p>
+                    <p className="text-xs text-red-600 mb-4 leading-relaxed">
+                      Workspace, все агенты, диалоги, база знаний и настройки будут удалены безвозвратно.
+                      Напишите <strong className="select-none font-mono bg-red-100 px-1.5 py-0.5 rounded">DELETE</strong> ниже для подтверждения.
                     </p>
                     <input
                       type="text"
                       value={deleteText}
                       onChange={(e) => setDeleteText(e.target.value)}
-                      placeholder='Type "DELETE" to confirm'
-                      className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-red-200 text-sm text-ink-900 placeholder-red-300 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-300 transition-all duration-200 mb-3"
+                      placeholder='Напишите DELETE для подтверждения'
+                      className="w-full px-4 py-2.5 bg-white rounded-xl border border-red-200 text-sm text-ink-900 placeholder-red-300 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-300 transition-all duration-200 mb-4"
                     />
                     <div className="flex items-center gap-3">
                       <button
                         onClick={handleDelete}
                         disabled={deleteText !== 'DELETE'}
-                        className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="px-5 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                       >
-                        Delete Forever
+                        Удалить навсегда
                       </button>
                       <button
                         onClick={() => { setShowDeleteConfirm(false); setDeleteText(''); }}
-                        className="px-4 py-2 rounded-xl border border-ink-200 bg-white text-ink-700 text-sm font-medium hover:bg-ink-50 transition-all duration-200"
+                        className="px-4 py-2.5 rounded-xl border border-ink-200 bg-white text-ink-700 text-sm font-medium hover:bg-ink-50 transition-all duration-200"
                       >
-                        Cancel
+                        Отмена
                       </button>
                     </div>
                   </div>
                 </motion.div>
               </AnimatePresence>
             )}
+            </div>
           </motion.div>
         </div>
 
         <div className="h-8" />
       </div>
-    </DashboardLayout>
+    </>
   );
 }

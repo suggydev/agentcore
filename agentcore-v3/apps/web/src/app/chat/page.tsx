@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Send, Plus, Loader2, Bot, User, ArrowLeft, 
-  Sparkles, Brain, ChevronRight, Clock, Trash2,
-  MessageSquare, Image as ImageIcon, Code, Zap
+  Sparkles, Brain, Clock, Trash2,
+  MessageSquare, Image as ImageIcon, Code, Zap,
+  Info, ChevronDown, Search
 } from 'lucide-react';
 
 interface Message {
@@ -20,8 +21,16 @@ interface Conversation {
   id: string;
   title: string;
   messages?: Message[];
+  agentName?: string;
   updatedAt: string;
 }
+
+interface Model {
+  id: string;
+  supports_chat?: boolean;
+}
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function ChatPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -30,8 +39,14 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [models, setModels] = useState<any[]>([]);
+  const [models, setModels] = useState<Model[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>('');
+  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
+  const [sidebarFilter, setSidebarFilter] = useState('');
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const modelDropdownRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number>(0);
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
   useEffect(() => {
@@ -39,43 +54,69 @@ export default function ChatPage() {
       window.location.href = '/login';
       return;
     }
-    loadConversations();
-    fetchModels();
+    const init = async () => {
+      await loadConversations();
+      await fetchModels();
+
+      const params = new URLSearchParams(window.location.search);
+      const convId = params.get('id');
+      if (convId) {
+        await loadMessages(convId);
+      }
+      setInitialLoadDone(true);
+    };
+    init();
   }, [token]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (modelDropdownRef.current && !modelDropdownRef.current.contains(e.target as Node)) {
+        setModelDropdownOpen(false);
+      }
+    }
+    if (modelDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [modelDropdownOpen]);
+
   const fetchModels = async () => {
     try {
-      const res = await fetch('http://31.76.102.116:4000/api/v1/models');
+      const res = await fetch(`${API_BASE}/api/v1/models`);
       const data = await res.json();
-      setModels(data.data || []);
+      // Only show chat-capable models in the dropdown
+      // Exclude flux image models even if API incorrectly marks supports_chat=true
+      const allModels = Array.isArray(data) ? data : (data?.data || []);
+      setModels(allModels.filter((m: any) => m.supports_chat === true && !m.id?.includes('flux')));
     } catch {}
   };
 
   const loadConversations = async () => {
     try {
-      const res = await fetch('http://31.76.102.116:4000/api/conversations', {
+      const res = await fetch(`${API_BASE}/api/conversations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
-        setConversations(data);
+        const convs = Array.isArray(data) ? data : (data.data || data.conversations || []);
+        setConversations(convs);
       }
     } catch {}
   };
 
-  const createConversation = async () => {
+  const createConversation = async (): Promise<Conversation | null> => {
     try {
-      const res = await fetch('http://31.76.102.116:4000/api/conversations', {
+      const res = await fetch(`${API_BASE}/api/conversations`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ title: 'New Chat' })
+        body: JSON.stringify({ title: 'Новый чат' })
       });
       if (res.ok) {
         const conv = await res.json();
@@ -83,13 +124,17 @@ export default function ChatPage() {
         setCurrentConv(conv);
         setMessages([]);
         setSidebarOpen(false);
+        return conv;
       }
-    } catch {}
+      return null;
+    } catch {
+      return null;
+    }
   };
 
   const loadMessages = async (convId: string) => {
     try {
-      const res = await fetch(`http://31.76.102.116:4000/api/conversations/${convId}`, {
+      const res = await fetch(`${API_BASE}/api/conversations/${convId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -101,14 +146,14 @@ export default function ChatPage() {
     } catch {}
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || !currentConv || loading) return;
+  const sendMessage = async (messageContent?: string, targetConvId?: string) => {
+    const convId = targetConvId || currentConv?.id;
+    const content = (messageContent ?? input).trim();
+    if (!content || !convId || loading) return;
 
-    const content = input.trim();
     setInput('');
     setLoading(true);
 
-    // Optimistically add user message
     const tempId = Date.now().toString();
     const userMsg: Message = {
       id: tempId,
@@ -119,32 +164,30 @@ export default function ChatPage() {
     setMessages(prev => [...prev, userMsg]);
 
     try {
-      const res = await fetch(`http://31.76.102.116:4000/api/conversations/${currentConv.id}/messages`, {
+      const res = await fetch(`${API_BASE}/api/conversations/${convId}/messages`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ content, role: 'user' })
+        body: JSON.stringify({ content, role: 'user', model: selectedModel || undefined })
       });
 
       const data = await res.json();
-      if (res.ok && data.aiMessage) {
+      if (res.ok && data.aiMessage && !data.error) {
         setMessages(prev => {
           const filtered = prev.filter(m => m.id !== tempId);
           return [...filtered, data.userMessage, data.aiMessage];
         });
-        // Update conversation title if it's the first message
         if (messages.length === 0) {
           setConversations(prev => prev.map(c => 
-            c.id === currentConv.id ? { ...c, title: content.slice(0, 50) } : c
+            c.id === convId ? { ...c, title: content.slice(0, 50) } : c
           ));
         }
       } else {
-        // Show error in chat
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
-          content: data.error || 'Failed to get response. Please try again.',
+          content: typeof data.error === 'string' ? data.error : data.aiMessage?.content || 'Не удалось получить ответ. Попробуйте ещё раз.',
           role: 'assistant',
           model: 'error',
           createdAt: new Date().toISOString()
@@ -153,7 +196,7 @@ export default function ChatPage() {
     } catch {
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
-        content: 'Network error. Please check your connection.',
+        content: 'Ошибка сети. Проверьте подключение к интернету.',
         role: 'assistant',
         model: 'error',
         createdAt: new Date().toISOString()
@@ -165,7 +208,7 @@ export default function ChatPage() {
 
   const deleteConversation = async (id: string) => {
     try {
-      await fetch(`http://31.76.102.116:4000/api/conversations/${id}`, {
+      await fetch(`${API_BASE}/api/conversations/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -231,12 +274,27 @@ export default function ChatPage() {
             onClick={createConversation}
             className="w-full btn-primary flex items-center justify-center gap-2 text-sm"
           >
-            <Plus className="w-4 h-4" /> New Chat
+            <Plus className="w-4 h-4" /> Новый чат
           </button>
         </div>
 
+        <div className="px-3 pb-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-mauve-400" />
+            <input
+              type="text"
+              placeholder="Поиск диалогов..."
+              value={sidebarFilter}
+              onChange={e => setSidebarFilter(e.target.value)}
+              className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-mauve-100 bg-mauve-50 focus:outline-none focus:ring-2 focus:ring-mauve-200 focus:border-transparent text-mauve-700 placeholder:text-mauve-300 transition-all"
+            />
+          </div>
+        </div>
+
         <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-1">
-          {conversations.map((conv) => (
+          {conversations
+            .filter(c => sidebarFilter === '' || (c.title || 'New Chat').toLowerCase().includes(sidebarFilter.toLowerCase()))
+            .map((conv) => (
             <div 
               key={conv.id}
               className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
@@ -247,7 +305,12 @@ export default function ChatPage() {
               onClick={() => loadMessages(conv.id)}
             >
               <MessageSquare className="w-4 h-4 flex-shrink-0" />
-              <span className="flex-1 text-sm truncate">{conv.title || 'New Chat'}</span>
+              <div className="flex-1 min-w-0">
+                <span className="text-sm truncate block">{conv.title || 'Новый чат'}</span>
+                {conv.agentName && (
+                  <span className="text-[10px] text-mauve-400 truncate block">{conv.agentName}</span>
+                )}
+              </div>
               <button 
                 onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
                 className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-red-400 hover:text-red-600 transition-all"
@@ -257,15 +320,24 @@ export default function ChatPage() {
             </div>
           ))}
           {conversations.length === 0 && (
-            <div className="text-center py-8 text-mauve-400 text-sm">
-              No conversations yet
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <MessageSquare className="w-10 h-10 text-mauve-200 mb-3" />
+              <p className="text-mauve-400 text-sm font-medium">Пока нет диалогов</p>
+              <p className="text-mauve-300 text-xs mt-1">Создайте новый чат, чтобы начать</p>
+            </div>
+          )}
+          {conversations.length > 0 && conversations.filter(c => sidebarFilter === '' || (c.title || 'New Chat').toLowerCase().includes(sidebarFilter.toLowerCase())).length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Search className="w-10 h-10 text-mauve-200 mb-3" />
+              <p className="text-mauve-400 text-sm font-medium">Ничего не найдено</p>
+              <p className="text-mauve-300 text-xs mt-1">Попробуйте изменить запрос</p>
             </div>
           )}
         </div>
 
         {/* Models Info */}
         <div className="p-4 border-t border-mauve-100">
-          <p className="text-xs text-mauve-400 mb-2 font-medium">Available Models</p>
+          <p className="text-xs text-mauve-400 mb-2 font-medium">Доступные модели</p>
           <div className="flex flex-wrap gap-1">
             {models.slice(0, 4).map(m => (
               <span key={m.id} className="text-[10px] px-2 py-0.5 rounded-full bg-mauve-50 text-mauve-600 border border-mauve-100">
@@ -291,18 +363,76 @@ export default function ChatPage() {
           >
             <MessageSquare className="w-5 h-5" />
           </button>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h2 className="font-semibold text-mauve-900 truncate">
-              {currentConv?.title || 'Select a conversation'}
+              {currentConv?.title || 'Выберите диалог'}
             </h2>
-            {currentConv && (
-              <p className="text-xs text-mauve-400 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {new Date(currentConv.updatedAt).toLocaleDateString()}
-              </p>
+            {currentConv ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                {currentConv.agentName && (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-mauve-600 bg-mauve-50 px-2 py-0.5 rounded-full">
+                    <Bot className="w-3 h-3" />
+                    {currentConv.agentName}
+                  </span>
+                )}
+                <p className="text-xs text-mauve-400 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {new Date(currentConv.updatedAt).toLocaleDateString()}
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-mauve-400">Выберите диалог из боковой панели или создайте новый</p>
             )}
           </div>
-          <a href="/dashboard" className="p-2 rounded-lg hover:bg-mauve-50 text-mauve-500">
+
+          {/* Model selector */}
+          {currentConv && (
+            <div className="relative" ref={modelDropdownRef}>
+              <button
+                onClick={() => setModelDropdownOpen(prev => !prev)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-mauve-200 bg-white text-xs font-medium text-mauve-700 hover:bg-mauve-50 transition-all"
+              >
+                {selectedModel ? (
+                  <span className="max-w-[100px] truncate">{getModelName(selectedModel)}</span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-mauve-400" />
+                    Авто
+                  </span>
+                )}
+                <ChevronDown className={`w-3 h-3 text-mauve-400 transition-transform ${modelDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {modelDropdownOpen && (
+                <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl border border-mauve-200 shadow-lg shadow-mauve-900/5 z-50 py-1 overflow-hidden">
+                  <button
+                    onClick={() => { setSelectedModel(''); setModelDropdownOpen(false); }}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors ${!selectedModel ? 'bg-mauve-50 text-mauve-700 font-semibold' : 'text-ink-600 hover:bg-mauve-50'}`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-mauve-400" />
+                    Авто (умный выбор)
+                  </button>
+                  <div className="h-px bg-mauve-100 my-1" />
+                  {models.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => { setSelectedModel(m.id); setModelDropdownOpen(false); }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors ${selectedModel === m.id ? 'bg-mauve-50 text-mauve-700 font-semibold' : 'text-ink-600 hover:bg-mauve-50'}`}
+                    >
+                      <span className="w-5 h-5 rounded-md bg-gradient-to-br from-mauve-300 to-mauve-100 flex items-center justify-center flex-shrink-0">
+                        {getModelIcon(m.id)}
+                      </span>
+                      <span className="truncate">{m.id.split('/').pop()}</span>
+                    </button>
+                  ))}
+                  {models.length === 0 && (
+                    <p className="px-3 py-2 text-xs text-mauve-400">Модели загружаются...</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <a href="/dashboard" className="p-2 rounded-lg hover:bg-mauve-50 text-mauve-500 flex-shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </a>
         </header>
@@ -318,28 +448,40 @@ export default function ChatPage() {
               >
                 <Sparkles className="w-10 h-10 text-white" />
               </motion.div>
-              <h3 className="text-2xl font-bold text-mauve-900 mb-2">Start a Conversation</h3>
-              <p className="text-mauve-500 max-w-md mb-8">
-                Create a new chat or select an existing one. Our AI will automatically route your tasks to the best model.
+              <h3 className="text-2xl font-bold text-mauve-900 mb-2">Начните диалог</h3>
+              <p className="text-mauve-500 max-w-md mb-2">
+                Выберите диалог из боковой панели или создайте новый. AI автоматически распределит задачи по лучшим моделям.
               </p>
+              <div className="flex items-center gap-4 mb-6 text-xs text-mauve-400">
+                <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" /> кнопка «Новый чат» слева</span>
+                <span className="flex items-center gap-1"><Search className="w-3.5 h-3.5" /> поиск по истории</span>
+              </div>
               <div className="flex flex-wrap justify-center gap-2">
-                {['Write a poem about nature', 'Debug my React code', 'Generate a landscape image', 'Analyze this text'].map(prompt => (
+                {[
+                  { icon: '💡', text: 'Explain quantum computing in simple terms' },
+                  { icon: '🔧', text: 'Debug this React useEffect infinite loop' },
+                  { icon: '📊', text: 'Create a Python script to analyze CSV data' },
+                  { icon: '🎨', text: 'Design a REST API for a task manager app' },
+                  { icon: '📝', text: 'Напиши SQL-запрос для поиска дубликатов' },
+                  { icon: '🚀', text: 'Optimize this Node.js API for performance' },
+                ].map(item => (
                   <button
-                    key={prompt}
-                    onClick={() => {
-                      if (!currentConv) createConversation();
-                      setTimeout(() => setInput(prompt), 500);
+                    key={item.text}
+                    onClick={async () => {
+                      const conv = currentConv || await createConversation();
+                      if (conv) sendMessage(item.text, conv.id);
                     }}
-                    className="px-4 py-2 rounded-xl bg-white border border-mauve-200 text-sm text-mauve-600 hover:bg-mauve-50 hover:border-mauve-300 transition-all"
+                    className="px-4 py-2 rounded-xl bg-white border border-mauve-200 text-sm text-mauve-600 hover:bg-mauve-50 hover:border-mauve-300 transition-all flex items-center gap-2"
                   >
-                    {prompt}
+                    <span>{item.icon}</span>
+                    {item.text}
                   </button>
                 ))}
               </div>
             </div>
           ) : messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center px-6">
-              <p className="text-mauve-400">Type your first message...</p>
+              <p className="text-mauve-400">Введите первое сообщение...</p>
             </div>
           ) : (
             messages.map((msg, i) => (
@@ -392,7 +534,7 @@ export default function ChatPage() {
               <div className="bg-white border border-mauve-100 rounded-2xl px-4 py-3 shadow-sm">
                 <div className="flex items-center gap-2 text-sm text-mauve-500">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Thinking...</span>
+                  <span>AgentCore думает...</span>
                 </div>
               </div>
             </motion.div>
@@ -409,12 +551,12 @@ export default function ChatPage() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                placeholder="Ask anything — code, images, analysis..."
+                placeholder="Спросите что угодно — код, изображения, анализ..."
                 disabled={loading}
                 className="flex-1 px-5 py-3.5 rounded-xl border border-mauve-200 bg-white focus:outline-none focus:ring-2 focus:ring-mauve-400 focus:border-transparent text-mauve-900 placeholder:text-mauve-300 disabled:opacity-50 transition-all"
               />
               <button
-                onClick={sendMessage}
+                onClick={() => sendMessage()}
                 disabled={loading || !input.trim()}
                 className="w-12 h-12 rounded-xl btn-primary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
               >
@@ -422,7 +564,7 @@ export default function ChatPage() {
               </button>
             </div>
             <p className="text-center text-xs text-mauve-400 mt-2">
-              Smart routing: tasks are automatically assigned to the best AI model
+              Умная маршрутизация: задачи автоматически распределяются по лучшей AI-модели
             </p>
           </div>
         )}

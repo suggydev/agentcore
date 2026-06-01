@@ -1,0 +1,142 @@
+export interface LandingStat {
+  value: number;
+  suffix: string;
+  label: string;
+}
+
+export interface DemoMessage {
+  user: string;
+  agent: string;
+  userTime: string;
+  agentTime: string;
+}
+
+export interface FloatingCard {
+  icon: string;
+  value: string;
+  label: string;
+}
+
+export interface Testimonial {
+  quote: string;
+  author: string;
+  role: string;
+  rating: number;
+}
+
+export interface UseCase {
+  emoji: string;
+  title: string;
+  description: string;
+  chat: { user: string; agent: string };
+  href: string;
+}
+
+export const LANDING_STATS: LandingStat[] = [
+  { value: 60, suffix: ' сек', label: 'На создание агента' },
+  { value: 8, suffix: ' сек', label: 'Среднее время ответа' },
+  { value: 24, suffix: '/7', label: 'Работает без выходных' },
+  { value: 80, suffix: '%', label: 'Задач на автопилоте' },
+];
+
+export const AI_MODELS: string[] = ['OpenAI GPT', 'Anthropic Claude', 'DeepSeek', 'Kimi'];
+
+export const COMPANIES_COUNT = '50+ компаний';
+
+export const DEMO_CHAT: DemoMessage = {
+  user: 'Здравствуйте! Сколько стоит букет из 25 роз?',
+  agent: 'Здравствуйте! Букет из 25 роз — 12 000 ₸ с доставкой по городу. Желаете оформить заказ? 🌹',
+  userTime: '14:02',
+  agentTime: '14:02',
+};
+
+export const FLOATING_CARDS: FloatingCard[] = [
+  { icon: '⚡', value: '+150', label: 'заявок за неделю' },
+  { icon: '👥', value: '3+', label: 'Довольные клиенты' },
+];
+
+export const TESTIMONIALS: Testimonial[] = [
+  {
+    quote: 'AgentCore обрабатывает 200+ заявок в месяц в нашем интернет-магазине. Клиенты получают ответ за 8 секунд, конверсия выросла на 35%. Раньше мы теряли заявки по ночам — теперь каждая получает мгновенный ответ.',
+    author: 'Асхат К.',
+    role: 'Директор интернет-магазина Asem.kz',
+    rating: 5,
+  },
+  {
+    quote: 'Подключили ИИ-консультанта в Telegram для сети салонов. Клиенты записываются сами, агент напоминает о записи, рассказывает об услугах. Неявки сократились в 3 раза, администратор освободил 15 часов в неделю.',
+    author: 'Гульнара М.',
+    role: 'Управляющая сети салонов Glam Studio',
+    rating: 5,
+  },
+  {
+    quote: 'Используем AgentCore для квалификации лидов в B2B. Агент собирает информацию о потребностях клиента до звонка менеджера — это экономит 10+ часов команды в неделю. Качество лидов выросло.',
+    author: 'Тимур А.',
+    role: 'CEO консалтинговой компании',
+    rating: 5,
+  },
+  {
+    quote: 'Интегрировали AI-агента в WhatsApp и Instagram. Раньше клиенты ждали ответа до 2 часов, теперь — меньше минуты. Без программистов, настроили сами за 10 минут. Рекомендую всем владельцам малого бизнеса.',
+    author: 'Алия С.',
+    role: 'Владелец цветочного магазина',
+    rating: 5,
+  },
+  {
+    quote: 'Запустили агента в отеле для бронирования номеров — 40% броней теперь проходят полностью через чат без участия администратора. Гости довольны скоростью, персонал разгрузили.',
+    author: 'Ержан Н.',
+    role: 'Управляющий отелем Rixos Almaty',
+    rating: 4,
+  },
+  {
+    quote: 'Агент отвечает на 80% типовых вопросов в нашем интернет-магазине автозапчастей. Раньше держали 3 операторов в чате — сейчас хватает одного. Окупили за 2 месяца.',
+    author: 'Серик Д.',
+    role: 'Владелец магазина AutoExpert.kz',
+    rating: 5,
+  },
+];
+
+export const USE_CASES: UseCase[] = [
+  {
+    emoji: '💐',
+    title: 'Цветочный магазин',
+    description: 'Консультирует по букетам, принимает заказы, рассказывает про доставку',
+    chat: { user: 'Сколько стоит букет из 25 роз?', agent: '12 000 ₸ с доставкой! Какой цвет предпочитаете? 🌹' },
+    href: '/use-cases/flowers',
+  },
+  {
+    emoji: '💅',
+    title: 'Салон красоты',
+    description: 'Записывает на процедуры, рассказывает про услуги, напоминает о записи',
+    chat: { user: 'Можно записаться на стрижку завтра?', agent: 'Да! Есть окна в 14:00 и 17:00. Вам удобно?' },
+    href: '/use-cases/beauty',
+  },
+  {
+    emoji: '🔧',
+    title: 'Автосервис',
+    description: 'Записывает на ТО, консультирует по услугам, сообщает о готовности',
+    chat: { user: 'Когда можно приехать на замену масла?', agent: 'Завтра с 9 до 18. Записать вас на удобное время?' },
+    href: '/use-cases/auto',
+  },
+  {
+    emoji: '🛍️',
+    title: 'Интернет-магазин',
+    description: 'Помогает с выбором, отслеживает заказы, оформляет возвраты',
+    chat: { user: 'Где мой заказ #54321?', agent: 'Ваш заказ передан в доставку, ожидайте завтра до 18:00' },
+    href: '/use-cases/ecommerce',
+  },
+  {
+    emoji: '🏥',
+    title: 'Медицинская клиника',
+    description: 'Записывает к врачу, информирует об услугах, напоминает о приёме',
+    chat: { user: 'Нужен терапевт, болит горло', agent: 'Записываю. Приходите завтра в 11:00 к Петровой А.С. Подтвердить?' },
+    href: '/use-cases/healthcare',
+  },
+  {
+    emoji: '🏠',
+    title: 'Риэлторское агентство',
+    description: 'Подбирает объекты, записывает на просмотры, консультирует по ипотеке',
+    chat: { user: 'Квартиры в центре до 15 млн есть?', agent: 'Да, 3 варианта в районе Арбата. Показать фотографии?' },
+    href: '/use-cases/realestate',
+  },
+];
+
+export const AUTOPLAY_INTERVAL = 6000;

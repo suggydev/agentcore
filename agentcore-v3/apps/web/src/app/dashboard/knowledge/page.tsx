@@ -14,18 +14,18 @@ import {
   Loader2,
   AlertCircle,
   ChevronDown,
-  ChevronUp,
   HelpCircle,
-  MessageCircle,
   Sparkles,
   FileSpreadsheet,
   FileType,
   Clock,
   BarChart3,
+  X,
+  MessageSquare,
 } from 'lucide-react';
-import DashboardLayout from '../../../components/DashboardLayout';
+import InfoTooltip from '../../../components/InfoTooltip';
 
-const API_BASE = 'http://31.76.102.116:4000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface Document {
   id: string;
@@ -43,13 +43,13 @@ interface FAQ {
 }
 
 const typeBadge: Record<string, { label: string; color: string }> = {
-  pdf: { label: 'PDF', color: 'bg-red-50 text-red-600 border-red-200' },
-  txt: { label: 'TXT', color: 'bg-gray-50 text-gray-600 border-gray-200' },
-  md: { label: 'Markdown', color: 'bg-violet-50 text-violet-600 border-violet-200' },
-  html: { label: 'HTML', color: 'bg-orange-50 text-orange-600 border-orange-200' },
-  url: { label: 'URL', color: 'bg-blue-50 text-blue-600 border-blue-200' },
-  notion: { label: 'Notion', color: 'bg-ink-50 text-ink-600 border-ink-200' },
-  gdrive: { label: 'Drive', color: 'bg-sky-50 text-sky-600 border-sky-200' },
+  pdf: { label: 'PDF', color: 'bg-red-100/70 text-red-700 border-red-300' },
+  txt: { label: 'TXT', color: 'bg-gray-100/70 text-gray-700 border-gray-300' },
+  md: { label: 'Markdown', color: 'bg-violet-100/70 text-violet-700 border-violet-300' },
+  html: { label: 'HTML', color: 'bg-orange-100/70 text-orange-700 border-orange-300' },
+  url: { label: 'URL', color: 'bg-blue-100/70 text-blue-700 border-blue-300' },
+  notion: { label: 'Notion', color: 'bg-ink-100/70 text-ink-700 border-ink-300' },
+  gdrive: { label: 'Drive', color: 'bg-sky-100/70 text-sky-700 border-sky-300' },
 };
 
 const typeIcon: Record<string, React.ElementType> = {
@@ -70,10 +70,13 @@ export default function KnowledgePage() {
   const [search, setSearch] = useState('');
   const [urlInput, setUrlInput] = useState('');
   const [parsingUrl, setParsingUrl] = useState(false);
+  const [urlError, setUrlError] = useState('');
   const [showFAQ, setShowFAQ] = useState(false);
   const [newQuestion, setNewQuestion] = useState('');
   const [newAnswer, setNewAnswer] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [faqSaving, setFaqSaving] = useState(false);
+  const [toast, setToast] = useState<{ message: string; icon: 'notion' | 'drive' } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchDocuments = useCallback(async () => {
@@ -83,8 +86,11 @@ export default function KnowledgePage() {
       const res = await fetch(`${API_BASE}/api/knowledge/documents`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) setDocuments(await res.json());
-    } catch {}
+      if (res.ok) {
+        const data = await res.json();
+        setDocuments(Array.isArray(data) ? data : (data.data || []));
+      }
+    } catch (err) { console.error('Failed to fetch documents:', err); }
   }, []);
 
   useEffect(() => {
@@ -96,8 +102,18 @@ export default function KnowledgePage() {
     const load = async () => {
       try {
         await fetchDocuments();
-      } catch {
-        setError('Failed to load knowledge base.');
+        try {
+          const faqRes = await fetch(`${API_BASE}/api/knowledge/faq`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (faqRes.ok) {
+            const data = await faqRes.json();
+            setFaqs(Array.isArray(data) ? data : (data.data || []));
+          }
+        } catch { /* игнорируем отсутствующий endpoint */ }
+      } catch (err) {
+        console.error('Failed to load knowledge base:', err);
+        setError('Не удалось загрузить базу знаний');
       } finally {
         setLoading(false);
       }
@@ -114,12 +130,13 @@ export default function KnowledgePage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDocuments((prev) => prev.filter((d) => d.id !== id));
-    } catch {}
+    } catch (err) { console.error('Failed to delete document:', err); }
   };
 
   const handleUrlParse = async () => {
     if (!urlInput.trim()) return;
     setParsingUrl(true);
+    setUrlError('');
     const token = localStorage.getItem('token');
     if (!token) return;
     try {
@@ -132,8 +149,14 @@ export default function KnowledgePage() {
         const doc = await res.json();
         setDocuments((prev) => [doc, ...prev]);
         setUrlInput('');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setUrlError(errData.message || 'Не удалось разобрать URL');
       }
-    } catch {} finally {
+    } catch (err) {
+      console.error('Failed to parse URL:', err);
+      setUrlError('Не удалось разобрать URL. Проверьте подключение.');
+    } finally {
       setParsingUrl(false);
     }
   };
@@ -155,20 +178,50 @@ export default function KnowledgePage() {
         const newDocs = Array.isArray(data) ? data : data.documents ?? [data];
         setDocuments((prev) => [...newDocs, ...prev]);
       }
-    } catch {}
+    } catch (err) { console.error('Failed to upload files:', err); }
   };
 
-  const addFaq = () => {
+  const addFaq = async () => {
     if (!newQuestion.trim() || !newAnswer.trim()) return;
-    setFaqs((prev) => [
-      { id: `faq-${Date.now()}`, question: newQuestion.trim(), answer: newAnswer.trim() },
-      ...prev,
-    ]);
-    setNewQuestion('');
-    setNewAnswer('');
+    const token = localStorage.getItem('token');
+    const newFaq = { id: `faq-${crypto.randomUUID()}`, question: newQuestion.trim(), answer: newAnswer.trim() };
+    setFaqSaving(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/knowledge/faq`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token || ''}` },
+        body: JSON.stringify(newFaq),
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setFaqs((prev) => [saved, ...prev]);
+      } else {
+        setFaqs((prev) => [newFaq, ...prev]);
+      }
+    } catch {
+      setFaqs((prev) => [newFaq, ...prev]);
+    } finally {
+      setFaqSaving(false);
+      setNewQuestion('');
+      setNewAnswer('');
+    }
   };
 
-  const removeFaq = (id: string) => setFaqs((prev) => prev.filter((f) => f.id !== id));
+  const removeFaq = async (id: string) => {
+    const token = localStorage.getItem('token');
+    try {
+      await fetch(`${API_BASE}/api/knowledge/faq/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token || ''}` },
+      });
+    } catch { /* gracefully ignore missing endpoint */ }
+    setFaqs((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  const showComingSoon = (service: 'notion' | 'drive') => {
+    setToast({ message: `${service === 'notion' ? 'Notion' : 'Google Drive'} — интеграция в разработке`, icon: service });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const filteredDocs = documents.filter(
     (d) =>
@@ -178,7 +231,7 @@ export default function KnowledgePage() {
 
   const totalWords = documents.reduce((sum, d) => sum + (d.wordCount || 0), 0);
   const lastUpdated = documents.length > 0
-    ? new Date(Math.max(...documents.map((d) => new Date(d.createdAt).getTime()))).toLocaleDateString('en-US', {
+    ? new Date(Math.max(...documents.map((d) => new Date(d.createdAt).getTime()))).toLocaleDateString('ru-RU', {
         month: 'short', day: 'numeric', year: 'numeric',
       })
     : '—';
@@ -194,53 +247,74 @@ export default function KnowledgePage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <>
         <div className="flex items-center justify-center min-h-[80vh]">
           <Loader2 className="w-8 h-8 text-mauve-500 animate-spin" />
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout>
+      <>
         <div className="flex flex-col items-center justify-center min-h-[80vh] gap-4">
           <AlertCircle className="w-10 h-10 text-red-400" />
           <p className="text-ink-500">{error}</p>
-          <button onClick={() => window.location.reload()} className="btn-primary text-sm px-6 py-2.5">Retry</button>
+          <button onClick={() => window.location.reload()} className="btn-primary text-sm px-6 py-2.5">Повторить</button>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="p-6 lg:p-10 max-w-7xl mx-auto">
+        {/* Toast */}
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.96 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-white border border-mauve-200 shadow-lg shadow-mauve-900/5"
+            >
+              <div className="w-8 h-8 rounded-xl bg-mauve-50 flex items-center justify-center ring-1 ring-mauve-100/60">
+                {toast.icon === 'notion' ? <BookOpen className="w-4 h-4 text-mauve-600" /> : <HardDrive className="w-4 h-4 text-mauve-600" />}
+              </div>
+              <p className="text-sm font-medium text-ink-800">{toast.message}</p>
+              <button onClick={() => setToast(null)} className="ml-2 p-1 rounded-lg hover:bg-mauve-100 transition-colors">
+                <X className="w-3.5 h-3.5 text-ink-400" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <motion.div variants={container} initial="hidden" animate="show" className="mb-10">
           <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-label text-mauve-500 mb-2">Knowledge Base</p>
-              <h1 className="font-display font-bold text-3xl text-ink-900 tracking-tight">Knowledge</h1>
-              <p className="text-ink-500 mt-1 text-sm">Manage documents and FAQs that power your agents.</p>
+              <p className="text-[11px] font-semibold uppercase tracking-label text-mauve-500 mb-2">База знаний</p>
+              <h1 className="font-display font-bold text-3xl text-ink-900 tracking-tight">Знания</h1>
+              <p className="text-ink-500 mt-1 text-sm">Управление документами и FAQ</p>
             </div>
             <button
               onClick={() => fileInputRef.current?.click()}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-mauve-600 text-white text-sm font-semibold hover:bg-mauve-700 transition-all duration-200 shadow-sm shadow-mauve-600/10"
             >
               <Plus className="w-4 h-4" />
-              Add Document
+              Добавить документ
             </button>
           </motion.div>
         </motion.div>
 
         {/* Stats */}
         <motion.div variants={container} initial="hidden" animate="show" className="grid sm:grid-cols-3 gap-4 mb-8">
-          {[
-            { label: 'Total Documents', value: documents.length, icon: FileText },
-            { label: 'Total Words', value: totalWords.toLocaleString(), icon: BarChart3 },
-            { label: 'Last Updated', value: lastUpdated, icon: Clock },
-          ].map((stat) => (
+          {([
+            { label: 'Всего документов', value: documents.length, icon: FileText, tooltip: 'Общее количество загруженных документов, URL-страниц и файлов в базе знаний.' },
+            { label: 'Всего слов', value: totalWords.toLocaleString(), icon: BarChart3, tooltip: 'Суммарный объём текста во всех документах. Чем больше слов, тем точнее ответы агентов.' },
+            { label: 'Обновлено', value: lastUpdated, icon: Clock, tooltip: 'Дата последнего изменения базы знаний — загрузки нового или обновления существующего документа.' },
+          ] as { label: string; value: string | number; icon: React.ElementType; tooltip: string }[]).map((stat) => (
             <motion.div
               key={stat.label}
               variants={item}
@@ -251,7 +325,7 @@ export default function KnowledgePage() {
               </div>
               <div>
                 <p className="font-mono font-semibold text-xl text-ink-900">{stat.value}</p>
-                <p className="text-xs text-ink-500">{stat.label}</p>
+                <p className="text-xs text-ink-500 flex items-center gap-1">{stat.label} <InfoTooltip content={stat.tooltip} iconSize={12} /></p>
               </div>
             </motion.div>
           ))}
@@ -264,11 +338,11 @@ export default function KnowledgePage() {
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFileUpload(e.dataTransfer.files); }}
             onClick={() => fileInputRef.current?.click()}
-            className={`relative rounded-2xl border-2 border-dashed p-10 text-center cursor-pointer transition-all duration-200 ${
+            className={`relative rounded-2xl border-2 border-dashed p-10 text-center cursor-pointer group/upload ${
               dragOver
-                ? 'border-mauve-500 bg-mauve-50/50'
+                ? 'border-mauve-500 bg-mauve-50/70 scale-[1.01] shadow-lg shadow-mauve-500/5'
                 : 'border-mauve-200 bg-white hover:border-mauve-400 hover:bg-mauve-50/30'
-            }`}
+            } transition-all duration-300 ease-out`}
           >
             <input
               ref={fileInputRef}
@@ -278,41 +352,80 @@ export default function KnowledgePage() {
               onChange={(e) => handleFileUpload(e.target.files)}
               accept=".pdf,.txt,.md,.html,.csv,.json,.xml"
             />
-            <div className="w-14 h-14 rounded-2xl bg-mauve-50 flex items-center justify-center mx-auto mb-4 ring-1 ring-mauve-100/60">
-              <Upload className="w-6 h-6 text-mauve-500" />
+            {dragOver && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute inset-0 flex items-center justify-center rounded-2xl bg-mauve-500/5 backdrop-blur-[1px]"
+              >
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-16 h-16 rounded-2xl bg-mauve-500/10 flex items-center justify-center ring-2 ring-mauve-500/20 animate-pulse">
+                    <Upload className="w-7 h-7 text-mauve-600" />
+                  </div>
+                  <p className="text-mauve-700 font-bold text-base">Отпустите, чтобы загрузить</p>
+                </div>
+              </motion.div>
+            )}
+            <div className={`transition-all duration-300 ${dragOver ? 'opacity-0 scale-95' : 'opacity-100'}`}>
+              <div className="w-14 h-14 rounded-2xl bg-mauve-50 flex items-center justify-center mx-auto mb-4 ring-1 ring-mauve-100/60 group-hover/upload:scale-105 transition-transform duration-300">
+                <Upload className="w-6 h-6 text-mauve-500 group-hover/upload:text-mauve-600 transition-colors" />
+              </div>
+              <p className="text-ink-900 font-semibold mb-1">
+                {dragOver ? 'Отпустите файлы для загрузки' : 'Перетащите файлы или нажмите'}
+              </p>
+              <p className="text-ink-400 text-sm">PDF, TXT, Markdown, HTML, CSV, JSON — до 10 МБ</p>
             </div>
-            <p className="text-ink-900 font-semibold mb-1">Drop files here or click to browse</p>
-            <p className="text-ink-400 text-sm">PDF, TXT, Markdown, HTML, CSV, JSON — up to 10MB each</p>
           </div>
 
           {/* Source buttons */}
           <div className="grid sm:grid-cols-3 gap-3 mt-4">
-            <div className="flex items-center gap-3 bg-white rounded-xl border border-mauve-100 p-3">
-              <Globe className="w-5 h-5 text-mauve-500 flex-shrink-0" />
-              <input
-                type="url"
-                placeholder="Paste URL..."
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleUrlParse()}
-                className="flex-1 bg-transparent text-sm text-ink-900 placeholder-ink-400 outline-none"
-              />
-              <button
-                onClick={handleUrlParse}
-                disabled={!urlInput.trim() || parsingUrl}
-                className="px-3 py-1.5 rounded-lg bg-mauve-600 text-white text-xs font-semibold hover:bg-mauve-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-              >
-                {parsingUrl ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-                Parse
-              </button>
+            <div className="flex flex-col">
+              <div className={`flex items-center gap-3 bg-white rounded-xl border p-3 ${urlError ? 'border-red-300' : 'border-mauve-100'}`}>
+                <Globe className="w-5 h-5 text-mauve-500 flex-shrink-0" />
+                <input
+                  type="url"
+                  placeholder="Вставьте URL..."
+                  value={urlInput}
+                  onChange={(e) => { setUrlInput(e.target.value); setUrlError(''); }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleUrlParse()}
+                  className="flex-1 bg-transparent text-sm text-ink-900 placeholder-ink-400 outline-none"
+                />
+                <button
+                  onClick={handleUrlParse}
+                  disabled={!urlInput.trim() || parsingUrl}
+                  className="px-3 py-1.5 rounded-lg bg-mauve-600 text-white text-xs font-semibold hover:bg-mauve-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                >
+                  {parsingUrl ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                  Разобрать
+                </button>
+              </div>
+              {urlError && (
+                <p className="mt-1 text-[11px] text-red-500">{urlError}</p>
+              )}
             </div>
-            <button className="flex items-center gap-3 bg-white rounded-xl border border-mauve-100 p-3 text-sm text-ink-700 hover:border-mauve-300 hover:bg-mauve-50 transition-all duration-200">
-              <BookOpen className="w-5 h-5 text-mauve-500" />
-              Connect Notion
+            <button
+              onClick={() => showComingSoon('notion')}
+              className="flex items-center gap-3 bg-white rounded-xl border border-mauve-100 p-3 text-sm text-ink-700 hover:border-mauve-300 hover:bg-mauve-50 transition-all duration-200 group/btn"
+            >
+              <div className="w-8 h-8 rounded-lg bg-mauve-50 flex items-center justify-center ring-1 ring-mauve-100/60 group-hover/btn:scale-105 transition-transform duration-200">
+                <BookOpen className="w-4 h-4 text-mauve-500" />
+              </div>
+              <div className="text-left">
+                <span className="font-medium">Подключить Notion</span>
+                <span className="block text-xs text-ink-400 mt-0.5">Бета-интеграция</span>
+              </div>
             </button>
-            <button className="flex items-center gap-3 bg-white rounded-xl border border-mauve-100 p-3 text-sm text-ink-700 hover:border-mauve-300 hover:bg-mauve-50 transition-all duration-200">
-              <HardDrive className="w-5 h-5 text-mauve-500" />
-              Connect Google Drive
+            <button
+              onClick={() => showComingSoon('drive')}
+              className="flex items-center gap-3 bg-white rounded-xl border border-mauve-100 p-3 text-sm text-ink-700 hover:border-mauve-300 hover:bg-mauve-50 transition-all duration-200 group/btn"
+            >
+              <div className="w-8 h-8 rounded-lg bg-mauve-50 flex items-center justify-center ring-1 ring-mauve-100/60 group-hover/btn:scale-105 transition-transform duration-200">
+                <HardDrive className="w-4 h-4 text-mauve-500" />
+              </div>
+              <div className="text-left">
+                <span className="font-medium">Подключить Google Drive</span>
+                <span className="block text-xs text-ink-400 mt-0.5">Бета-интеграция</span>
+              </div>
             </button>
           </div>
         </motion.div>
@@ -324,7 +437,7 @@ export default function KnowledgePage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
               <input
                 type="text"
-                placeholder="Search documents..."
+                placeholder="Поиск документов..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-11 pr-4 py-2.5 bg-white rounded-xl border border-mauve-100 shadow-sm text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200"
@@ -335,17 +448,20 @@ export default function KnowledgePage() {
 
         {/* Document List */}
         <motion.div variants={container} initial="hidden" animate="show" className="mb-10">
-          <h2 className="font-display font-semibold text-lg text-ink-900 mb-4">Documents</h2>
+          <div className="flex items-center gap-1.5 mb-4">
+            <h2 className="font-display font-semibold text-lg text-ink-900">Документы</h2>
+            <InfoTooltip content="Загруженные документы (PDF, TXT, Markdown, URL и др.) пополняют базу знаний — агенты используют их содержимое для ответов." />
+          </div>
           {filteredDocs.length === 0 ? (
             <motion.div variants={item} className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-mauve-100">
               <div className="w-16 h-16 rounded-2xl bg-mauve-50 flex items-center justify-center mb-4 ring-1 ring-mauve-100/60">
                 <FileText className="w-7 h-7 text-mauve-400" />
               </div>
               <p className="text-ink-500 font-medium text-lg mb-1">
-                {search ? 'No matching documents' : 'No documents yet'}
+                {search ? 'Нет подходящих документов' : 'Пока нет документов'}
               </p>
               <p className="text-ink-400 text-sm mb-5">
-                {search ? 'Try a different search term.' : 'Upload your first document to train your agents.'}
+                {search ? 'Попробуйте другой запрос' : 'Загрузите первый документ'}
               </p>
               {!search && (
                 <button
@@ -353,7 +469,7 @@ export default function KnowledgePage() {
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-mauve-600 text-white text-sm font-semibold hover:bg-mauve-700 transition-all"
                 >
                   <Upload className="w-4 h-4" />
-                  Upload Document
+                  Загрузить
                 </button>
               )}
             </motion.div>
@@ -366,22 +482,29 @@ export default function KnowledgePage() {
                   <motion.div
                     key={doc.id}
                     variants={item}
-                    whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                    className="bg-white rounded-2xl border border-mauve-100 shadow-sm hover:shadow-md transition-all duration-300 p-5 group"
+                    whileHover={{ y: -4, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } }}
+                    className="relative bg-white rounded-2xl border border-mauve-100 shadow-sm hover:shadow-lg hover:shadow-mauve-900/5 hover:border-mauve-200 transition-all duration-300 p-5 group overflow-hidden"
                   >
-                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-mauve-400/0 via-mauve-400/30 to-mauve-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <motion.div
+                      initial={{ scaleX: 0 }}
+                      whileHover={{ scaleX: 1 }}
+                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-mauve-400/0 via-mauve-500/40 to-mauve-400/0 origin-left"
+                    />
                     <div className="flex items-start justify-between mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-mauve-50 flex items-center justify-center ring-1 ring-mauve-100/60">
+                      <div className="w-10 h-10 rounded-xl bg-mauve-50 flex items-center justify-center ring-1 ring-mauve-100/60 group-hover:ring-mauve-200 group-hover:scale-105 transition-all duration-300">
                         <Icon className="w-5 h-5 text-mauve-600" />
                       </div>
-                      <button
+                      <motion.button
                         onClick={() => handleDelete(doc.id)}
-                        className="p-1.5 rounded-lg hover:bg-red-50 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+                        whileHover={{ scale: 1.15 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="p-1.5 rounded-lg hover:bg-red-50 transition-all duration-200 opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 className="w-4 h-4 text-red-400 hover:text-red-600 transition-colors" />
-                      </button>
+                      </motion.button>
                     </div>
-                    <h3 className="font-semibold text-ink-900 text-sm mb-2 line-clamp-2">{doc.title}</h3>
+                    <h3 className="font-semibold text-ink-900 text-sm mb-2 line-clamp-2 group-hover:text-ink-950 transition-colors">{doc.title}</h3>
                     <div className="flex items-center gap-2 mb-3">
                       <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${badge.color}`}>
                         {badge.label}
@@ -393,11 +516,11 @@ export default function KnowledgePage() {
                     <div className="flex items-center gap-4 text-xs text-ink-400">
                       <span className="flex items-center gap-1">
                         <FileSpreadsheet className="w-3 h-3" />
-                        {(doc.wordCount || 0).toLocaleString()} words
+                        {(doc.wordCount || 0).toLocaleString()} слов
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {new Date(doc.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        {new Date(doc.createdAt).toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
                   </motion.div>
@@ -411,84 +534,129 @@ export default function KnowledgePage() {
         <motion.div variants={container} initial="hidden" animate="show" className="bg-white rounded-2xl border border-mauve-100 shadow-sm p-6">
           <button
             onClick={() => setShowFAQ(!showFAQ)}
-            className="flex items-center justify-between w-full"
+            className="flex items-center justify-between w-full group/faq-header"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-mauve-50 flex items-center justify-center ring-1 ring-mauve-100/60">
+              <div className="w-10 h-10 rounded-xl bg-mauve-50 flex items-center justify-center ring-1 ring-mauve-100/60 group-hover/faq-header:ring-mauve-200 group-hover/faq-header:scale-105 transition-all duration-300">
                 <HelpCircle className="w-5 h-5 text-mauve-600" />
               </div>
               <div className="text-left">
-                <h2 className="font-display font-semibold text-lg text-ink-900">FAQ Builder</h2>
-                <p className="text-sm text-ink-500">{faqs.length} question{faqs.length !== 1 ? 's' : ''} added</p>
+                <div className="flex items-center gap-1.5">
+                  <h2 className="font-display font-semibold text-lg text-ink-900">Редактор FAQ</h2>
+                  <InfoTooltip content="FAQ — это пары «вопрос-ответ». Агент использует их для быстрых ответов на типовые вопросы без вызова LLM, что экономит кредиты." />
+                </div>
+                <p className="text-sm text-ink-500">{faqs.length} вопросов добавлено</p>
               </div>
             </div>
-            {showFAQ ? <ChevronUp className="w-5 h-5 text-ink-400" /> : <ChevronDown className="w-5 h-5 text-ink-400" />}
+            <motion.div
+              animate={{ rotate: showFAQ ? 180 : 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="w-8 h-8 rounded-lg bg-mauve-50 flex items-center justify-center group-hover/faq-header:bg-mauve-100 transition-colors"
+            >
+              <ChevronDown className="w-4 h-4 text-mauve-600" />
+            </motion.div>
           </button>
 
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {showFAQ && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                key="faq-content"
+                initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                animate={{ height: 'auto', opacity: 1, marginTop: 24 }}
+                exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 className="overflow-hidden"
               >
-                <div className="mt-6 pt-6 border-t border-ink-100">
+                <div className="pt-6 border-t border-mauve-100">
                   <div className="grid sm:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-xs font-semibold text-ink-700 mb-1.5">Question</label>
+                      <label className="block text-xs font-semibold text-ink-700 mb-1.5">Вопрос</label>
                       <input
                         type="text"
                         value={newQuestion}
                         onChange={(e) => setNewQuestion(e.target.value)}
-                        placeholder="e.g. What are your business hours?"
-                        className="w-full px-3 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200"
+                        onKeyDown={(e) => e.key === 'Enter' && addFaq()}
+                        placeholder="например: Какой у вас график работы?"
+                        className="w-full px-3 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200 hover:border-mauve-300"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-ink-700 mb-1.5">Answer</label>
+                      <label className="block text-xs font-semibold text-ink-700 mb-1.5">Ответ</label>
                       <input
                         type="text"
                         value={newAnswer}
                         onChange={(e) => setNewAnswer(e.target.value)}
-                        placeholder="e.g. We are open 9 AM – 6 PM Mon–Fri."
-                        className="w-full px-3 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200"
+                        onKeyDown={(e) => e.key === 'Enter' && addFaq()}
+                        placeholder="например: Мы работаем 9:00 – 18:00 Пн–Пт."
+                        className="w-full px-3 py-2.5 bg-white rounded-xl border border-mauve-100 text-sm text-ink-900 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-mauve-500/20 focus:border-mauve-300 transition-all duration-200 hover:border-mauve-300"
                       />
                     </div>
                   </div>
-                  <button
-                    onClick={addFaq}
-                    disabled={!newQuestion.trim() || !newAnswer.trim()}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-mauve-600 text-white text-sm font-semibold hover:bg-mauve-700 transition-all duration-200 shadow-sm shadow-mauve-600/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add FAQ
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <motion.button
+                      onClick={addFaq}
+                      disabled={!newQuestion.trim() || !newAnswer.trim() || faqSaving}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-mauve-600 text-white text-sm font-semibold hover:bg-mauve-700 transition-all duration-200 shadow-sm shadow-mauve-600/10 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
+                    >
+                      {faqSaving ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Plus className="w-4 h-4" />
+                      )}
+                      {faqSaving ? 'Добавление...' : 'Добавить FAQ'}
+                    </motion.button>
+                    {!newQuestion.trim() && !newAnswer.trim() && !faqSaving && (
+                      <span className="text-xs text-mauve-400 italic">Заполните вопрос и ответ</span>
+                    )}
+                  </div>
 
-                  {faqs.length > 0 && (
-                    <div className="mt-6 divide-y divide-ink-100">
-                      {faqs.map((faq, i) => (
-                        <motion.div
-                          key={faq.id}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.03 }}
-                          className="flex items-start gap-4 py-3 group"
-                        >
-                          <Sparkles className="w-4 h-4 text-mauve-400 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-ink-900">{faq.question}</p>
-                            <p className="text-sm text-ink-500 mt-0.5">{faq.answer}</p>
-                          </div>
-                          <button
-                            onClick={() => removeFaq(faq.id)}
-                            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+                  {faqs.length === 0 ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="mt-8 mb-2 flex flex-col items-center justify-center py-10 text-center"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-mauve-50/50 flex items-center justify-center mb-4 ring-1 ring-mauve-100/40">
+                        <MessageSquare className="w-6 h-6 text-mauve-300" />
+                      </div>
+                      <p className="text-ink-500 font-medium text-base mb-1">Нет вопросов FAQ</p>
+                      <p className="text-ink-400 text-sm max-w-xs">
+                        Добавьте часто задаваемые вопросы и ответы, чтобы агент мог быстро отвечать клиентам
+                      </p>
+                    </motion.div>
+                  ) : (
+                    <div className="mt-6 divide-y divide-mauve-100">
+                      <AnimatePresence>
+                        {faqs.map((faq, i) => (
+                          <motion.div
+                            key={faq.id}
+                            initial={{ opacity: 0, x: -12 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 12, height: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
+                            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                            className="flex items-start gap-4 py-3 group/faq"
                           >
-                            <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                          </button>
-                        </motion.div>
-                      ))}
+                            <div className="w-7 h-7 rounded-lg bg-mauve-50 flex items-center justify-center mt-0.5 flex-shrink-0 ring-1 ring-mauve-100/60">
+                              <Sparkles className="w-3.5 h-3.5 text-mauve-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-ink-900">{faq.question}</p>
+                              <p className="text-sm text-ink-500 mt-0.5">{faq.answer}</p>
+                            </div>
+                            <motion.button
+                              onClick={() => removeFaq(faq.id)}
+                              whileHover={{ scale: 1.15 }}
+                              whileTap={{ scale: 0.9 }}
+                              className="p-1.5 rounded-lg hover:bg-red-50 transition-all duration-200 opacity-0 group-hover/faq:opacity-100"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-red-400 hover:text-red-600 transition-colors" />
+                            </motion.button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
                     </div>
                   )}
                 </div>
@@ -499,6 +667,6 @@ export default function KnowledgePage() {
 
         <div className="h-8" />
       </div>
-    </DashboardLayout>
+    </>
   );
 }

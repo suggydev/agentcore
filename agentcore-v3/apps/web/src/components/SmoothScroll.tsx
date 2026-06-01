@@ -45,9 +45,14 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
       ScrollTrigger.refresh();
     }, 500);
 
+    const refreshTimeout3 = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 1500);
+
     return () => {
       clearTimeout(refreshTimeout);
       clearTimeout(refreshTimeout2);
+      clearTimeout(refreshTimeout3);
       gsap.ticker.remove(update);
       lenis.destroy();
       lenisRef.current = null;

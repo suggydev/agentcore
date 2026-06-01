@@ -29,8 +29,6 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import DashboardLayout from '../../../../components/DashboardLayout';
-
 // ──────────────── Types ────────────────
 
 interface Agent {
@@ -55,31 +53,30 @@ interface Conversation {
 
 // ──────────────── Constants ────────────────
 
-const API_BASE = 'http://31.76.102.116:4000/api';
-const HARDCODED_USER_ID = 'usr_9d05c0da797ba45e';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 const QUICK_ACTIONS = [
-  'What can you help me with?',
-  'Tell me about your services',
-  'I need help with pricing',
-  'How do I get started?',
-  'What are your business hours?',
+  'Чем вы можете помочь?',
+  'Расскажите о ваших услугах',
+  'Нужна помощь с ценами',
+  'Как начать?',
+  'Какой у вас график работы?',
 ];
 
-const NODE_LABELS = ['Greeting', 'Qualification', 'Answer', 'FollowUp', 'Close'];
+const NODE_LABELS = ['Приветствие', 'Квалификация', 'Ответ', 'Дожим', 'Завершение'];
 const KEYWORDS_BY_NODE: Record<string, string[]> = {
-  Greeting: ['hello', 'hi', 'hey', 'welcome', 'greet', 'good morning', 'good afternoon'],
-  Qualification: ['help', 'need', 'looking for', 'interested', 'service', 'pricing', 'cost', 'price'],
-  Answer: ['answer', 'here is', 'let me explain', 'sure', 'of course', 'absolutely', 'yes'],
-  FollowUp: ['anything else', 'another question', 'follow', 'more', 'also', 'additional'],
-  Close: ['thanks', 'thank you', 'bye', 'goodbye', 'that is all', 'done'],
+  Приветствие: ['здравствуйте', 'привет', 'добрый день', 'доброе утро', 'добрый вечер', 'здорово', 'рад'],
+  Квалификация: ['помогите', 'нужно', 'ищу', 'интересует', 'услуги', 'цены', 'стоимость', 'цена'],
+  Ответ: ['ответ', 'вот', 'поясню', 'конечно', 'разумеется', 'да', 'сейчас'],
+  Дожим: ['что ещё', 'ещё вопрос', 'следующий', 'дополнительно', 'также', 'вдобавок'],
+  Завершение: ['спасибо', 'благодарю', 'пока', 'до свидания', 'всё', 'готово'],
 };
 
 // ──────────────── Initial Nodes / Edges ────────────────
 
 const createInitialNodes = (): Node[] =>
   NODE_LABELS.map((label, i) => ({
-    id: label.toLowerCase(),
+    id: label,
     type: 'default',
     position: { x: 60 + (i % 3) * 200, y: 40 + Math.floor(i / 3) * 160 },
     data: { label },
@@ -99,11 +96,11 @@ const createInitialNodes = (): Node[] =>
   }));
 
 const createInitialEdges = (): Edge[] => [
-  { id: 'e-greeting-qualification', source: 'greeting', target: 'qualification', animated: false, style: { stroke: '#D4B6D8', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#D4B6D8' } },
-  { id: 'e-qualification-answer', source: 'qualification', target: 'answer', animated: false, style: { stroke: '#D4B6D8', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#D4B6D8' } },
-  { id: 'e-answer-followup', source: 'answer', target: 'followup', animated: false, style: { stroke: '#D4B6D8', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#D4B6D8' } },
-  { id: 'e-followup-answer', source: 'followup', target: 'answer', animated: false, style: { stroke: '#D4B6D8', strokeWidth: 2, strokeDasharray: '5 5' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#D4B6D8' } },
-  { id: 'e-followup-close', source: 'followup', target: 'close', animated: false, style: { stroke: '#D4B6D8', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#D4B6D8' } },
+  { id: 'e-Приветствие-Квалификация', source: 'Приветствие', target: 'Квалификация', animated: false, style: { stroke: '#D4B6D8', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#D4B6D8' } },
+  { id: 'e-Квалификация-Ответ', source: 'Квалификация', target: 'Ответ', animated: false, style: { stroke: '#D4B6D8', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#D4B6D8' } },
+  { id: 'e-Ответ-Дожим', source: 'Ответ', target: 'Дожим', animated: false, style: { stroke: '#D4B6D8', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#D4B6D8' } },
+  { id: 'e-Дожим-Ответ', source: 'Дожим', target: 'Ответ', animated: false, style: { stroke: '#D4B6D8', strokeWidth: 2, strokeDasharray: '5 5' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#D4B6D8' } },
+  { id: 'e-Дожим-Завершение', source: 'Дожим', target: 'Завершение', animated: false, style: { stroke: '#D4B6D8', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#D4B6D8' } },
 ];
 
 // ──────────────── Node Highlighting Helper ────────────────
@@ -220,13 +217,13 @@ function FlowCanvas({
         className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-mauve-600 bg-white/90 backdrop-blur-sm border border-mauve-200 rounded-lg shadow-sm hover:bg-mauve-50 transition-colors"
       >
         <Maximize2 size={13} />
-        Fit view
+        По размеру
       </button>
       {reasoningPath.length > 0 && (
         <div className="absolute bottom-3 left-3 right-3 z-10 bg-white/90 backdrop-blur-sm border border-mauve-200 rounded-lg px-3 py-2 shadow-sm">
           <div className="flex items-center gap-1.5 text-xs text-mauve-600 flex-wrap">
             <Brain size={13} className="text-mauve-500 flex-shrink-0" />
-            <span className="font-semibold">Path:</span>
+            <span className="font-semibold">Путь:</span>
             {reasoningPath.map((node, i) => (
               <span key={node} className="flex items-center gap-1">
                 <span className="px-1.5 py-0.5 rounded-md bg-mauve-100 text-mauve-700 font-medium">{node}</span>
@@ -249,6 +246,7 @@ function ChatPanel({
   setInput,
   handleSend,
   agents,
+  agentsError,
   selectedAgent,
   setSelectedAgent,
   saveEditedMessage,
@@ -263,12 +261,21 @@ function ChatPanel({
   agents: Agent[];
   selectedAgent: string;
   setSelectedAgent: (v: string) => void;
-  saveEditedMessage: (id: string) => void;
+  agentsError: string;
+  saveEditedMessage: (id: string, content: string) => void;
   cancelEditing: (id: string) => void;
   startEditing: (id: string) => void;
 }) {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [editingText, setEditingText] = useState('');
+
+  useEffect(() => {
+    const editing = messages.find(m => m.editing);
+    if (editing) {
+      setEditingText(editing.editedContent ?? editing.content);
+    }
+  }, [messages]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -298,9 +305,11 @@ function ChatPanel({
             <select
               value={selectedAgent}
               onChange={(e) => setSelectedAgent(e.target.value)}
-              className="w-full appearance-none bg-white border border-mauve-200 rounded-lg px-3 py-2 pr-8 text-sm text-ink-700 font-medium focus:outline-none focus:ring-2 focus:ring-mauve-300/50 focus:border-mauve-400 transition-all cursor-pointer"
+              className={`w-full appearance-none bg-white border rounded-lg px-3 py-2 pr-8 text-sm text-ink-700 font-medium focus:outline-none focus:ring-2 focus:ring-mauve-300/50 focus:border-mauve-400 transition-all cursor-pointer ${
+                agentsError ? 'border-red-300' : 'border-mauve-200'
+              }`}
             >
-              <option value="">Select an agent...</option>
+              <option value="">{agentsError ? 'Ошибка загрузки агентов' : 'Выберите агента...'}</option>
               {agents.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
@@ -328,13 +337,13 @@ function ChatPanel({
                 <div className={`flex items-center gap-1.5 mb-1 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {msg.role === 'user' ? (
                     <>
-                      <span className="text-[10px] font-medium text-mauve-400 uppercase tracking-wide">You</span>
+                      <span className="text-[10px] font-medium text-mauve-400 uppercase tracking-wide">Вы</span>
                       <User size={11} className="text-mauve-400" />
                     </>
                   ) : (
                     <>
                       <Bot size={11} className="text-mauve-500" />
-                      <span className="text-[10px] font-medium text-mauve-500 uppercase tracking-wide">Agent</span>
+                      <span className="text-[10px] font-medium text-mauve-500 uppercase tracking-wide">Агент</span>
                       {msg.nodeTriggered && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-mauve-100 text-mauve-600 font-medium">
                           {msg.nodeTriggered}
@@ -367,10 +376,8 @@ function ChatPanel({
                     {msg.editing ? (
                       <div className="p-3">
                         <textarea
-                          value={msg.editedContent ?? msg.content}
-                          onChange={(e) => {
-                            msg.editedContent = e.target.value;
-                          }}
+                          value={editingText}
+                          onChange={(e) => setEditingText(e.target.value)}
                           className="w-full bg-mauve-50 border border-mauve-200 rounded-lg px-3 py-2 text-sm text-ink-700 resize-none focus:outline-none focus:ring-2 focus:ring-mauve-300/50 min-h-[60px]"
                           autoFocus
                         />
@@ -380,14 +387,14 @@ function ChatPanel({
                             onClick={() => cancelEditing(msg.id)}
                             className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-mauve-400 hover:text-mauve-600 hover:bg-mauve-50 transition-colors"
                           >
-                            <X size={12} /> Cancel
+                            <X size={12} /> Отмена
                           </button>
                           <button
                             type="button"
-                            onClick={() => saveEditedMessage(msg.id)}
+                            onClick={() => saveEditedMessage(msg.id, editingText)}
                             className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs bg-mauve-600 text-white hover:bg-mauve-500 transition-colors"
                           >
-                            <Check size={12} /> Save
+                            <Check size={12} /> Сохранить
                           </button>
                         </div>
                       </div>
@@ -401,7 +408,7 @@ function ChatPanel({
                           onClick={() => startEditing(msg.id)}
                           className="flex items-center gap-1 px-4 py-1.5 text-[10px] text-mauve-400 hover:text-mauve-600 hover:bg-mauve-50/60 transition-colors w-full text-left border-t border-mauve-50"
                         >
-                          <Edit3 size={10} /> Edit response
+                          <Edit3 size={10} /> Редактировать
                         </button>
                       </>
                     )}
@@ -460,7 +467,7 @@ function ChatPanel({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder={selectedAgent ? 'Type a message... (Shift+Enter for newline)' : 'Select an agent to begin...'}
+            placeholder={selectedAgent ? 'Введите сообщение... (Shift+Enter — новая строка)' : 'Выберите агента для начала...'}
             rows={1}
             disabled={loading || !selectedAgent}
             className="flex-1 resize-none bg-mauve-50 border border-mauve-200 rounded-xl px-4 py-2.5 text-sm text-ink-700 placeholder:text-mauve-300 focus:outline-none focus:ring-2 focus:ring-mauve-300/50 focus:border-mauve-400 transition-all disabled:opacity-50"
@@ -475,7 +482,7 @@ function ChatPanel({
           </button>
         </div>
         <p className="text-[10px] text-mauve-300 mt-1.5 text-center">
-          Enter to send · Shift+Enter for new line
+          Enter — отправить · Shift+Enter — новая строка
         </p>
       </div>
     </div>
@@ -489,6 +496,7 @@ function AgentTestPage() {
   const [authorized, setAuthorized] = useState(false);
 
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [agentsError, setAgentsError] = useState('');
   const [selectedAgent, setSelectedAgent] = useState('');
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -518,26 +526,30 @@ function AgentTestPage() {
   useEffect(() => {
     if (!authorized) return;
     const token = localStorage.getItem('token');
-    fetch(`${API_BASE}/agents`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
+    fetch(`${API_BASE}/api/agents`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r)))
       .then((data) => {
         const list = Array.isArray(data) ? data : data.agents ?? data.data ?? [];
         setAgents(list);
+        setAgentsError('');
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error('Failed to fetch agents:', err);
+        setAgentsError('Не удалось загрузить список агентов');
+      });
   }, [authorized]);
 
   const createConversation = useCallback(async (): Promise<string> => {
     const token = localStorage.getItem('token');
-    const res = await fetch(`${API_BASE}/conversations`, {
+    const res = await fetch(`${API_BASE}/api/conversations`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ agentId: selectedAgent, userId: HARDCODED_USER_ID, title: 'Agent Test' }),
+      body: JSON.stringify({ agentId: selectedAgent, userId: JSON.parse(localStorage.getItem('user') || '{}')?.id, title: 'Тест агента' }),
     });
-    if (!res.ok) throw new Error('Failed to create conversation');
+    if (!res.ok) throw new Error('Не удалось создать диалог');
     const data = await res.json();
     return data.id ?? data.conversationId ?? data._id;
   }, [selectedAgent]);
@@ -564,7 +576,7 @@ function AgentTestPage() {
       }
 
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE}/conversations/${currentConvId}/messages`, {
+      const res = await fetch(`${API_BASE}/api/conversations/${currentConvId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -573,20 +585,19 @@ function AgentTestPage() {
         body: JSON.stringify({ content, role: 'user' }),
       });
 
-      if (!res.ok) throw new Error('Failed to send message');
+      if (!res.ok) throw new Error('Не удалось отправить сообщение');
       const data = await res.json();
 
-      const aiContent = data.content ?? data.message ?? data.response ?? 'No response received.';
+      const aiContent = data.content ?? data.message ?? data.response ?? 'Нет ответа.';
       const matchedNode = matchNodeFromContent(aiContent);
-      const activeLabel = matchedNode ? matchedNode.charAt(0).toUpperCase() + matchedNode.slice(1) : undefined;
 
-      const newPath = activeLabel ? [...reasoningPath, activeLabel].slice(-6) : reasoningPath;
+      const newPath = matchedNode ? [...reasoningPath, matchedNode].slice(-6) : reasoningPath;
 
       const agentMsg: Message = {
         id: `agent-${Date.now()}`,
         role: 'agent',
         content: aiContent,
-        nodeTriggered: activeLabel,
+        nodeTriggered: matchedNode,
         reasoningTrace: newPath.length > 0 ? newPath : undefined,
       };
 
@@ -598,10 +609,10 @@ function AgentTestPage() {
 
       setMessages((prev) => [...prev, agentMsg]);
     } catch {
-      const fallbackContent = 'Thanks for your message! I&apos;m processing your request. How else can I assist?';
+      const fallbackContent = 'Спасибо за сообщение! Обрабатываю ваш запрос. Чем ещё могу помочь?';
       const matchedNode = matchNodeFromContent(fallbackContent);
-      const activeLabel = matchedNode ? matchedNode.charAt(0).toUpperCase() + matchedNode.slice(1) : undefined;
-      const newPath = activeLabel ? [...reasoningPath, activeLabel].slice(-6) : reasoningPath;
+
+      const newPath = matchedNode ? [...reasoningPath, matchedNode].slice(-6) : reasoningPath;
 
       setActiveNodeId(matchedNode ?? null);
       setReasoningPath(newPath);
@@ -615,7 +626,7 @@ function AgentTestPage() {
           id: `agent-${Date.now()}`,
           role: 'agent',
           content: fallbackContent,
-          nodeTriggered: activeLabel,
+          nodeTriggered: matchedNode,
           reasoningTrace: newPath.length > 0 ? newPath : undefined,
         },
       ]);
@@ -636,10 +647,10 @@ function AgentTestPage() {
     );
   }, []);
 
-  const saveEditedMessage = useCallback((id: string) => {
+  const saveEditedMessage = useCallback((id: string, content: string) => {
     setMessages((prev) =>
       prev.map((m) =>
-        m.id === id && m.editedContent != null ? { ...m, content: m.editedContent, editing: false, editedContent: undefined } : m,
+        m.id === id ? { ...m, content, editing: false, editedContent: undefined } : m,
       ),
     );
   }, []);
@@ -655,7 +666,7 @@ function AgentTestPage() {
   if (!authorized) return null;
 
   return (
-    <DashboardLayout>
+    <>
       <div className="h-[calc(100vh-0px)] flex">
         {/* Left Panel — Brain Map */}
         <div className="w-1/2 border-r border-mauve-100 relative bg-ink-50">
@@ -678,7 +689,7 @@ function AgentTestPage() {
         <div className="w-1/2 flex flex-col bg-white">
           <div className="px-4 py-3 border-b border-mauve-100 flex items-center gap-2.5 bg-white">
             <MessageSquare size={15} className="text-mauve-500" />
-            <span className="text-sm font-semibold text-ink-700">Agent Test Chat</span>
+            <span className="text-sm font-semibold text-ink-700">Тестовый чат</span>
             <span className="flex-1" />
             <button
               type="button"
@@ -691,9 +702,9 @@ function AgentTestPage() {
                 setReasoningPath([]);
               }}
               className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] text-mauve-500 hover:text-mauve-600 hover:bg-mauve-50 transition-colors"
-              title="Reset chat"
+              title="Сбросить чат"
             >
-              <RefreshCw size={12} /> Reset
+              <RefreshCw size={12} /> Сброс
             </button>
           </div>
           <div className="flex-1 flex flex-col min-h-0">
@@ -704,6 +715,7 @@ function AgentTestPage() {
               setInput={setInput}
               handleSend={handleSend}
               agents={agents}
+              agentsError={agentsError}
               selectedAgent={selectedAgent}
               setSelectedAgent={setSelectedAgent}
               saveEditedMessage={saveEditedMessage}
@@ -713,7 +725,7 @@ function AgentTestPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

@@ -33,8 +33,8 @@ export default function Logo({ className = '', animated = false, size = 32, show
       >
         <rect 
           x="4" y="4" width="14" height="14" rx="3" 
-          fill={isRevealed ? '#111318' : 'none'}
-          stroke="#111318" 
+          fill={isRevealed ? '#5A4D59' : 'none'}
+          stroke="#5A4D59" 
           strokeWidth="2"
           strokeDasharray="200"
           strokeDashoffset={isRevealed ? 0 : 200}
@@ -42,8 +42,8 @@ export default function Logo({ className = '', animated = false, size = 32, show
         />
         <rect 
           x="22" y="4" width="14" height="14" rx="3" 
-          fill={isRevealed ? '#4C5EFF' : 'none'}
-          stroke="#4C5EFF" 
+          fill={isRevealed ? '#A896AB' : 'none'}
+          stroke="#A896AB" 
           strokeWidth="2"
           strokeDasharray="200"
           strokeDashoffset={isRevealed ? 0 : 200}
@@ -51,8 +51,8 @@ export default function Logo({ className = '', animated = false, size = 32, show
         />
         <rect 
           x="4" y="22" width="14" height="14" rx="3" 
-          fill={isRevealed ? '#4C5EFF' : 'none'}
-          stroke="#4C5EFF" 
+          fill={isRevealed ? '#A896AB' : 'none'}
+          stroke="#A896AB" 
           strokeWidth="2"
           strokeDasharray="200"
           strokeDashoffset={isRevealed ? 0 : 200}
@@ -60,8 +60,8 @@ export default function Logo({ className = '', animated = false, size = 32, show
         />
         <circle 
           cx="29" cy="29" r="6" 
-          fill={isRevealed ? '#111318' : 'none'}
-          stroke="#111318" 
+          fill={isRevealed ? '#5A4D59' : 'none'}
+          stroke="#5A4D59" 
           strokeWidth="2"
           strokeDasharray="200"
           strokeDashoffset={isRevealed ? 0 : 200}
@@ -85,7 +85,7 @@ export default function Logo({ className = '', animated = false, size = 32, show
         />
       </svg>
       {showText && (
-        <span className="font-mono-display font-bold text-ink-900 text-lg tracking-tight">
+        <span className="font-mono-display font-bold text-gradient-mauve text-lg tracking-tight">
           AgentCore
         </span>
       )}
@@ -103,10 +103,10 @@ export function LogoSymbol({ size = 32, className = '' }: { size?: number; class
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <rect x="4" y="4" width="14" height="14" rx="3" fill="#111318" />
-      <rect x="22" y="4" width="14" height="14" rx="3" fill="#4C5EFF" />
-      <rect x="4" y="22" width="14" height="14" rx="3" fill="#4C5EFF" />
-      <circle cx="29" cy="29" r="6" fill="#111318" />
+      <rect x="4" y="4" width="14" height="14" rx="3" fill="#5A4D59" />
+      <rect x="22" y="4" width="14" height="14" rx="3" fill="#A896AB" />
+      <rect x="4" y="22" width="14" height="14" rx="3" fill="#A896AB" />
+      <circle cx="29" cy="29" r="6" fill="#5A4D59" />
     </svg>
   );
 }
