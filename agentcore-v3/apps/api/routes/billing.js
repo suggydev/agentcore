@@ -168,4 +168,49 @@ router.post('/top-up', authenticate, aiLimiter, async (req, res) => {
   }
 });
 
+router.post('/yookassa/test', authenticate, generalLimiter, async (req, res) => {
+  try {
+    const { amount } = req.body || {};
+    const testAmount = Math.min(Number(amount) || 1, 10);
+
+    const workspace = await prisma.workspace.findUnique({ where: { id: req.user.workspaceId } });
+    if (!workspace) return res.status(404).json({ error: 'Workspace not found' });
+
+    const settings = (workspace.settings && typeof workspace.settings === 'object') ? workspace.settings : {};
+    const integrations = settings.integrations || {};
+    const yk = integrations.yookassa;
+
+    if (!yk || !yk.connected || !yk.shopId || !yk.secretKey) {
+      return res.status(400).json({ error: 'ЮKassa не подключена. Подключите интеграцию в настройках.' });
+    }
+
+    const orderId = `test-${req.user.workspaceId}-${Date.now()}`;
+
+    const payment = await yookassa.createPayment({
+      amount: testAmount,
+      description: `Тестовый платёж AgentCore`,
+      orderId,
+      returnUrl: config.CLIENT_URL + '/dashboard/integrations',
+      capture: false,
+    });
+
+    res.json({
+      paymentUrl: payment.confirmation?.confirmation_url,
+      paymentId: payment.id,
+      id: payment.id,
+      amount: testAmount,
+      status: payment.status,
+    });
+  } catch (err) {
+    if (err.message?.includes('not configured') || err.code === 'YOOKASSA_NOT_CONFIGURED') {
+      return res.status(503).json({
+        error: 'ЮKassa не настроена. Проверьте shopId и секретный ключ.',
+        supported: false,
+      });
+    }
+    console.error('YooKassa test error:', err.message);
+    safeError(res, err, 502, 'Ошибка тестового платежа ЮKassa');
+  }
+});
+
 module.exports = router;

@@ -102,11 +102,12 @@ router.post('/:name/connect', authenticate, generalLimiter, async (req, res) => 
     }
 
     if (['amocrm', 'bitrix24'].includes(key)) {
-      const { domain, apiKey, clientId, clientSecret } = req.body || {};
+      const { domain, apiKey, clientId, clientSecret, redirectUri } = req.body || {};
       if (domain) integrationData.domain = domain;
       if (apiKey) integrationData.apiKey = apiKey;
       if (clientId) integrationData.clientId = clientId;
       if (clientSecret) integrationData.clientSecret = clientSecret;
+      if (redirectUri) integrationData.redirectUri = redirectUri;
       integrationData.contactsSynced = await prisma.cRMContact.count({ where: { workspaceId: req.user.workspaceId } });
     }
 

@@ -1,110 +1,572 @@
 const YooKassa = require('yookassa');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
+const axios = require('axios');
 const config = require('../config');
+const { IntegrationProvider, AppError } = require('./IntegrationProvider');
 
-let checkout = null;
+const RUSSIAN_ERRORS = {
+  not_configured: 'ЮKassa не настроена. Укажите shopId и секретный ключ в личном кабинете.',
+  invalid_credentials: 'Неверный shopId или секретный ключ ЮKassa. Проверьте данные.',
+  payment_not_found: 'Платёж не найден. Проверьте идентификатор платежа.',
+  refund_not_found: 'Возврат не найден. Проверьте идентификатор возврата.',
+  payment_already_captured: 'Платёж уже подтверждён — повторное списание невозможно.',
+  payment_cancelled: 'Платёж уже отменён.',
+  insufficient_funds: 'Недостаточно средств для возврата.',
+  receipt_error: 'Ошибка формирования чека (54-ФЗ). Проверьте состав позиций.',
+  subscription_error: 'Ошибка создания подписки. Проверьте способ оплаты.',
+  network_error: 'Ошибка соединения с ЮKassa. Проверьте интернет-соединение.',
+  rate_limit: 'Превышен лимит запросов к ЮKassa. Повторите позже.',
+  api_error: 'Ошибка API ЮKassa.',
+  validation_error: 'Неверные параметры запроса к ЮKassa.',
+  shop_not_found: 'Магазин с указанным shopId не найден.',
+  webhook_invalid: 'Неверная подпись вебхука. Запрос отклонён.',
+};
 
-function getCheckout() {
-  if (!checkout) {
-    if (!config.YOOKASSA_SHOP_ID || !config.YOOKASSA_SECRET_KEY) {
-      throw new Error('YooKassa is not configured. Set YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY.');
-    }
-    checkout = new YooKassa({
-      shopId: config.YOOKASSA_SHOP_ID,
-      secretKey: config.YOOKASSA_SECRET_KEY,
-      timeout: 120000,
-    });
+function mapYooKassaError(err) {
+  const status = err?.response?.status || err?.statusCode;
+  const body = err?.response?.data || err?.body || {};
+  const code = body?.code;
+
+  if (status === 401 || status === 403 || code === 'authorization_error') {
+    return new AppError(RUSSIAN_ERRORS.invalid_credentials, 401, 'YOOKASSA_AUTH_ERROR');
   }
-  return checkout;
+  if (status === 404 || code === 'payment_not_found') {
+    return new AppError(RUSSIAN_ERRORS.payment_not_found, 404, 'YOOKASSA_NOT_FOUND');
+  }
+  if (status === 429) {
+    return new AppError(RUSSIAN_ERRORS.rate_limit, 429, 'YOOKASSA_RATE_LIMIT');
+  }
+  if (status === 400 && code?.includes('receipt')) {
+    return new AppError(RUSSIAN_ERRORS.receipt_error, 400, 'YOOKASSA_RECEIPT_ERROR');
+  }
+  if (code === 'insufficient_funds') {
+    return new AppError(RUSSIAN_ERRORS.insufficient_funds, 400, 'YOOKASSA_INSUFFICIENT_FUNDS');
+  }
+  if (code === 'invalid_payment_status') {
+    return new AppError(RUSSIAN_ERRORS.payment_already_captured, 400, 'YOOKASSA_INVALID_STATUS');
+  }
+  if (err.code === 'ECONNREFUSED' || err.code === 'ECONNABORTED' || err.code === 'ECONNRESET') {
+    return new AppError(RUSSIAN_ERRORS.network_error, 502, 'YOOKASSA_NETWORK_ERROR');
+  }
+  const message = body?.description || err?.message || RUSSIAN_ERRORS.api_error;
+  return new AppError(message, status || 500, 'YOOKASSA_ERROR');
 }
 
-async function createPayment({
-  amount,
-  currency = 'RUB',
-  description,
-  orderId,
-  returnUrl,
-  customerEmail,
-  receipt,
-  capture = true,
-}) {
-  const idempotenceKey = uuidv4();
-  const client = getCheckout();
+class YooKassaProvider extends IntegrationProvider {
+  constructor(credentials = {}) {
+    super({
+      name: 'yookassa',
+      displayName: 'ЮKassa',
+      agentId: 51,
+      version: '2.0.0',
+    });
 
-  const payload = {
-    amount: { value: amount.toFixed(2), currency },
-    capture,
-    confirmation: { type: 'redirect', return_url: returnUrl || config.CLIENT_URL || 'http://localhost:3000' },
-    description: description || `Order #${orderId}`,
-    metadata: { orderId: String(orderId) },
-  };
+    this.shopId = credentials.shopId || config.YOOKASSA_SHOP_ID;
+    this.secretKey = credentials.secretKey || config.YOOKASSA_SECRET_KEY;
+    this.webhookSecret = credentials.webhookSecret || config.YOOKASSA_WEBHOOK_SECRET || this.secretKey;
+    this._client = null;
+    this._axiosToken = null;
+    this.credentialSource = credentials.shopId ? 'database' : 'env';
+  }
 
-  if (customerEmail || receipt) {
+  get client() {
+    if (!this._client) {
+      if (!this.shopId || !this.secretKey) {
+        throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+      }
+      this._client = new YooKassa({
+        shopId: this.shopId,
+        secretKey: this.secretKey,
+        timeout: 120000,
+      });
+      this.initialized = true;
+      this.log('info', 'YooKassa client initialized', { shopId: this.shopId });
+    }
+    return this._client;
+  }
+
+  get authToken() {
+    if (!this._axiosToken) {
+      this._axiosToken = Buffer.from(`${this.shopId}:${this.secretKey}`).toString('base64');
+    }
+    return this._axiosToken;
+  }
+
+  async rawApiCall(method, path, body = null) {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+
+    try {
+      const response = await this.execute(async () => {
+        const res = await axios({
+          method,
+          url: `https://api.yookassa.ru/v3${path}`,
+          headers: {
+            Authorization: `Basic ${this.authToken}`,
+            'Content-Type': 'application/json',
+            'Idempotence-Key': uuidv4(),
+          },
+          data: body,
+          timeout: 30000,
+          validateStatus: null,
+        });
+
+        if (res.status >= 200 && res.status < 300) {
+          return { data: res.data };
+        }
+
+        const apiErr = new Error(res.data?.description || `HTTP ${res.status}`);
+        apiErr.response = { status: res.status, data: res.data };
+        throw apiErr;
+      });
+
+      return response;
+    } catch (err) {
+      if (err instanceof AppError && err.code?.startsWith('YOOKASSA_')) {
+        throw err;
+      }
+      if (err.isOperational) throw err;
+      throw mapYooKassaError(err);
+    }
+  }
+
+  initialize(credentials = {}) {
+    if (credentials.shopId) this.shopId = credentials.shopId;
+    if (credentials.secretKey) this.secretKey = credentials.secretKey;
+    if (credentials.webhookSecret) this.webhookSecret = credentials.webhookSecret;
+    this._client = null;
+    this._axiosToken = null;
+    this.credentialSource = 'database';
+    this.initialized = false;
+    this.log('info', 'YooKassa credentials updated');
+  }
+
+  verifyWebhookSignature(body, signature) {
+    if (!this.webhookSecret) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+
+    const rawBody = typeof body === 'string' ? body : JSON.stringify(body);
+    const computed = crypto.createHmac('sha256', this.webhookSecret).update(rawBody, 'utf8').digest('hex');
+
+    const isValid = crypto.timingSafeEqual(
+      Buffer.from(computed, 'hex'),
+      Buffer.from(signature, 'hex')
+    );
+
+    if (!isValid) {
+      this.log('warn', 'Invalid webhook signature');
+      throw new AppError(RUSSIAN_ERRORS.webhook_invalid, 403, 'YOOKASSA_INVALID_SIGNATURE');
+    }
+
+    return true;
+  }
+
+  async createPayment({
+    amount,
+    currency = 'RUB',
+    description,
+    orderId,
+    returnUrl,
+    customerEmail,
+    receipt,
+    capture = true,
+    savePaymentMethod = false,
+    paymentMethodId,
+  }) {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+
+    const idempotenceKey = uuidv4();
+
+    const payload = {
+      amount: { value: amount.toFixed(2), currency },
+      capture,
+      confirmation: {
+        type: 'redirect',
+        return_url: returnUrl || config.CLIENT_URL || 'http://localhost:3000',
+      },
+      description: description || `Заказ #${orderId}`,
+      metadata: { orderId: String(orderId) },
+    };
+
+    if (customerEmail || receipt) {
+      payload.receipt = {
+        customer: {
+          email: customerEmail || undefined,
+        },
+        items: receipt?.items || [
+          {
+            description: description || `Заказ #${orderId}`,
+            quantity: '1',
+            amount: { value: amount.toFixed(2), currency },
+            vat_code: 1,
+          },
+        ],
+      };
+
+      if (receipt?.taxSystemCode) {
+        payload.receipt.tax_system_code = receipt.taxSystemCode;
+      }
+    }
+
+    if (savePaymentMethod) {
+      payload.save_payment_method = true;
+    }
+
+    if (paymentMethodId) {
+      payload.payment_method_id = paymentMethodId;
+    }
+
+    try {
+      const result = await this.client.createPayment(payload, idempotenceKey);
+      return result;
+    } catch (err) {
+      throw mapYooKassaError(err);
+    }
+  }
+
+  async getPayment(paymentId) {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+
+    try {
+      const result = await this.client.getPayment(paymentId, uuidv4());
+      return result;
+    } catch (err) {
+      throw mapYooKassaError(err);
+    }
+  }
+
+  async capturePayment(paymentId, amount) {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+
+    const idempotenceKey = uuidv4();
+    let payload;
+
+    if (amount !== undefined) {
+      payload = { amount: { value: amount.toFixed(2), currency: 'RUB' } };
+    }
+
+    try {
+      const result = await this.client.capturePayment(paymentId, payload || undefined, idempotenceKey);
+      return result;
+    } catch (err) {
+      throw mapYooKassaError(err);
+    }
+  }
+
+  async cancelPayment(paymentId) {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+
+    try {
+      const result = await this.client.cancelPayment(paymentId, uuidv4());
+      return result;
+    } catch (err) {
+      throw mapYooKassaError(err);
+    }
+  }
+
+  async createRefund({ paymentId, amount, currency = 'RUB', description }) {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+
+    const idempotenceKey = uuidv4();
+    const payload = {
+      amount: { value: amount.toFixed(2), currency },
+    };
+
+    if (description) {
+      payload.description = description;
+    }
+
+    try {
+      const result = await this.client.createRefund(paymentId, payload, idempotenceKey);
+      return result;
+    } catch (err) {
+      throw mapYooKassaError(err);
+    }
+  }
+
+  async createRefundWithReceipt({
+    paymentId,
+    amount,
+    currency = 'RUB',
+    description,
+    receiptItems,
+    customerEmail,
+  }) {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+
+    const idempotenceKey = uuidv4();
+    const payload = {
+      amount: { value: amount.toFixed(2), currency },
+    };
+
+    if (description) {
+      payload.description = description;
+    }
+
     payload.receipt = {
-      customer: { email: customerEmail },
-      items: receipt?.items || [
+      customer: { email: customerEmail || undefined },
+      items: receiptItems.map(item => ({
+        description: item.description,
+        quantity: String(item.quantity),
+        amount: {
+          value: Number(item.amount).toFixed(2),
+          currency: currency,
+        },
+        vat_code: item.vat_code || 1,
+      })),
+      type: 'refund',
+    };
+
+    try {
+      const result = await this.client.createRefund(paymentId, payload, idempotenceKey);
+      return result;
+    } catch (err) {
+      throw mapYooKassaError(err);
+    }
+  }
+
+  async getRefund(refundId) {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+
+    try {
+      const result = await this.client.getRefund(refundId, uuidv4());
+      return result;
+    } catch (err) {
+      throw mapYooKassaError(err);
+    }
+  }
+
+  async createReceipt({ paymentId, items, email, phone, type = 'payment' }) {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+
+    if (!paymentId && !type) {
+      throw new AppError(
+        'Не указан payment_id для чека',
+        400,
+        'YOOKASSA_VALIDATION_ERROR'
+      );
+    }
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw new AppError(
+        'Список позиций чека пуст. Укажите хотя бы одну позицию.',
+        400,
+        'YOOKASSA_VALIDATION_ERROR'
+      );
+    }
+
+    const payload = {
+      type: type === 'refund' ? 'refund' : 'payment',
+      payment_id: paymentId,
+      customer: {},
+      items: items.map(item => ({
+        description: item.description,
+        quantity: String(item.quantity),
+        amount: {
+          value: Number(item.amount).toFixed(2),
+          currency: 'RUB',
+        },
+        vat_code: item.vat_code || 1,
+        payment_mode: item.payment_mode || 'full_prepayment',
+        payment_subject: item.payment_subject || 'commodity',
+      })),
+      settlements: [
         {
-          description: description || `Order #${orderId}`,
-          quantity: '1',
-          amount: { value: amount.toFixed(2), currency },
-          vat_code: '1',
+          type: 'cashless',
+          amount: {
+            value: items.reduce((sum, item) => sum + Number(item.amount) * Number(item.quantity), 0).toFixed(2),
+            currency: 'RUB',
+          },
         },
       ],
     };
+
+    if (email) payload.customer.email = email;
+    if (phone) payload.customer.phone = phone;
+
+    try {
+      const result = await this.rawApiCall('POST', '/receipts', payload);
+      this.log('info', 'Receipt created', { paymentId, type, status: result?.status });
+      return result;
+    } catch (err) {
+      if (err instanceof AppError && err.code?.startsWith('YOOKASSA_')) throw err;
+      throw mapYooKassaError(err);
+    }
   }
 
-  return client.createPayment(payload, idempotenceKey);
-}
+  async createSubscriptionPayment({
+    amount,
+    currency = 'RUB',
+    description,
+    orderId,
+    returnUrl,
+    customerEmail,
+    receipt,
+  }) {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
 
-async function getPayment(paymentId) {
-  const idempotenceKey = uuidv4();
-  const client = getCheckout();
-  return client.getPayment(paymentId, idempotenceKey);
-}
-
-async function capturePayment(paymentId, amount) {
-  const idempotenceKey = uuidv4();
-  const client = getCheckout();
-
-  const payload = {};
-  if (amount !== undefined) {
-    payload.value = amount.toFixed(2);
-    payload.currency = 'RUB';
+    return this.createPayment({
+      amount,
+      currency,
+      description: description || `Подписка #${orderId}`,
+      orderId,
+      returnUrl,
+      customerEmail,
+      receipt,
+      capture: true,
+      savePaymentMethod: true,
+    });
   }
 
-  return client.capturePayment(paymentId, Object.keys(payload).length > 0 ? payload : undefined, idempotenceKey);
-}
+  async makeRecurrentPayment({
+    paymentMethodId,
+    amount,
+    currency = 'RUB',
+    description,
+    orderId,
+    customerEmail,
+    receipt,
+  }) {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
 
-async function cancelPayment(paymentId) {
-  const idempotenceKey = uuidv4();
-  const client = getCheckout();
-  return client.cancelPayment(paymentId, idempotenceKey);
-}
+    if (!paymentMethodId) {
+      throw new AppError(
+        'Не указан payment_method_id для рекуррентного платежа',
+        400,
+        'YOOKASSA_VALIDATION_ERROR'
+      );
+    }
 
-async function createRefund({ paymentId, amount, currency = 'RUB', description }) {
-  const idempotenceKey = uuidv4();
-  const client = getCheckout();
+    const idempotenceKey = uuidv4();
 
-  const amountPayload = { value: amount.toFixed(2), currency };
-  if (description) {
-    amountPayload.description = description;
+    const payload = {
+      amount: { value: amount.toFixed(2), currency },
+      capture: true,
+      payment_method_id: paymentMethodId,
+      description: description || `Автоплатёж #${orderId}`,
+      metadata: { orderId: String(orderId), recurring: 'true' },
+    };
+
+    if (customerEmail || receipt) {
+      payload.receipt = {
+        customer: { email: customerEmail || undefined },
+        items: receipt?.items || [
+          {
+            description: description || `Автоплатёж #${orderId}`,
+            quantity: '1',
+            amount: { value: amount.toFixed(2), currency },
+            vat_code: 1,
+          },
+        ],
+      };
+    }
+
+    try {
+      const result = await this.client.createPayment(payload, idempotenceKey);
+      this.log('info', 'Recurrent payment created', { orderId, paymentMethodId });
+      return result;
+    } catch (err) {
+      throw mapYooKassaError(err);
+    }
   }
 
-  const refund = await client.createRefund(paymentId, amountPayload, idempotenceKey);
-  return refund;
+  async getBalance() {
+    if (!this.shopId || !this.secretKey) {
+      throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+
+    try {
+      const response = await this.rawApiCall('GET', '/me');
+      const data = response;
+
+      const accounts = Array.isArray(data.accounts) ? data.accounts : [];
+      const account = accounts.find(a => a.currency === 'RUB') || accounts[0] || {};
+
+      return {
+        accountId: data.account_id || null,
+        status: data.status || 'unknown',
+        test: data.test || false,
+        fiscalization: data.fiscalization || null,
+        balance: account.balance ? {
+          value: Number(account.balance.value),
+          currency: account.balance.currency || 'RUB',
+        } : null,
+        payoutBalance: account.payout_balance ? {
+          value: Number(account.payout_balance.value),
+          currency: account.payout_balance.currency || 'RUB',
+        } : null,
+        allAccounts: accounts,
+      };
+    } catch (err) {
+      if (err instanceof AppError && err.code?.startsWith('YOOKASSA_')) throw err;
+      throw mapYooKassaError(err);
+    }
+  }
 }
 
-async function getRefund(refundId) {
-  const idempotenceKey = uuidv4();
-  const client = getCheckout();
-  return client.getRefund(refundId, idempotenceKey);
+let singleton = null;
+
+function getProvider(credentials) {
+  if (!credentials && singleton) return singleton;
+
+  if (credentials && credentials.shopId && credentials.secretKey) {
+    if (!singleton) {
+      singleton = new YooKassaProvider(credentials);
+    } else {
+      singleton.initialize(credentials);
+    }
+    return singleton;
+  }
+
+  if (!singleton) {
+    singleton = new YooKassaProvider({});
+  }
+  return singleton;
 }
 
 module.exports = {
-  createPayment,
-  getPayment,
-  capturePayment,
-  cancelPayment,
-  createRefund,
-  getRefund,
+  YooKassaProvider,
+  AppError,
+
+  createPayment: (...args) => getProvider().createPayment(...args),
+  getPayment: (...args) => getProvider().getPayment(...args),
+  capturePayment: (...args) => getProvider().capturePayment(...args),
+  cancelPayment: (...args) => getProvider().cancelPayment(...args),
+
+  createRefund: (...args) => getProvider().createRefund(...args),
+  getRefund: (...args) => getProvider().getRefund(...args),
+
+  createReceipt: (...args) => getProvider().createReceipt(...args),
+  createRefundWithReceipt: (...args) => getProvider().createRefundWithReceipt(...args),
+
+  createSubscriptionPayment: (...args) => getProvider().createSubscriptionPayment(...args),
+  makeRecurrentPayment: (...args) => getProvider().makeRecurrentPayment(...args),
+
+  verifyWebhookSignature: (...args) => getProvider().verifyWebhookSignature(...args),
+  getBalance: (...args) => getProvider().getBalance(...args),
+
+  getProvider,
 };
