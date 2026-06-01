@@ -26,6 +26,11 @@ const agentPutSchema = z.object({
   isActive: z.boolean().optional()
 });
 
+function normalizeModelId(model) {
+  if (!model || model.includes('/')) return model;
+  return `accounts/fireworks/models/${model}`;
+}
+
 const router = express.Router();
 
 router.get('/', authenticate, generalLimiter, async (req, res) => {

@@ -113,16 +113,10 @@ model Conversation {
   @@index([agentId])
 }
 
-enum MessageRole {
-  system
-  user
-  assistant
-}
-
 model Message {
   id              String       @id @default(cuid())
   content         String
-  role            MessageRole
+  role            String
   model           String?
   order           Int          @default(0)
   createdAt       DateTime     @default(now())
