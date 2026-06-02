@@ -54,9 +54,9 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['var(--font-onest)', 'Onest', 'var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        sans: ['var(--font-racama)', 'Racama', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['var(--font-racama)', 'Racama', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'JetBrains Mono', 'Fira Code', 'monospace'],
       },
       borderRadius: {
         card: '12px',
