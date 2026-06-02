@@ -143,7 +143,6 @@ model CRMContact {
   workspace   Workspace     @relation(fields: [workspaceId], references: [id])
 
   @@index([workspaceId])
-  @@index([type])
   @@index([status])
 }
 
