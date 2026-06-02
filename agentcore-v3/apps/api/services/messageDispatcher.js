@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { prisma } = require('../prisma-client');
 const config = require('../config');
-const { encrypt, decrypt } = require('../utils/encryption');
+const { decrypt } = require('../utils/encryption');
 const { getProvider, createProviderInstance } = require('./integrationRegistry');
 
 const MAX_RETRIES = 3;
@@ -13,6 +13,13 @@ function _checkRateLimit(agentId) {
   const now = Date.now();
   const window = 60000;
   const maxRequests = 30;
+
+  for (const [key, entry] of _rateLimiter.entries()) {
+    if (now - entry.windowStart > window) {
+      _rateLimiter.delete(key);
+    }
+  }
+
   const entry = _rateLimiter.get(agentId) || { count: 0, windowStart: now };
 
   if (now - entry.windowStart > window) {
@@ -26,6 +33,29 @@ function _checkRateLimit(agentId) {
 
   if (entry.count > maxRequests) {
     throw new Error(`Rate limit exceeded for agent ${agentId}`);
+  }
+}
+
+async function _logIntegration(integrationId, direction, eventType, payload, status) {
+  try {
+    const sanitized = { ...payload };
+    delete sanitized.token;
+    delete sanitized.apiKey;
+    delete sanitized.secret;
+    delete sanitized.password;
+    delete sanitized.accessToken;
+
+    await prisma.integrationLog.create({
+      data: {
+        integrationId,
+        direction,
+        eventType,
+        payload: JSON.stringify(sanitized),
+        status
+      }
+    });
+  } catch (err) {
+    console.error('[MessageDispatcher] Failed to log integration:', err);
   }
 }
 
@@ -128,16 +158,26 @@ async function processIncomingMessage(providerName, agentId, externalChatId, tex
         }
       });
 
-      const credsJson = decrypt(integration.credentials);
-      const creds = JSON.parse(credsJson);
+      let creds;
+      try {
+        const credsJson = decrypt(integration.credentials);
+        creds = JSON.parse(credsJson);
+      } catch (decErr) {
+        throw new Error(`Failed to decrypt/parse credentials: ${decErr.message}`);
+      }
+
       const provider = createProviderInstance(providerName, creds);
       if (provider) {
-        await provider.initialize(creds);
-        const maxLen = 4000;
-        const replyText = aiContent.length > maxLen
-          ? aiContent.slice(0, maxLen) + '...'
-          : aiContent;
-        await provider.sendMessage(agentId, externalChatId, replyText);
+        try {
+          await provider.initialize(creds);
+          const maxLen = 4000;
+          const replyText = aiContent.length > maxLen
+            ? aiContent.slice(0, maxLen) + '...'
+            : aiContent;
+          await provider.sendMessage(agentId, externalChatId, replyText);
+        } catch (sendErr) {
+          console.error('[MessageDispatcher] Outbound send failed:', sendErr);
+        }
       }
 
       await _logIntegration(integration.id, 'outbound', 'message', { chatId: externalChatId, textLength: aiContent.length }, 'success');
@@ -152,7 +192,9 @@ async function processIncomingMessage(providerName, agentId, externalChatId, tex
         if (integration) {
           await _logIntegration(integration.id, 'inbound', 'error', { error: err.message }, 'retry');
         }
-      } catch {}
+      } catch (logErr) {
+        console.error('[MessageDispatcher] Retry log error:', logErr);
+      }
 
       if (attempt < MAX_RETRIES - 1) {
         const delay = RETRY_BASE_DELAY * Math.pow(2, attempt);
@@ -166,30 +208,11 @@ async function processIncomingMessage(providerName, agentId, externalChatId, tex
       where: { agentId_provider: { agentId, provider: providerName } },
       data: { lastError: lastError?.message || 'Unknown error', status: 'error' }
     });
-  } catch {}
+  } catch (err) {
+    console.error('[MessageDispatcher] Failed to update integration error status:', err);
+  }
 
   throw lastError || new Error('Message processing failed');
-}
-
-async function _logIntegration(integrationId, direction, eventType, payload, status) {
-  try {
-    const sanitized = { ...payload };
-    delete sanitized.token;
-    delete sanitized.apiKey;
-    delete sanitized.secret;
-    delete sanitized.password;
-    delete sanitized.accessToken;
-
-    await prisma.integrationLog.create({
-      data: {
-        integrationId,
-        direction,
-        eventType,
-        payload: JSON.stringify(sanitized),
-        status
-      }
-    });
-  } catch {}
 }
 
 async function runHealthCheck(agentId, providerName) {

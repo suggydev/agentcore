@@ -42,13 +42,13 @@ interface FAQ {
 }
 
 const typeBadge: Record<string, { label: string; color: string }> = {
- pdf: { label: 'PDF', color: 'bg-red-100/70 text-red-700 border-red-300' },
- txt: { label: 'TXT', color: 'bg-gray-100/70 text-gray-700 border-gray-300' },
- md: { label: 'Markdown', color: 'bg-violet-100/70 text-violet-700 border-violet-300' },
- html: { label: 'HTML', color: 'bg-orange-100/70 text-orange-700 border-orange-300' },
- url: { label: 'URL', color: 'bg-blue-100/70 text-blue-700 border-blue-300' },
- notion: { label: 'Notion', color: 'bg-[var(--surface-2)] text-[var(--text)] border-[var(--border)]' },
- gdrive: { label: 'Drive', color: 'bg-sky-100/70 text-sky-700 border-sky-300' },
+  pdf: { label: 'PDF', color: 'bg-[var(--danger-soft)] text-[var(--danger)] border-[var(--danger-soft)]' },
+  txt: { label: 'TXT', color: 'bg-[var(--surface-2)] text-[var(--text-secondary)] border-[var(--border)]' },
+  md: { label: 'Markdown', color: 'bg-[var(--brand-soft)] text-[var(--brand)] border-[var(--brand-soft)]' },
+  html: { label: 'HTML', color: 'bg-[var(--warning-soft)] text-[var(--warning)] border-[var(--warning-soft)]' },
+  url: { label: 'URL', color: 'bg-[var(--brand-light)] text-[var(--brand)] border-[var(--brand-soft)]' },
+  notion: { label: 'Notion', color: 'bg-[var(--surface-2)] text-[var(--text)] border-[var(--border)]' },
+  gdrive: { label: 'Drive', color: 'bg-[var(--brand-light)] text-[var(--brand)] border-[var(--brand-soft)]' },
 };
 
 const typeIcon: Record<string, React.ElementType> = {
@@ -106,7 +106,7 @@ export default function KnowledgePage() {
  const data = await faqRes.json();
  setFaqs(Array.isArray(data) ? data : (data.data || []));
  }
- } catch { /* игнорируем отсутствующий endpoint */ }
+  } catch (err) { console.error('[KnowledgePage] FAQ fetch:', err); }
  } catch (err) {
  console.error('Failed to load knowledge base:', err);
  setError('Не удалось загрузить базу знаний');
@@ -120,13 +120,14 @@ export default function KnowledgePage() {
  const handleDelete = async (id: string) => {
  const token = localStorage.getItem('token');
  if (!token) return;
- try {
- await fetch(`${API_BASE}/api/knowledge/documents/${id}`, {
- method: 'DELETE',
- headers: { Authorization: `Bearer ${token}` },
- });
- setDocuments((prev) => prev.filter((d) => d.id !== id));
- } catch (err) { console.error('Failed to delete document:', err); }
+  try {
+  const res = await fetch(`${API_BASE}/api/knowledge/documents/${id}`, {
+  method: 'DELETE',
+  headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) { console.error('[KnowledgePage] Delete failed:', res.status); }
+  setDocuments((prev) => prev.filter((d) => d.id !== id));
+  } catch (err) { console.error('[KnowledgePage]', err); }
  };
 
  const handleUrlParse = async () => {
@@ -169,48 +170,55 @@ export default function KnowledgePage() {
  headers: { Authorization: `Bearer ${token}` },
  body: formData,
  });
- if (res.ok) {
- const data = await res.json();
- const newDocs = Array.isArray(data) ? data : data.documents ?? [data];
- setDocuments((prev) => [...newDocs, ...prev]);
- }
- } catch (err) { console.error('Failed to upload files:', err); }
+  if (res.ok) {
+  const data = await res.json();
+  const newDocs = Array.isArray(data) ? data : data.documents ?? [data];
+  setDocuments((prev) => [...newDocs, ...prev]);
+  } else {
+  console.error('[KnowledgePage] Upload failed:', res.status);
+  }
+  } catch (err) { console.error('[KnowledgePage]', err); }
  };
 
- const addFaq = async () => {
- if (!newQuestion.trim() || !newAnswer.trim()) return;
- const token = localStorage.getItem('token');
- const newFaq = { id: `faq-${crypto.randomUUID()}`, question: newQuestion.trim(), answer: newAnswer.trim() };
- setFaqSaving(true);
- try {
- const res = await fetch(`${API_BASE}/api/knowledge/faq`, {
- method: 'POST',
- headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token || ''}` },
- body: JSON.stringify(newFaq),
- });
- if (res.ok) {
- const saved = await res.json();
- setFaqs((prev) => [saved, ...prev]);
- } else {
- setFaqs((prev) => [newFaq, ...prev]);
- }
- } catch {
- setFaqs((prev) => [newFaq, ...prev]);
- } finally {
+  const addFaq = async () => {
+  if (!newQuestion.trim() || !newAnswer.trim()) return;
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  const newFaq = { id: `faq-${crypto.randomUUID()}`, question: newQuestion.trim(), answer: newAnswer.trim() };
+  setFaqSaving(true);
+  try {
+  const res = await fetch(`${API_BASE}/api/knowledge/faq`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+  body: JSON.stringify(newFaq),
+  });
+  if (res.ok) {
+  const saved = await res.json();
+  setFaqs((prev) => [saved, ...prev]);
+  } else {
+  console.error('[KnowledgePage] addFaq failed:', res.status);
+  setFaqs((prev) => [newFaq, ...prev]);
+  }
+  } catch (err) {
+  console.error('[KnowledgePage]', err);
+  setFaqs((prev) => [newFaq, ...prev]);
+  } finally {
  setFaqSaving(false);
  setNewQuestion('');
  setNewAnswer('');
  }
  };
 
- const removeFaq = async (id: string) => {
- const token = localStorage.getItem('token');
- try {
- await fetch(`${API_BASE}/api/knowledge/faq/${id}`, {
- method: 'DELETE',
- headers: { Authorization: `Bearer ${token || ''}` },
- });
- } catch { /* gracefully ignore missing endpoint */ }
+  const removeFaq = async (id: string) => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  try {
+  const res = await fetch(`${API_BASE}/api/knowledge/faq/${id}`, {
+  method: 'DELETE',
+  headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) { console.error('[KnowledgePage] removeFaq failed:', res.status); }
+  } catch (err) { console.error('[KnowledgePage]', err); }
  setFaqs((prev) => prev.filter((f) => f.id !== id));
  };
 
@@ -253,7 +261,7 @@ export default function KnowledgePage() {
  if (error) {
  return (
  <div className="flex flex-col items-center justify-center min-h-[80vh] gap-4">
- <AlertCircle className="w-10 h-10 text-red-400" />
+ <AlertCircle className="w-10 h-10 text-[var(--danger)]" />
  <p className="text-[var(--text-muted)]">{error}</p>
  <button onClick={() => window.location.reload()} className="btn-primary text-sm px-6 py-2.5">Повторить</button>
  </div>
@@ -469,7 +477,7 @@ export default function KnowledgePage() {
  className="p-1.5 rounded-lg hover:bg-danger-soft transition-all duration-200 opacity-0 group-hover:opacity-100"
  aria-label={`Удалить документ ${doc.title}`}
  >
- <Trash2 className="w-4 h-4 text-red-400 hover:text-danger transition-colors" />
+ <Trash2 className="w-4 h-4 text-[var(--danger)] hover:text-danger transition-colors" />
  </motion.button>
  </div>
  <h3 className="font-semibold text-[var(--text)] text-sm mb-2 line-clamp-2 group-hover:text-[var(--text)] transition-colors">{doc.title}</h3>
@@ -615,7 +623,7 @@ export default function KnowledgePage() {
  className="p-1.5 rounded-lg hover:bg-danger-soft transition-all duration-200 opacity-0 group-hover/faq:opacity-100"
  aria-label={`Удалить FAQ: ${faq.question}`}
  >
- <Trash2 className="w-3.5 h-3.5 text-red-400 hover:text-danger transition-colors" />
+ <Trash2 className="w-3.5 h-3.5 text-[var(--danger)] hover:text-danger transition-colors" />
  </motion.button>
  </motion.div>
  ))}

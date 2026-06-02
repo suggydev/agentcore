@@ -61,7 +61,7 @@ export default function HeroSection() {
                   Чат с клиентом
                 </p>
                 <p className="text-[var(--text-muted)] text-xs flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
                   онлайн
                 </p>
               </div>

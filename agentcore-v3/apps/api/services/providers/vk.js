@@ -57,16 +57,6 @@ class VkProvider extends IntegrationProvider {
     return true;
   }
 
-  async sendMessage(agentId, conversationId, message) {
-    try {
-      if (!conversationId) throw new Error('[VK] conversationId (peerId) is required');
-      if (!message) throw new Error('[VK] message is required');
-      return await this._sendVkMessage({ peerId: parseInt(conversationId, 10) || conversationId, message });
-    } catch (err) {
-      this.log('error', 'sendMessage failed', { error: err.message });
-      throw err;
-    }
-  }
 
   _vkRequest(method, params = {}) {
     const urlParams = new URLSearchParams({
@@ -107,23 +97,22 @@ class VkProvider extends IntegrationProvider {
    * @param {number} [options.randomId] — уникальный идентификатор (генерируется автоматически)
    * @returns {Promise<{messageId: number, peerId: number, conversationMessageId: number}>}
    */
-  async sendMessage({ userId, peerId, message, attachment, randomId } = {}) {
+  async sendMessage(agentId, conversationId, message, { attachment, randomId } = {}) {
     if (!message || typeof message !== 'string') {
       throw new Error('[ВКонтакте] Параметр message обязателен и должен быть строкой');
     }
-    if (!userId && !peerId) {
-      throw new Error('[ВКонтакте] Необходимо указать userId или peerId');
+    if (!conversationId) {
+      throw new Error('[ВКонтакте] Необходимо указать conversationId (peerId)');
     }
 
     const params = {
       message,
+      peer_id: parseInt(conversationId, 10) || conversationId,
       random_id: randomId || Math.floor(Math.random() * 2147483647),
       dont_parse_links: 0,
       disable_mentions: 0,
     };
 
-    if (userId) params.user_id = userId;
-    if (peerId) params.peer_id = peerId;
     if (attachment) params.attachment = attachment;
 
     const result = this._parseResponse(await this._vkRequest('messages.send', params));

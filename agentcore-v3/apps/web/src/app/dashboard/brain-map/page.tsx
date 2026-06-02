@@ -24,12 +24,12 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const NODE_TYPES_MAP = [
  { type: 'greeting', label: 'Приветствие', icon: MessageCircle, color: 'bg-[var(--accent-soft)] border-[var(--brand)]/30', iconColor: 'text-[var(--brand)]', subtitle: 'Приветствие' },
  { type: 'qualification', label: 'Квалификация', icon: Filter, color: 'bg-[var(--accent-soft)] border-[var(--border)]', iconColor: 'text-[var(--brand)]', subtitle: 'Фильтр и квалификация' },
- { type: 'leadCapture', label: 'Сбор лидов', icon: UserPlus, color: 'bg-blue-50 border-blue-200', iconColor: 'text-blue-600', subtitle: 'Сбор данных' },
+  { type: 'leadCapture', label: 'Сбор лидов', icon: UserPlus, color: 'bg-[var(--brand-light)] border-[var(--brand-soft)]', iconColor: 'text-[var(--brand)]', subtitle: 'Сбор данных' },
  { type: 'faq', label: 'FAQ', icon: HelpCircle, color: 'bg-[var(--bg)] border-[var(--border)]', iconColor: 'text-[var(--text)]', subtitle: 'Ответы на вопросы' },
- { type: 'escalation', label: 'Эскалация', icon: AlertTriangle, color: 'bg-amber-50 border-amber-200', iconColor: 'text-amber-600', subtitle: 'Передать человеку' },
- { type: 'integration', label: 'Интеграция', icon: Blocks, color: 'bg-blue-50 border-blue-200', iconColor: 'text-blue-600', subtitle: 'API / webhook' },
- { type: 'memory', label: 'Память', icon: Database, color: 'bg-success-soft border-green-200', iconColor: 'text-success', subtitle: 'Хранение контекста' },
- { type: 'handoff', label: 'Передача', icon: Users, color: 'bg-orange-50 border-orange-200', iconColor: 'text-orange-600', subtitle: 'Перехват человеком' },
+  { type: 'escalation', label: 'Эскалация', icon: AlertTriangle, color: 'bg-[var(--warning-soft)] border-[var(--warning-soft)]', iconColor: 'text-[var(--warning)]', subtitle: 'Передать человеку' },
+  { type: 'integration', label: 'Интеграция', icon: Blocks, color: 'bg-[var(--brand-light)] border-[var(--brand-soft)]', iconColor: 'text-[var(--brand)]', subtitle: 'API / webhook' },
+  { type: 'memory', label: 'Память', icon: Database, color: 'bg-success-soft border-[var(--success-soft)]', iconColor: 'text-success', subtitle: 'Хранение контекста' },
+  { type: 'handoff', label: 'Передача', icon: Users, color: 'bg-[var(--warning-soft)] border-[var(--warning-soft)]', iconColor: 'text-[var(--warning)]', subtitle: 'Перехват человеком' },
 ];
 
 function CustomNode({ data, selected }: NodeProps) {
@@ -402,7 +402,7 @@ export default function BrainMapPage() {
  </button>
  <div className="border-t border-[var(--border)] pt-3">
  <button onClick={() => { pushUndo(); setNodes(nds => nds.filter(n => n.id !== panel.nodeId)); setPanel(null); }}
- className="w-full py-2.5 rounded-xl border border-danger-soft text-danger text-sm font-medium hover:bg-danger-soft hover:border-red-300 transition-all duration-200">
+ className="w-full py-2.5 rounded-xl border border-danger-soft text-danger text-sm font-medium hover:bg-danger-soft hover:border-[var(--danger-soft)] transition-all duration-200">
  Удалить узел
  </button>
  </div>

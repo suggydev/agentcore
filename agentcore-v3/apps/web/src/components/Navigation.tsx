@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+import Link from 'next/link';
 import Logo from './Logo';
 import { useAgentStore } from '@/store/agentStore';
 
@@ -46,12 +47,12 @@ export default function Navigation() {
             {navItems.map((item) => (
               <NavLink key={item.href} href={item.href}>{item.label}</NavLink>
             ))}
-            <a
+            <Link
               href={isAuthenticated ? '/agents' : '/login'}
               className="btn-primary text-sm py-2 px-5"
             >
               {isAuthenticated ? 'Перейти в панель' : 'Попробовать бесплатно'}
-            </a>
+            </Link>
           </div>
 
           <button
@@ -115,13 +116,13 @@ export default function Navigation() {
                   </a>
                 ))}
                 <div className="pt-4">
-                  <a
+                  <Link
                     href={isAuthenticated ? '/agents' : '/login'}
                     onClick={closeMobile}
                     className="btn-primary text-sm py-2.5 px-6 inline-block"
                   >
                     {isAuthenticated ? 'Перейти в панель' : 'Попробовать бесплатно'}
-                  </a>
+                  </Link>
                 </div>
               </div>
             </motion.div>

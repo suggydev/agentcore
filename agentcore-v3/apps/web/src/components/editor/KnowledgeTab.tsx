@@ -48,6 +48,8 @@ export default function KnowledgeTab({ agentId, token }: KnowledgeTabProps) {
       if (res.ok) {
         const data = await res.json();
         setItems(Array.isArray(data) ? data : data.items ?? []);
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
     } catch {
       addToast({ variant: 'error', message: t('toast.error') });
@@ -73,6 +75,8 @@ export default function KnowledgeTab({ agentId, token }: KnowledgeTabProps) {
       if (res.ok) {
         addToast({ variant: 'success', message: t('toast.success') });
         fetchItems();
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
     } catch {
       addToast({ variant: 'error', message: t('toast.error') });
@@ -92,6 +96,8 @@ export default function KnowledgeTab({ agentId, token }: KnowledgeTabProps) {
         addToast({ variant: 'success', message: t('toast.success') });
         setUrlInput('');
         fetchItems();
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
     } catch {
       addToast({ variant: 'error', message: t('toast.error') });
@@ -112,6 +118,8 @@ export default function KnowledgeTab({ agentId, token }: KnowledgeTabProps) {
         setQaQuestion('');
         setQaAnswer('');
         fetchItems();
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
     } catch {
       addToast({ variant: 'error', message: t('toast.error') });
@@ -126,6 +134,8 @@ export default function KnowledgeTab({ agentId, token }: KnowledgeTabProps) {
       });
       if (res.ok) {
         setItems((prev) => prev.filter((item) => item.id !== id));
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
     } catch {
       addToast({ variant: 'error', message: t('toast.error') });

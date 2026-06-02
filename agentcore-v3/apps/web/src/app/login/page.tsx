@@ -89,9 +89,9 @@ export default function LoginPage() {
  if (/[A-Z]/.test(pwd)) score++;
  if (/[0-9]/.test(pwd)) score++;
  if (/[^A-Za-z0-9]/.test(pwd)) score++;
- if (score <= 2) return { score: 1, label: 'Слабый', color: 'bg-red-400' };
- if (score <= 3) return { score: 2, label: 'Средний', color: 'bg-amber-400' };
- return { score: 3, label: 'Надёжный', color: 'bg-emerald-400' };
+if (score <= 2) return { score: 1, label: 'Слабый', color: 'bg-[var(--danger)]' };
+  if (score <= 3) return { score: 2, label: 'Средний', color: 'bg-[var(--warning)]' };
+  return { score: 3, label: 'Надёжный', color: 'bg-[var(--success)]' };
  };
 
  const stepError = stepErrors[step] || '';
@@ -215,7 +215,7 @@ export default function LoginPage() {
  </div>
  {error && (
  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
- className="p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm text-center">{error}</motion.div>
+ className="p-3 rounded-xl bg-danger-soft border border-[var(--danger-soft)] text-danger text-sm text-center">{error}</motion.div>
  )}
  <button type="submit" disabled={loading}
  className="w-full btn-primary text-sm py-3 disabled:opacity-60">
@@ -264,7 +264,7 @@ export default function LoginPage() {
  </div>
  {stepError && (
  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
- className="p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm text-center">{stepError}</motion.div>
+ className="p-3 rounded-xl bg-danger-soft border border-[var(--danger-soft)] text-danger text-sm text-center">{stepError}</motion.div>
  )}
  <button onClick={nextStep}
  className="w-full btn-primary text-sm py-3">
@@ -397,12 +397,12 @@ export default function LoginPage() {
  </div>
  </div>
 
- <div className="bg-success-soft/60 rounded-2xl p-4 border border-green-200/60 flex items-start gap-3">
- <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+ <div className="bg-success-soft/60 rounded-2xl p-4 border border-[var(--success-soft)] flex items-start gap-3">
+ <div className="w-8 h-8 rounded-full bg-[var(--success-soft)] flex items-center justify-center flex-shrink-0 mt-0.5">
  <Check className="w-4 h-4 text-success" />
  </div>
  <div>
- <div className="text-sm font-semibold text-green-800">7 дней бесплатно</div>
+ <div className="text-sm font-semibold text-[var(--success)]">7 дней бесплатно</div>
  <div className="text-xs text-success mt-0.5 leading-relaxed">
  После регистрации вы получите полный доступ ко всем функциям на 7 дней.
  При оформлении подписки — $10 на баланс для AI-запросов ежемесячно.
@@ -412,7 +412,7 @@ export default function LoginPage() {
 
  {error && (
  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
- className="p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm">{error}</motion.div>
+ className="p-3 rounded-xl bg-danger-soft border border-[var(--danger-soft)] text-danger text-sm">{error}</motion.div>
  )}
 
  <div className="flex gap-3">
@@ -442,8 +442,8 @@ export default function LoginPage() {
  <motion.div
  initial={false}
  animate={{
- background: i <= step ? '#5A4D59' : '#E8E4EA',
- color: i <= step ? '#fff' : '#817080',
+        background: i <= step ? 'var(--brand)' : 'var(--surface-2)',
+        color: i <= step ? 'var(--surface)' : 'var(--text-muted)',
  scale: i === step ? 1.15 : 1,
  }}
  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
@@ -473,13 +473,13 @@ export default function LoginPage() {
  <div className="absolute inset-0 pointer-events-none overflow-hidden">
  <motion.div
  className="absolute -top-48 -left-48 w-[700px] h-[700px] rounded-full opacity-40"
- style={{ background: 'radial-gradient(circle, rgba(253,247,254,0.8) 0%, rgba(244,211,249,0.3) 40%, transparent 70%)' }}
+ style={{ background: 'radial-gradient(circle, color-mix(in srgb, var(--surface) 92%, var(--brand)) 0%, color-mix(in srgb, var(--surface) 97%, var(--brand)) 40%, transparent 70%)' }}
  animate={{ x: [0, 30, -15, 0], y: [0, -20, 15, 0], scale: [1, 1.05, 0.97, 1] }}
  transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
  />
  <motion.div
  className="absolute -bottom-48 -right-48 w-[600px] h-[600px] rounded-full opacity-30"
- style={{ background: 'radial-gradient(circle, rgba(168,150,171,0.6) 0%, rgba(129,112,128,0.2) 40%, transparent 70%)' }}
+ style={{ background: 'radial-gradient(circle, color-mix(in srgb, var(--brand) 60%, transparent) 0%, color-mix(in srgb, var(--brand) 20%, transparent) 40%, transparent 70%)' }}
  animate={{ x: [0, -40, 25, 0], y: [0, 30, -20, 0], scale: [1, 0.93, 1.05, 1] }}
  transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
  />
@@ -528,7 +528,7 @@ export default function LoginPage() {
  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
  className="relative z-10 w-full max-w-lg px-6"
  >
- <div className="bg-surface/80 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 overflow-hidden">
+ <div className="bg-surface/80 backdrop-blur-xl rounded-2xl shadow-sm border border-[var(--border)] overflow-hidden">
  {!isLogin && (
  <div className="bg-[var(--accent-soft)] border-b border-[var(--border)]/30 px-6 py-3 flex items-center justify-center gap-2">
  <span className="text-sm font-medium text-[var(--brand)]">7 дней бесплатного доступа при регистрации</span>

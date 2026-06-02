@@ -49,23 +49,30 @@ router.post('/register', authLimiter, async (req, res) => {
     });
 
     if (config.CREATE_DEFAULT_AGENTS !== false) {
-      const models = await fetchModels();
-      const defaultModels = {
-        assistant: routeToModel('general chat', 'hello', models)?.id || 'accounts/fireworks/models/glm-5p1',
-        coder: routeToModel('coding', 'write code', models)?.id || 'accounts/fireworks/models/deepseek-v4-pro',
-        creative: routeToModel('creative writing', 'write story', models)?.id || 'accounts/fireworks/models/glm-5p1',
-        analyst: routeToModel('analyze document', 'analyze long text', models)?.id || 'accounts/fireworks/models/deepseek-v4-pro'
-      };
+      try {
+        const models = await fetchModels();
+        const defaultModels = {
+          assistant: routeToModel('general chat', 'hello', models)?.id || 'accounts/fireworks/models/glm-5p1',
+          coder: routeToModel('coding', 'write code', models)?.id || 'accounts/fireworks/models/deepseek-v4-pro',
+          creative: routeToModel('creative writing', 'write story', models)?.id || 'accounts/fireworks/models/glm-5p1',
+          analyst: routeToModel('analyze document', 'analyze long text', models)?.id || 'accounts/fireworks/models/deepseek-v4-pro'
+        };
 
-      await prisma.agent.createMany({
-        data: [
-          { name: 'AI Assistant', description: 'General purpose assistant', workspaceId: workspace.id, model: defaultModels.assistant, systemPrompt: 'You are a helpful AI assistant.' },
-          { name: 'Code Expert', description: 'Coding and technical tasks', workspaceId: workspace.id, model: defaultModels.coder, systemPrompt: 'You are an expert programmer. Write clean, well-documented code.' },
-          { name: 'Creative Writer', description: 'Creative writing and content', workspaceId: workspace.id, model: defaultModels.creative, systemPrompt: 'You are a creative writer with excellent storytelling skills.' },
-          { name: 'Data Analyst', description: 'Data analysis and research', workspaceId: workspace.id, model: defaultModels.analyst, systemPrompt: 'You are a data analyst and researcher. Provide thorough, evidence-based analysis.' }
-        ],
-        skipDuplicates: true
-      });
+        await prisma.agent.createMany({
+          data: [
+            { name: 'AI Assistant', description: 'General purpose assistant', workspaceId: workspace.id, model: defaultModels.assistant, systemPrompt: 'You are a helpful AI assistant.' },
+            { name: 'Code Expert', description: 'Coding and technical tasks', workspaceId: workspace.id, model: defaultModels.coder, systemPrompt: 'You are an expert programmer. Write clean, well-documented code.' },
+            { name: 'Creative Writer', description: 'Creative writing and content', workspaceId: workspace.id, model: defaultModels.creative, systemPrompt: 'You are a creative writer with excellent storytelling skills.' },
+            { name: 'Data Analyst', description: 'Data analysis and research', workspaceId: workspace.id, model: defaultModels.analyst, systemPrompt: 'You are a data analyst and researcher. Provide thorough, evidence-based analysis.' }
+          ],
+          skipDuplicates: true
+        });
+      } catch (agentErr) {
+        console.error('[Auth] Default agent creation failed, rolling back:', agentErr);
+        await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
+        await prisma.workspace.delete({ where: { id: workspace.id } }).catch(() => {});
+        return res.status(500).json({ error: 'Registration failed: could not create default agents' });
+      }
     }
 
     const token = jwt.sign({ userId: user.id, workspaceId: workspace.id, role: user.role, tokenVersion: user.tokenVersion }, config.JWT_SECRET, { expiresIn: '7d' });

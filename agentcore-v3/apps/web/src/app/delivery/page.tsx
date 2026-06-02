@@ -27,7 +27,7 @@ export default function DeliveryPage() {
  <p>Первые 7 дней — бесплатно, без ограничений и без привязки карты.</p>
 
  <h2 className="text-lg font-semibold text-[var(--text)] mt-10 mb-3">3. Тарифы</h2>
- <div className="bg-gradient-to-br from-[var(--accent-soft)] to-white rounded-xl border border-[var(--border)] p-6 shadow-sm">
+ <div className="bg-gradient-to-br from-[var(--accent-soft)] to-[var(--surface)] rounded-xl border border-[var(--border)] p-6 shadow-sm">
  <div className="flex items-baseline gap-2 mb-4">
  <span className="text-3xl font-bold text-[var(--brand)]">$29</span>
  <span className="text-[var(--brand)] text-sm font-medium">/ месяц</span>

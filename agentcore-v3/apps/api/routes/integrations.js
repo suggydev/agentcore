@@ -82,7 +82,7 @@ router.post('/:provider/connect', authenticate, generalLimiter, async (req, res)
     }
 
     const webhookSecret = crypto.randomBytes(24).toString('hex');
-    const webhookUrl = `${config.CLIENT_URL || 'https://api.agentcore.work'}/api/webhooks/${providerName}/${agentId}`;
+    const webhookUrl = `${config.CLIENT_URL}/api/webhooks/${providerName}/${agentId}`;
 
     const encryptedCreds = encrypt(JSON.stringify(credentials || {}));
 
@@ -149,7 +149,9 @@ router.delete('/:provider/disconnect', authenticate, generalLimiter, async (req,
         await provider.initialize(creds);
         await provider.disconnect();
       }
-    } catch {}
+    } catch (err) {
+        console.error('[Integrations] Disconnect cleanup error:', err);
+      }
 
     await prisma.integration.update({
       where: { id: integration.id },

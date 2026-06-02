@@ -203,6 +203,7 @@ function getProvider(name) {
     if (!ProviderClass) return null;
     return { meta, ProviderClass };
   } catch (err) {
+    console.error('[IntegrationRegistry] getProvider error:', err);
     return null;
   }
 }
@@ -232,6 +233,7 @@ function getProvidersByCategory(category) {
   try {
     return Object.values(PROVIDERS).filter(p => p.category === category);
   } catch (err) {
+    console.error('[IntegrationRegistry] getProvidersByCategory error:', err);
     return [];
   }
 }
@@ -242,6 +244,7 @@ function getProviderStatus(name) {
     if (!meta) return { available: false };
     return { available: true, authType: meta.authType, fields: meta.fields };
   } catch (err) {
+    console.error('[IntegrationRegistry] getProviderStatus error:', err);
     return { available: false };
   }
 }
@@ -250,6 +253,7 @@ function getAllProviders() {
   try {
     return Object.values(PROVIDERS);
   } catch (err) {
+    console.error('[IntegrationRegistry] getAllProviders error:', err);
     return [];
   }
 }
@@ -261,6 +265,7 @@ function createProviderInstance(name, credentials) {
     const instance = new entry.ProviderClass(credentials || {});
     return instance;
   } catch (err) {
+    console.error('[IntegrationRegistry] createProviderInstance error:', err);
     return null;
   }
 }

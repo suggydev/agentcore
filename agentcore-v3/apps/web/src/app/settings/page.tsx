@@ -115,12 +115,14 @@ export default function SettingsPage() {
  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
  body: JSON.stringify(profile),
  });
- if (res.ok) setProfileSaved(true);
- } catch {
- /* ignore */
- } finally {
- setProfileSaving(false);
- }
+  if (res.ok) {
+  setProfileSaved(true);
+  } else {
+  console.error('[SettingsPage] saveProfile failed:', res.status);
+  }
+  } catch (err) {
+  console.error('[SettingsPage] saveProfile:', err);
+  }
  }, [profile]);
 
  const handleTopUp = async () => {
@@ -254,7 +256,7 @@ export default function SettingsPage() {
  disabled={profileSaving || profileSaved}
  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
  profileSaved
- ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default'
+ ? 'bg-[var(--success-soft)] text-[var(--success)] border border-[var(--success-soft)] cursor-default'
  : 'bg-[var(--accent)] text-white hover:bg-[var(--accent)] shadow-sm '
  }`}
  >
@@ -297,7 +299,7 @@ export default function SettingsPage() {
  disabled={passwordSaving || passwordSaved}
  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
  passwordSaved
- ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+ ? 'bg-[var(--success-soft)] text-[var(--success)] border border-[var(--success-soft)]'
  : 'bg-[var(--accent)] text-white hover:bg-[var(--accent)]'
  }`}
  >
@@ -415,8 +417,8 @@ export default function SettingsPage() {
  Пополнить баланс
  </h2>
  <p className="text-sm text-[var(--text-muted)] mb-4">Средства пополнения не сгорают и суммируются с кредитами подписки.</p>
- {topUpError && <div className="p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm mb-3">{topUpError}</div>}
- {topUpSuccess && <div className="p-3 rounded-xl bg-success-soft border border-green-100 text-success text-sm mb-3">{topUpSuccess}</div>}
+ {topUpError && <div className="p-3 rounded-xl bg-danger-soft border border-[var(--danger-soft)] text-danger text-sm mb-3">{topUpError}</div>}
+ {topUpSuccess && <div className="p-3 rounded-xl bg-success-soft border border-[var(--success-soft)] text-success text-sm mb-3">{topUpSuccess}</div>}
  <div className="flex flex-col sm:flex-row gap-3">
  <div className="relative flex-1">
  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm font-medium">$</span>
@@ -427,7 +429,7 @@ export default function SettingsPage() {
  value={topUpAmount}
  onChange={(e) => { setTopUpAmount(e.target.value); setTopUpError(''); }}
  placeholder="10"
- className={`w-full pl-8 pr-4 py-3 rounded-xl border bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all text-[var(--text)] text-sm ${topUpError ? 'border-red-300' : 'border-[var(--border)]'}`}
+ className={`w-full pl-8 pr-4 py-3 rounded-xl border bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all text-[var(--text)] text-sm ${topUpError ? 'border-[var(--danger-soft)]' : 'border-[var(--border)]'}`}
  />
  </div>
  <button

@@ -48,8 +48,11 @@ export default function DialogsTab({ agentId, token }: DialogsTabProps) {
       if (res.ok) {
         const data = await res.json();
         setConversations(Array.isArray(data) ? data : data.conversations ?? []);
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
-    } catch {
+    } catch (err) {
+      console.error('[DialogsTab]', err);
       addToast({ variant: 'error', message: t('toast.error') });
     }
     setLoading(false);
@@ -65,8 +68,11 @@ export default function DialogsTab({ agentId, token }: DialogsTabProps) {
       if (res.ok) {
         const data = await res.json();
         setMessages(Array.isArray(data) ? data : data.messages ?? []);
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
-    } catch {
+    } catch (err) {
+      console.error('[DialogsTab] fetchMessages:', err);
       addToast({ variant: 'error', message: t('toast.error') });
     }
   }, [token, addToast]);
@@ -92,8 +98,11 @@ export default function DialogsTab({ agentId, token }: DialogsTabProps) {
         const msg = await res.json();
         setMessages((prev) => [...prev, msg]);
         setOperatorInput('');
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
-    } catch {
+    } catch (err) {
+      console.error('[DialogsTab] handleTakeover:', err);
       addToast({ variant: 'error', message: t('toast.error') });
     }
     setSending(false);

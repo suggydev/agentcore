@@ -52,8 +52,7 @@ module.exports = {
   DATABASE_URL: env.DATABASE_URL,
   JWT_SECRET: env.JWT_SECRET,
   SUGGY_PROJECT_KEY: env.SUGGY_PROJECT_KEY,
-  SUGGY_ACCOUNT_ID: env.SUGGY_ACCOUNT_ID
-    || (env.SUGGY_PROJECT_KEY.startsWith('sk_proj_') ? env.SUGGY_PROJECT_KEY.replace('sk_proj_', '') : 'default'),
+  SUGGY_ACCOUNT_ID: env.SUGGY_ACCOUNT_ID || '',
   SUGGY_BASE_URL: env.SUGGY_BASE_URL,
   MODEL_CACHE_TTL: env.MODEL_CACHE_TTL,
   FALLBACK_MODELS,

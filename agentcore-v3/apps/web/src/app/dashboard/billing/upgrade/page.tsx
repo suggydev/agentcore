@@ -72,7 +72,7 @@ export default function UpgradePage() {
  const renderBool = (val: boolean | string) => {
  if (typeof val === 'boolean') {
  return val ? (
- <Check className="w-4 h-4 text-emerald-500 mx-auto" />
+ <Check className="w-4 h-4 text-[var(--success)] mx-auto" />
  ) : (
  <span className="text-[var(--text-muted)] text-lg leading-none">—</span>
  );
@@ -191,8 +191,8 @@ export default function UpgradePage() {
  >
  {enterpriseSubmitted ? (
  <div className="text-center py-3">
- <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
- <Check className="w-5 h-5 text-emerald-600" />
+ <div className="w-10 h-10 rounded-full bg-[var(--success-soft)] flex items-center justify-center mx-auto mb-3">
+ <Check className="w-5 h-5 text-[var(--success)]" />
  </div>
  <p className="text-sm font-medium text-[var(--text)]">Заявка отправлена!</p>
  <p className="text-xs text-[var(--text-muted)] mt-1">Мы свяжемся с вами в ближайшее время.</p>

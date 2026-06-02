@@ -89,7 +89,7 @@ export default function TestimonialsSection() {
                         key={i}
                         className={`w-4 h-4 ${
                           i < TESTIMONIALS[activeIndex].rating
-                            ? 'fill-amber-400 text-amber-400'
+                            ? 'fill-[var(--warning)] text-[var(--warning)]'
                             : 'text-[var(--border)]'
                         }`}
                       />

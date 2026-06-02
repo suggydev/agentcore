@@ -23,10 +23,10 @@ export default function ContactsPage() {
  useEffect(() => {
  const token = localStorage.getItem('token');
  if (!token) return;
- fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
- .then(r => r.json())
- .then(data => { if (data?.workspace?.settings) setData(data.workspace.settings); })
- .catch(() => {});
+  fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+  .then(r => { if (!r.ok) throw new Error('Request failed'); return r.json(); })
+  .then(data => { if (data?.workspace?.settings) setData(data.workspace.settings); })
+  .catch((err) => { console.error('[ContactsPage]', err); });
  }, []);
 
  const companyName = data?.companyName || 'AgentCore';

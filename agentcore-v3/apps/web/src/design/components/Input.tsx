@@ -14,7 +14,7 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, '
 
 const variantClasses: Record<InputVariant, string> = {
   default: 'bg-[var(--surface-2)] border-[var(--border)]',
-  monospace: "bg-transparent border-[var(--border)] font-[family-name:var(--font-mono,'JetBrains_Mono')] text-[14px] tracking-[-0.02em]",
+  monospace: "bg-transparent border-[var(--border)] font-mono text-[14px] tracking-[-0.02em]",
 };
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -129,7 +129,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 
     const textareaVariantClasses: Record<InputVariant, string> = {
       default: 'bg-[var(--surface-2)] border-[var(--border)]',
-      monospace: "bg-transparent border-[var(--border)] font-[family-name:var(--font-mono,'JetBrains_Mono')] text-[14px] tracking-[-0.02em]",
+      monospace: "bg-transparent border-[var(--border)] font-mono text-[14px] tracking-[-0.02em]",
     };
 
     return (

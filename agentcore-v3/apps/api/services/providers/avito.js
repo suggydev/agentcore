@@ -137,9 +137,10 @@ class AvitoProvider extends IntegrationProvider {
    * @param {string} [options.itemId] — ID объявления для привязки
    * @returns {Promise<{messageId: string, chatId: string, timestamp: string}>}
    */
-  async sendMessage({ chatId, message, messageType = 'text', itemId } = {}) {
+  async sendMessage(agentId, conversationId, message, { messageType = 'text', itemId } = {}) {
+    const chatId = conversationId;
     if (!chatId || typeof chatId !== 'string') {
-      throw new Error('[Avito] Параметр chatId обязателен и должен быть строкой');
+      throw new Error('[Avito] Параметр chatId (conversationId) обязателен и должен быть строкой');
     }
     if (!message || typeof message !== 'string') {
       throw new Error('[Avito] Параметр message обязателен и должен быть строкой');

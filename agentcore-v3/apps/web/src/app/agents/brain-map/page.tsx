@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 export default function BrainMapRedirectPage() {
   const router = useRouter();
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const agentParam = params.get('agent');
     const target = agentParam ? `/dashboard/brain-map?agent=${agentParam}` : '/dashboard/brain-map';

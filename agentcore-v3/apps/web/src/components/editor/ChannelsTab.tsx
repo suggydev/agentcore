@@ -67,8 +67,11 @@ export default function ChannelsTab({ agentId, token }: ChannelsTabProps) {
       if (res.ok) {
         const data = await res.json();
         setConnections(Array.isArray(data) ? data : data.connections ?? []);
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
-    } catch {
+    } catch (err) {
+      console.error('[ChannelsTab]', err);
       addToast({ variant: 'error', message: t('toast.error') });
     }
     setLoading(false);
@@ -111,8 +114,11 @@ export default function ChannelsTab({ agentId, token }: ChannelsTabProps) {
       if (res.ok) {
         setConnections((prev) => prev.filter((c) => c.id !== connectionId));
         addToast({ variant: 'success', message: t('toast.success') });
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
-    } catch {
+    } catch (err) {
+      console.error('[ChannelsTab] handleDisconnect:', err);
       addToast({ variant: 'error', message: t('toast.error') });
     }
   }, [token, addToast]);

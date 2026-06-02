@@ -103,8 +103,8 @@ export default function AgentsPage() {
  useEffect(() => {
  const t = localStorage.getItem('token');
  if (!t) { router.push('/login'); return; }
- setToken(t);
- fetch(t, { headers: { Authorization: `Bearer ${t}` } }).then(r => r.json()).then(d => {
+  setToken(t);
+  fetch(`${API_BASE}/api/agents`, { headers: { Authorization: `Bearer ${t}` } }).then(r => r.json()).then(d => {
  setAgents(Array.isArray(d) ? d : (d?.data || []));
  }).catch(() => {}).finally(() => setLoading(false));
  }, []);
@@ -207,16 +207,16 @@ export default function AgentsPage() {
  )}
  {createStep === 3 && createResult?.ok && (
  <>
- <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }} className="w-16 h-16 rounded-2xl bg-emerald-100 flex items-center justify-center">
- <Check className="w-8 h-8 text-emerald-600" />
+ <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }} className="w-16 h-16 rounded-2xl bg-[var(--success-soft)] flex items-center justify-center">
+ <Check className="w-8 h-8 text-[var(--success)]" />
  </motion.div>
  <div><p className="font-bold text-[var(--text)] text-lg">Агент создан!</p><p className="text-[var(--text-muted)] text-sm mt-1">Открываю страницу агента...</p></div>
- <div className="w-full h-2 rounded-full bg-emerald-100 overflow-hidden"><motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 0.5 }} className="h-full rounded-full bg-emerald-500" /></div>
+ <div className="w-full h-2 rounded-full bg-[var(--success-soft)] overflow-hidden"><motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 0.5 }} className="h-full rounded-full bg-[var(--success)]" /></div>
  </>
  )}
  {createResult && !createResult.ok && (
  <>
- <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center text-danger text-2xl font-bold">!</div>
+ <div className="w-16 h-16 rounded-2xl bg-[var(--danger-soft)] flex items-center justify-center text-danger text-2xl font-bold">!</div>
  <div><p className="font-bold text-[var(--text)] text-lg">Ошибка</p><p className="text-[var(--text-muted)] text-sm mt-1">Попробуйте ещё раз</p></div>
  <button onClick={() => setCreating(false)} className="btn-primary text-sm">Закрыть</button>
  </>
@@ -248,14 +248,14 @@ export default function AgentsPage() {
  </div>
  <h3 className="font-bold text-[var(--text)]">{agent.name}</h3>
  <p className="text-[var(--text-muted)] text-sm mt-1 line-clamp-2">{agent.description || 'Нет описания'}</p>
- <div className="flex items-center gap-2 mt-3 p-2.5 rounded-xl bg-gradient-to-r from-[var(--accent-soft)] to-white border border-[var(--border)]">
+ <div className="flex items-center gap-2 mt-3 p-2.5 rounded-xl bg-gradient-to-r from-[var(--accent-soft)] to-[var(--surface)] border border-[var(--border)]">
  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[var(--brand)] to-[var(--brand)]/60 flex items-center justify-center flex-shrink-0">
  {agent.model.includes('deepseek') ? <Code className="w-3.5 h-3.5 text-white" /> : agent.model.includes('kimi') ? <Zap className="w-3.5 h-3.5 text-white" /> : <Cpu className="w-3.5 h-3.5 text-white" />}
  </div>
  <div className="flex-1 min-w-0"><p className="text-xs text-[var(--text-muted)]">Модель</p><p className="text-sm font-bold text-[var(--text)] truncate">{agent.model.split('/').pop()}</p></div>
  </div>
- <span className={`inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-md font-semibold mt-2 ${agent.isActive ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/50' : 'bg-[var(--surface-2)] text-[var(--text-muted)] ring-1 ring-[var(--border)]'}`}>
- <span className={`w-1.5 h-1.5 rounded-full ${agent.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-[var(--text-muted)]'}`} />{agent.isActive ? 'Активен' : 'Неактивен'}
+ <span className={`inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-md font-semibold mt-2 ${agent.isActive ? 'bg-[var(--success-soft)] text-[var(--success)] ring-1 ring-[var(--success-soft)]' : 'bg-[var(--surface-2)] text-[var(--text-muted)] ring-1 ring-[var(--border)]'}`}>
+ <span className={`w-1.5 h-1.5 rounded-full ${agent.isActive ? 'bg-[var(--success)] animate-pulse' : 'bg-[var(--text-muted)]'}`} />{agent.isActive ? 'Активен' : 'Неактивен'}
  </span>
  </motion.div>
  ))}
@@ -267,13 +267,13 @@ export default function AgentsPage() {
 
  {view === 'create' && (
  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-6">
- <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 shadow-sm p-6">
- <div className="flex items-center gap-2 mb-1"><div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center"><FlaskConical className="w-4 h-4 text-amber-600" /></div><h2 className="font-semibold text-[var(--text)]">Быстрое создание</h2><span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Beta</span></div>
+ <div className="bg-gradient-to-br from-[var(--warning-soft)] to-[var(--warning-soft)] rounded-2xl border border-[var(--warning-soft)] shadow-sm p-6">
+ <div className="flex items-center gap-2 mb-1"><div className="w-7 h-7 rounded-lg bg-[var(--warning-soft)] flex items-center justify-center"><FlaskConical className="w-4 h-4 text-[var(--warning)]" /></div><h2 className="font-semibold text-[var(--text)]">Быстрое создание</h2><span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--warning-soft)] text-[var(--warning)] font-medium">Beta</span></div>
  <p className="text-sm text-[var(--text-muted)] mb-4">Опишите задачу — AI заполнит имя, сферу и тон</p>
- <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Например: интернет-магазин одежды, нужен консультант для подбора размера" rows={3} maxLength={500} className="w-full px-4 py-3 rounded-xl border border-amber-200 bg-surface focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none" />
+ <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Например: интернет-магазин одежды, нужен консультант для подбора размера" rows={3} maxLength={500} className="w-full px-4 py-3 rounded-xl border border-[var(--warning-soft)] bg-surface focus:ring-2 focus:ring-[var(--warning)]/30 focus:border-[var(--warning)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none" />
  <div className="flex items-center justify-between mt-2">
  <span className="text-[10px] text-[var(--text-muted)]">{description.length}/500</span>
- <button onClick={handleAIAnalyze} disabled={!description.trim() || analyzing} className="flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition-colors disabled:opacity-40">{analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}{analyzing ? 'Анализ...' : 'Заполнить с помощью AI'}</button>
+ <button onClick={handleAIAnalyze} disabled={!description.trim() || analyzing} className="flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-xl bg-[var(--warning)] text-white hover:bg-[var(--warning)] transition-colors disabled:opacity-40">{analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}{analyzing ? 'Анализ...' : 'Заполнить с помощью AI'}</button>
  </div>
  </div>
 

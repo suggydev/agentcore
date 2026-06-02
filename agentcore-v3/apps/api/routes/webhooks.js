@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const { prisma } = require('../prisma-client');
 const config = require('../config');
-const { verifyHmac } = require('../utils/encryption');
+const { verifyHmac, decrypt } = require('../utils/encryption');
 const { getProvider, createProviderInstance } = require('../services/integrationRegistry');
 const { processIncomingMessage } = require('../services/messageDispatcher');
 const { safeError } = require('../utils/errors');
@@ -25,7 +25,7 @@ const _signatureVerifiers = {
       if (!signature) return false;
       const body = typeof payload === 'string' ? payload : JSON.stringify(payload);
       const computed = crypto.createHmac('sha256', secret).update(body).digest('hex');
-      return signature === computed;
+      return crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(signature, 'hex'));
     } catch {
       return false;
     }
@@ -35,7 +35,7 @@ const _signatureVerifiers = {
       if (!signature) return false;
       const body = typeof payload === 'string' ? payload : JSON.stringify(payload);
       const computed = crypto.createHmac('sha256', secret).update(body).digest('hex');
-      return signature === computed;
+      return crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(signature, 'hex'));
     } catch {
       return false;
     }
@@ -53,29 +53,29 @@ const _signatureVerifiers = {
       if (!signature) return false;
       const body = typeof payload === 'string' ? payload : JSON.stringify(payload);
       const computed = crypto.createHmac('sha256', secret).update(body).digest('hex');
-      return signature === computed;
+      return crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(signature, 'hex'));
     } catch {
       return false;
     }
   },
   bitrix24: (payload, signature, secret) => {
     try {
-      if (!signature) return true;
+      if (!signature) return false;
       const body = typeof payload === 'string' ? payload : JSON.stringify(payload);
       const computed = crypto.createHmac('sha256', secret).update(body).digest('hex');
-      return signature === computed;
+      return crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(signature, 'hex'));
     } catch {
-      return true;
+      return false;
     }
   }
 };
 
 function _getDefaultVerifier(payload, signature, secret) {
   try {
-    if (!signature || !secret) return true;
+    if (!signature || !secret) return false;
     const body = typeof payload === 'string' ? payload : JSON.stringify(payload);
     const computed = crypto.createHmac('sha256', secret).update(body).digest('hex');
-    return signature === computed;
+    return crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(signature, 'hex'));
   } catch {
     return false;
   }
@@ -98,7 +98,6 @@ router.post('/:provider/:agentId', async (req, res) => {
       });
       if (!integration) return res.status(404).json({ error: 'Integration not found' });
 
-      const { decrypt } = require('../utils/encryption');
       const creds = JSON.parse(decrypt(integration.credentials));
       if (verifyToken === creds.verifyToken) {
         return res.send(challenge);
@@ -111,7 +110,6 @@ router.post('/:provider/:agentId', async (req, res) => {
         where: { agentId_provider: { agentId, provider: 'vk' } }
       });
       if (!integration) return res.status(404).json({ error: 'Integration not found' });
-      const { decrypt } = require('../utils/encryption');
       const creds = JSON.parse(decrypt(integration.credentials));
       return res.send(creds.confirmationCode || 'ok');
     }
@@ -152,7 +150,6 @@ router.post('/:provider/:agentId', async (req, res) => {
 
     setImmediate(async () => {
       try {
-        const { decrypt } = require('../utils/encryption');
         const creds = JSON.parse(decrypt(integration.credentials));
         const provider = createProviderInstance(providerName, creds);
         if (!provider) return;
@@ -211,7 +208,9 @@ router.post('/:provider/:agentId', async (req, res) => {
               status: 'error'
             }
           });
-        } catch {}
+        } catch (logErr) {
+           console.error('[Webhooks] Failed to log error:', logErr);
+         }
       }
     });
   } catch (err) {

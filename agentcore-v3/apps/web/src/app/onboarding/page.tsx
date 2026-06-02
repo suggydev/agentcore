@@ -169,20 +169,22 @@ export default function OnboardingPage() {
  }
  }, [form, token]);
 
- const handleSkipForNow = async () => {
- setLoading(true);
- try {
- await fetch(`${API_BASE}/api/workspace/onboarding`, {
- method: 'PUT',
- headers: {
- 'Content-Type': 'application/json',
- Authorization: `Bearer ${token}`,
- },
- body: JSON.stringify({ skipped: true }),
- });
- } catch {}
- window.location.href = '/dashboard';
- };
+  const handleSkipForNow = async () => {
+  if (!token) return;
+  setLoading(true);
+  try {
+  await fetch(`${API_BASE}/api/workspace/onboarding`, {
+  method: 'PUT',
+  headers: {
+  'Content-Type': 'application/json',
+  Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({ skipped: true }),
+  });
+  } catch (err) { console.error('[OnboardingPage] handleSkipForNow:', err); }
+  finally { setLoading(false); }
+  window.location.href = '/dashboard';
+  };
 
  return (
  <div className="min-h-screen bg-[var(--bg)] relative flex flex-col items-center justify-center px-4 py-12">
@@ -231,7 +233,7 @@ export default function OnboardingPage() {
  <motion.div
  initial={{ opacity: 0, y: -6 }}
  animate={{ opacity: 1, y: 0 }}
- className="mx-8 mt-3 p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm text-center"
+ className="mx-8 mt-3 p-3 rounded-xl bg-danger-soft border border-[var(--danger-soft)] text-danger text-sm text-center"
  >
  {error}
  </motion.div>
@@ -525,7 +527,7 @@ function Step2({
  initial={{ opacity: 0, y: 12 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
- className="p-5 rounded-xl border border-[var(--border)] bg-gradient-to-br from-[var(--accent-soft)]/80 to-white shadow-md"
+ className="p-5 rounded-xl border border-[var(--border)] bg-gradient-to-br from-[var(--accent-soft)]/80 to-[var(--surface)] shadow-md"
  >
  <p className="text-xs font-semibold uppercase tracking-label text-[var(--brand)] mb-4">
  Создать первого агента
@@ -592,7 +594,7 @@ function SelectField({
  </select>
  <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
  <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
- <path d="M1 1.5L6 6.5L11 1.5" stroke="#9BA0B0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+ <path d="M1 1.5L6 6.5L11 1.5" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
  </svg>
  </div>
  {value && (

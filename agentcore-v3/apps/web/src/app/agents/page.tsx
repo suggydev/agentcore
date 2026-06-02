@@ -59,8 +59,13 @@ export default function AgentsPage() {
       const res = await fetch(`${API_BASE}/api/agents`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) setAgents(await res.json());
-    } catch {
+      if (res.ok) {
+        setAgents(await res.json());
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
+      }
+    } catch (err) {
+      console.error('[AgentsPage]', err);
       addToast({ variant: 'error', message: t('toast.error') });
     }
     setLoading(false);

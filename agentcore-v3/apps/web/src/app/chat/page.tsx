@@ -98,14 +98,18 @@ export default function ChatPage() {
  }
  }, [modelDropdownOpen]);
 
- const fetchModels = async (signal?: AbortSignal) => {
- try {
- const res = await fetch(`${API_BASE}/api/v1/models`, { signal });
- const data = await res.json();
- const allModels = Array.isArray(data) ? data : (data?.data || []);
- setModels(allModels.filter((m: { supports_chat?: boolean; id?: string }) => m.supports_chat === true && !m.id?.includes('flux')));
- } catch {}
- };
+  const fetchModels = async (signal?: AbortSignal) => {
+  try {
+  const res = await fetch(`${API_BASE}/api/v1/models`, { signal });
+  if (!res.ok) throw new Error('Request failed');
+  const data = await res.json();
+  const allModels = Array.isArray(data) ? data : (data?.data || []);
+  setModels(allModels.filter((m: { supports_chat?: boolean; id?: string }) => m.supports_chat === true && !m.id?.includes('flux')));
+  } catch (err) {
+  if (signal?.aborted) return;
+  console.error('[ChatPage] fetchModels:', err);
+  }
+  };
 
  const loadConversations = async (t: string, signal?: AbortSignal) => {
  try {
@@ -113,12 +117,17 @@ export default function ChatPage() {
  headers: { Authorization: `Bearer ${t}` },
  signal,
  });
- if (res.ok) {
- const data = await res.json();
- const convs = Array.isArray(data) ? data : (data.data || data.conversations || []);
- setConversations(convs);
- }
- } catch {}
+  if (res.ok) {
+  const data = await res.json();
+  const convs = Array.isArray(data) ? data : (data.data || data.conversations || []);
+  setConversations(convs);
+  } else {
+  console.error('[ChatPage] loadConversations failed:', res.status);
+  }
+  } catch (err) {
+  if (signal?.aborted) return;
+  console.error('[ChatPage] loadConversations:', err);
+  }
  };
 
  const createConversation = async (): Promise<Conversation | null> => {
@@ -142,9 +151,10 @@ export default function ChatPage() {
  return conv;
  }
  return null;
- } catch {
- return null;
- }
+  } catch (err) {
+  console.error('[ChatPage] createConversation:', err);
+  return null;
+  }
  };
 
  const loadMessages = async (convId: string, t?: string, signal?: AbortSignal) => {
@@ -155,13 +165,18 @@ export default function ChatPage() {
  headers: { Authorization: `Bearer ${token}` },
  signal,
  });
- if (res.ok) {
- const data = await res.json();
- setCurrentConv(data);
- setMessages(data.messages || []);
- setSidebarOpen(false);
- }
- } catch {}
+  if (res.ok) {
+  const data = await res.json();
+  setCurrentConv(data);
+  setMessages(data.messages || []);
+  setSidebarOpen(false);
+  } else {
+  console.error('[ChatPage] loadMessages failed:', res.status);
+  }
+  } catch (err) {
+  if (signal?.aborted) return;
+  console.error('[ChatPage] loadMessages:', err);
+  }
  };
 
  const sendMessage = async (messageContent?: string, targetConvId?: string) => {
@@ -174,9 +189,9 @@ export default function ChatPage() {
  setInput('');
  setLoading(true);
 
- const tempId = Date.now().toString();
- const userMsg: Message = {
- id: tempId,
+  const tempId = `user-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const userMsg: Message = {
+  id: tempId,
  content,
  role: 'user',
  createdAt: new Date().toISOString()
@@ -205,18 +220,18 @@ export default function ChatPage() {
  ));
  }
  } else {
- setMessages(prev => [...prev, {
- id: Date.now().toString(),
- content: typeof data.error === 'string' ? data.error : data.aiMessage?.content || 'Не удалось получить ответ. Попробуйте ещё раз.',
+  setMessages(prev => [...prev, {
+  id: `err-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  content: typeof data.error === 'string' ? data.error : data.aiMessage?.content || 'Не удалось получить ответ. Попробуйте ещё раз.',
  role: 'assistant',
  model: 'error',
  createdAt: new Date().toISOString()
  }]);
  }
  } catch {
- setMessages(prev => [...prev, {
- id: Date.now().toString(),
- content: 'Ошибка сети. Проверьте подключение к интернету.',
+  setMessages(prev => [...prev, {
+  id: `err-net-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  content: 'Ошибка сети. Проверьте подключение к интернету.',
  role: 'assistant',
  model: 'error',
  createdAt: new Date().toISOString()
@@ -229,17 +244,18 @@ export default function ChatPage() {
  const deleteConversation = async (id: string) => {
  const token = getToken();
  if (!token) return;
- try {
- await fetch(`${API_BASE}/api/conversations/${id}`, {
- method: 'DELETE',
- headers: { Authorization: `Bearer ${token}` }
- });
- setConversations(prev => prev.filter(c => c.id !== id));
- if (currentConv?.id === id) {
- setCurrentConv(null);
- setMessages([]);
- }
- } catch {}
+  try {
+  const res = await fetch(`${API_BASE}/api/conversations/${id}`, {
+  method: 'DELETE',
+  headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) { console.error('[ChatPage] deleteConversation failed:', res.status); }
+  setConversations(prev => prev.filter(c => c.id !== id));
+  if (currentConv?.id === id) {
+  setCurrentConv(null);
+  setMessages([]);
+  }
+  } catch (err) { console.error('[ChatPage] deleteConversation:', err); }
  };
 
  const getModelIcon = (modelId?: string) => {
@@ -333,7 +349,7 @@ export default function ChatPage() {
  </div>
  <button 
  onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
- className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-red-400 hover:text-danger transition-all"
+ className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-[var(--danger-soft)] text-[var(--danger)] hover:text-danger transition-all"
  >
  <Trash2 className="w-3.5 h-3.5" />
  </button>
@@ -511,7 +527,7 @@ export default function ChatPage() {
  msg.role === 'user' 
  ? 'bg-gradient-to-br from-[var(--brand)] to-[var(--brand)]/60' 
  : msg.model === 'error'
- ? 'bg-red-100 text-danger'
+ ? 'bg-[var(--danger-soft)] text-danger'
  : 'bg-gradient-to-br from-[var(--brand)]/30 to-[var(--border)]'
  }`}>
  {msg.role === 'user' 

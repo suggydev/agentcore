@@ -54,11 +54,11 @@ export default function RequisitesPage() {
  <p className="text-sm text-[var(--text-muted)] mb-10">Юридическая информация</p>
 
  {!loading && !hasBin && (
- <div className="bg-amber-50 border-l-4 border-amber-500 rounded-r-2xl p-6 mb-8 flex items-start gap-4 shadow-md">
- <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+ <div className="bg-[var(--warning-soft)] border-l-4 border-[var(--warning)] rounded-r-2xl p-6 mb-8 flex items-start gap-4 shadow-md">
+ <AlertTriangle className="w-6 h-6 text-[var(--warning)] flex-shrink-0 mt-0.5" />
  <div>
- <p className="text-base font-bold text-amber-800 mb-1">Внимание: данные не заполнены</p>
- <p className="text-sm text-amber-700">
+ <p className="text-base font-bold text-[var(--warning)] mb-1">Внимание: данные не заполнены</p>
+ <p className="text-sm text-[var(--warning)]">
  Нижеуказанные реквизиты являются шаблонными. Заполните реальные данные в разделе <strong>Настройки → Данные компании</strong> вашего дашборда.
  </p>
  </div>
@@ -66,10 +66,10 @@ export default function RequisitesPage() {
  )}
 
  {!loading && hasBin && (
- <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-8 flex items-start gap-3">
- <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+ <div className="bg-[var(--success-soft)] border border-[var(--success-soft)] rounded-2xl p-4 mb-8 flex items-start gap-3">
+ <CheckCircle2 className="w-5 h-5 text-[var(--success)] flex-shrink-0 mt-0.5" />
  <div>
- <p className="text-sm font-semibold text-emerald-700">Реквизиты заполнены</p>
+ <p className="text-sm font-semibold text-[var(--success)]">Реквизиты заполнены</p>
  </div>
  </div>
  )}
@@ -89,25 +89,25 @@ export default function RequisitesPage() {
  </tr>
  <tr>
  <td className="py-3 pr-4 text-[var(--text-muted)] font-medium w-48">БИН</td>
- <td className={`py-3 ${hasBin ? 'text-[var(--text)] font-mono' : 'text-amber-600 italic'}`}>
+ <td className={`py-3 ${hasBin ? 'text-[var(--text)] font-mono' : 'text-[var(--warning)] italic'}`}>
  {hasBin ? bin : <>⚠️ [УКАЖИТЕ РЕАЛЬНЫЙ БИН]</>}
  </td>
  </tr>
  <tr>
  <td className="py-3 pr-4 text-[var(--text-muted)] font-medium">ИИН (для ИП)</td>
- <td className="py-3 text-amber-600 italic">
+ <td className="py-3 text-[var(--warning)] italic">
  ⚠️ [УКАЖИТЕ РЕАЛЬНЫЙ ИИН]
  </td>
  </tr>
  <tr>
  <td className="py-3 pr-4 text-[var(--text-muted)] font-medium">ОГРН/ОГРНИП (для РФ)</td>
- <td className={`py-3 ${ogrn ? 'text-[var(--text)] font-mono' : 'text-amber-600 italic'}`}>
+ <td className={`py-3 ${ogrn ? 'text-[var(--text)] font-mono' : 'text-[var(--warning)] italic'}`}>
  {ogrn ? ogrn : '⚠️ [УКАЖИТЕ РЕАЛЬНЫЙ ОГРН]'}
  </td>
  </tr>
  <tr>
  <td className="py-3 pr-4 text-[var(--text-muted)] font-medium">КПП (для РФ)</td>
- <td className="py-3 text-amber-600 italic">
+ <td className="py-3 text-[var(--warning)] italic">
  ⚠️ [УКАЖИТЕ]
  </td>
  </tr>
@@ -125,25 +125,25 @@ export default function RequisitesPage() {
  <tbody className="divide-y divide-[var(--border)]">
  <tr>
  <td className="py-3 pr-4 text-[var(--text-muted)] font-medium w-48">Расчётный счёт</td>
- <td className="py-3 text-amber-600 italic">
+ <td className="py-3 text-[var(--warning)] italic">
  ⚠️ [УКАЖИТЕ РЕАЛЬНЫЙ СЧЁТ]
  </td>
  </tr>
  <tr>
  <td className="py-3 pr-4 text-[var(--text-muted)] font-medium">Банк</td>
- <td className="py-3 text-amber-600 italic">
+ <td className="py-3 text-[var(--warning)] italic">
  ⚠️ [УКАЖИТЕ НАЗВАНИЕ БАНКА]
  </td>
  </tr>
  <tr>
  <td className="py-3 pr-4 text-[var(--text-muted)] font-medium">БИК</td>
- <td className="py-3 text-amber-600 italic">
+ <td className="py-3 text-[var(--warning)] italic">
  ⚠️ [УКАЖИТЕ БИК]
  </td>
  </tr>
  <tr>
  <td className="py-3 pr-4 text-[var(--text-muted)] font-medium">Корреспондентский счёт</td>
- <td className="py-3 text-amber-600 italic">
+ <td className="py-3 text-[var(--warning)] italic">
  ⚠️ [УКАЖИТЕ]
  </td>
  </tr>
@@ -157,7 +157,7 @@ export default function RequisitesPage() {
  <tbody className="divide-y divide-[var(--border)]">
  <tr>
  <td className="py-3 pr-4 text-[var(--text-muted)] font-medium w-48">Юридический адрес</td>
- <td className={`py-3 ${legalAddress ? 'text-[var(--text)]' : 'text-amber-600 italic'}`}>
+ <td className={`py-3 ${legalAddress ? 'text-[var(--text)]' : 'text-[var(--warning)] italic'}`}>
  {legalAddress || '⚠️ [УКАЖИТЕ ЮРИДИЧЕСКИЙ АДРЕС]'}
  </td>
  </tr>
@@ -171,13 +171,13 @@ export default function RequisitesPage() {
  </tr>
  <tr>
  <td className="py-3 pr-4 text-[var(--text-muted)] font-medium">Телефон</td>
- <td className={`py-3 ${phone ? 'text-[var(--text)]' : 'text-amber-600 italic'}`}>
+ <td className={`py-3 ${phone ? 'text-[var(--text)]' : 'text-[var(--warning)] italic'}`}>
  {phone || '⚠️ [УКАЖИТЕ РЕАЛЬНЫЙ ТЕЛЕФОН]'}
  </td>
  </tr>
  <tr>
  <td className="py-3 pr-4 text-[var(--text-muted)] font-medium">Руководитель</td>
- <td className="py-3 text-amber-600 italic">
+ <td className="py-3 text-[var(--warning)] italic">
  ⚠️ [УКАЖИТЕ ФИО ДИРЕКТОРА]
  </td>
  </tr>

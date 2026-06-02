@@ -6,6 +6,7 @@ const config = require('./config');
 const { prisma } = require('./prisma-client');
 const { requestIdTracking } = require('./middleware/requestId');
 const { errorHandler } = require('./middleware/errorHandler');
+const { aiLimiter, authLimiter, generalLimiter } = require('./middleware/rateLimit');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use(cors({
 // Body parsing
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(generalLimiter);
 
 // ============================
 // ROUTES

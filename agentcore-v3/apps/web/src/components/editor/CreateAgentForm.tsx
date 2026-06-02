@@ -45,7 +45,8 @@ export default function CreateAgentForm({ companyName, onSubmit, onCancel }: Cre
       setSystemPrompt(generatedPrompt);
       setEmoji(generatedEmoji);
       setAiGenerated(true);
-    } catch {
+    } catch (err) {
+      console.error('[CreateAgentForm] AI assist:', err);
     }
     setAiWorking(false);
   }, [goal, companyName]);
@@ -55,7 +56,8 @@ export default function CreateAgentForm({ companyName, onSubmit, onCancel }: Cre
     setSubmitting(true);
     try {
       await onSubmit({ name, systemPrompt, emoji });
-    } catch {
+    } catch (err) {
+      console.error('[CreateAgentForm] Submit:', err);
     }
     setSubmitting(false);
   }, [name, systemPrompt, emoji, onSubmit]);
