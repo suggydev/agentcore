@@ -82,7 +82,7 @@ async function processWithAgent(botToken, chatId, text, workspaceId, agent, user
   const systemPrompt = agent.systemPrompt || 'Ты — полезный AI-ассистент поддержки клиентов. Отвечай дружелюбно, кратко и по делу на русском языке.';
   const messages = [
     { role: 'system', content: systemPrompt },
-    ...history.map(m => ({ role: 'user', content: m.content }))
+    ...history.map(m => ({ role: m.role, content: m.content }))
   ];
 
   const aiResponse = await axios.post(

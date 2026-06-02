@@ -9,12 +9,18 @@ async function authenticate(req, res, next) {
   }
   const token = authHeader.split(' ')[1];
   try {
-    const decoded = jwt.verify(token, config.JWT_SECRET);
+    const decoded = jwt.verify(token, config.JWT_SECRET, { algorithms: ['HS256'] });
     const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
     if (!user || user.tokenVersion !== decoded.tokenVersion) {
       return res.status(401).json({ error: 'Token expired, please login again' });
     }
-    req.user = decoded;
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      workspaceId: user.workspaceId,
+      tokenVersion: user.tokenVersion,
+    };
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {

@@ -33,7 +33,7 @@ export function Card({
     : {};
 
   const hoverClass = hoverable
-    ? 'hover:bg-[var(--surface-2)] hover:shadow-[var(--shadow-hover)] cursor-pointer'
+    ? 'hover:bg-[var(--surface-2)] hover:shadow-xs cursor-pointer'
     : '';
 
   return (

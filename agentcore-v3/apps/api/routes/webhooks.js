@@ -182,7 +182,7 @@ router.post('/:provider/:agentId', async (req, res) => {
             chatId = parsed.chatId || '';
             text = parsed.text || '';
           } else {
-            chatId = parsed.chatId || parsed.from || conversationId || '';
+            chatId = parsed.chatId || parsed.from || '';
             text = parsed.text || '';
           }
 
