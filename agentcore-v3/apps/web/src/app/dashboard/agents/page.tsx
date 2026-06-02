@@ -185,7 +185,7 @@ export default function AgentsPage() {
  <AnimatePresence>
  {creating && (
  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--accent-soft)]/90 backdrop-blur-sm">
- <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-3xl shadow-2xl p-10 max-w-sm mx-4 text-center">
+ <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-surface rounded-3xl shadow-2xl p-10 max-w-sm mx-4 text-center">
  <div className="flex flex-col items-center gap-6">
  {createStep === 1 && (
  <>
@@ -216,7 +216,7 @@ export default function AgentsPage() {
  )}
  {createResult && !createResult.ok && (
  <>
- <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center text-red-500 text-2xl font-bold">!</div>
+ <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center text-danger text-2xl font-bold">!</div>
  <div><p className="font-bold text-[var(--text)] text-lg">Ошибка</p><p className="text-[var(--text-muted)] text-sm mt-1">Попробуйте ещё раз</p></div>
  <button onClick={() => setCreating(false)} className="btn-primary text-sm">Закрыть</button>
  </>
@@ -241,10 +241,10 @@ export default function AgentsPage() {
  {view === 'list' && (
  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
  {agents.map(agent => (
- <motion.div key={agent.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-5 group cursor-pointer hover:shadow-md hover:border-[var(--border)] transition-all" onClick={() => router.push(`/agents/${agent.id}`)}>
+ <motion.div key={agent.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-5 group cursor-pointer hover:shadow-md hover:border-[var(--border)] transition-all" onClick={() => router.push(`/agents/${agent.id}`)}>
  <div className="flex items-start justify-between mb-3">
  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--brand)] to-[var(--brand)]/60 flex items-center justify-center"><Brain className="w-5 h-5 text-white" /></div>
- <button onClick={(e: React.MouseEvent) => deleteAgent(agent.id, e)} className="p-1.5 rounded-lg hover:bg-red-50 text-[var(--text-muted)] hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"><Trash2 className="w-3.5 h-3.5" /></button>
+ <button onClick={(e: React.MouseEvent) => deleteAgent(agent.id, e)} className="p-1.5 rounded-lg hover:bg-danger-soft text-[var(--text-muted)] hover:text-danger transition-colors opacity-0 group-hover:opacity-100"><Trash2 className="w-3.5 h-3.5" /></button>
  </div>
  <h3 className="font-bold text-[var(--text)]">{agent.name}</h3>
  <p className="text-[var(--text-muted)] text-sm mt-1 line-clamp-2">{agent.description || 'Нет описания'}</p>
@@ -270,19 +270,19 @@ export default function AgentsPage() {
  <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 shadow-sm p-6">
  <div className="flex items-center gap-2 mb-1"><div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center"><FlaskConical className="w-4 h-4 text-amber-600" /></div><h2 className="font-semibold text-[var(--text)]">Быстрое создание</h2><span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Beta</span></div>
  <p className="text-sm text-[var(--text-muted)] mb-4">Опишите задачу — AI заполнит имя, сферу и тон</p>
- <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Например: интернет-магазин одежды, нужен консультант для подбора размера" rows={3} maxLength={500} className="w-full px-4 py-3 rounded-xl border border-amber-200 bg-white focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none" />
+ <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Например: интернет-магазин одежды, нужен консультант для подбора размера" rows={3} maxLength={500} className="w-full px-4 py-3 rounded-xl border border-amber-200 bg-surface focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none" />
  <div className="flex items-center justify-between mt-2">
  <span className="text-[10px] text-[var(--text-muted)]">{description.length}/500</span>
  <button onClick={handleAIAnalyze} disabled={!description.trim() || analyzing} className="flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition-colors disabled:opacity-40">{analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}{analyzing ? 'Анализ...' : 'Заполнить с помощью AI'}</button>
  </div>
  </div>
 
- <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6 space-y-5">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6 space-y-5">
  <div className="flex items-center gap-2"><Brain className="w-5 h-5 text-[var(--brand)]" /><h2 className="font-semibold text-[var(--text)]">Параметры</h2><span className="text-[10px] text-[var(--text-muted)]">можно редактировать</span></div>
  <div><label className="block text-sm font-medium text-[var(--text)] mb-1.5">Имя агента</label><input type="text" value={agentName} onChange={e => setAgentName(e.target.value)} placeholder="Продавец-консультант" maxLength={50} className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none" /></div>
  <div><label className="block text-sm font-medium text-[var(--text)] mb-1.5">Сфера</label><select value={industry} onChange={e => setIndustry(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] text-sm text-[var(--text)] outline-none appearance-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' fill=\'%23999\' viewBox=\'0 0 16 16\'%3E%3Cpath d=\'M8 11L3 6h10z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center', paddingRight: '40px' }}><option value="" disabled>Выберите сферу...</option>{INDUSTRIES.map(ind => <option key={ind} value={ind}>{ind}</option>)}</select></div>
  <div><label className="block text-sm font-medium text-[var(--text)] mb-1.5">Задача</label><textarea value={task} onChange={e => setTask(e.target.value)} placeholder="Что должен делать агент?" rows={3} maxLength={500} className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none" /></div>
- <div><label className="block text-sm font-medium text-[var(--text)] mb-1.5">Тон</label><div className="grid grid-cols-2 gap-2">{TONES.map(t => <button key={t} type="button" onClick={() => setTone(t)} className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${tone === t ? 'border-[var(--brand)]/40 bg-[var(--accent-soft)] text-[var(--brand)] shadow-sm' : 'border-[var(--border)] bg-white text-[var(--text)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)]/50'}`}>{t}</button>)}</div></div>
+ <div><label className="block text-sm font-medium text-[var(--text)] mb-1.5">Тон</label><div className="grid grid-cols-2 gap-2">{TONES.map(t => <button key={t} type="button" onClick={() => setTone(t)} className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${tone === t ? 'border-[var(--brand)]/40 bg-[var(--accent-soft)] text-[var(--brand)] shadow-sm' : 'border-[var(--border)] bg-surface text-[var(--text)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)]/50'}`}>{t}</button>)}</div></div>
  </div>
 
  <motion.div className="flex flex-col items-center gap-2">

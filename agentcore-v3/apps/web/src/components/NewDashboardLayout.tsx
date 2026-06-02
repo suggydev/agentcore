@@ -46,7 +46,7 @@ export default function NewDashboardLayout({ children }: NewDashboardLayoutProps
 
  <button
  type="button"
- className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white/80 backdrop-blur-xl border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow duration-200 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1"
+ className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-surface/80 backdrop-blur-xl border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow duration-200 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1"
  onClick={toggleMobile}
  aria-label={mobileOpen ? 'Закрыть меню' : 'Открыть меню'}
  >
@@ -74,7 +74,7 @@ export default function NewDashboardLayout({ children }: NewDashboardLayoutProps
  <NewSidebar onOpenCommandPalette={() => setCommandPaletteOpen(true)} />
  <button
  type="button"
- className="absolute top-4 right-4 p-2.5 rounded-xl bg-white/90 border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-surface-2 transition-colors duration-200 lg:hidden focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1"
+ className="absolute top-4 right-4 p-2.5 rounded-xl bg-surface/90 border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-surface-2 transition-colors duration-200 lg:hidden focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1"
  onClick={closeMobile}
  aria-label="Закрыть меню"
  >

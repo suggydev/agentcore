@@ -192,7 +192,7 @@ export default function LoginPage() {
  }
  };
 
- const inputClass = "w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-white focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all text-[var(--text)] placeholder:text-[var(--text-muted)] text-sm";
+ const inputClass = "w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all text-[var(--text)] placeholder:text-[var(--text-muted)] text-sm";
 
  const renderLogin = () => (
  <form onSubmit={handleLogin} className="space-y-4">
@@ -215,7 +215,7 @@ export default function LoginPage() {
  </div>
  {error && (
  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
- className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm text-center">{error}</motion.div>
+ className="p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm text-center">{error}</motion.div>
  )}
  <button type="submit" disabled={loading}
  className="w-full btn-primary text-sm py-3 disabled:opacity-60">
@@ -264,7 +264,7 @@ export default function LoginPage() {
  </div>
  {stepError && (
  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
- className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm text-center">{stepError}</motion.div>
+ className="p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm text-center">{stepError}</motion.div>
  )}
  <button onClick={nextStep}
  className="w-full btn-primary text-sm py-3">
@@ -315,7 +315,7 @@ export default function LoginPage() {
  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all border
  ${source === id
  ? 'bg-[var(--brand)] text-white border-[var(--brand)] shadow-sm'
- : 'bg-white text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)]/50'}`}>
+ : 'bg-surface text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)]/50'}`}>
  <Icon className="w-3.5 h-3.5" /> {label}
  </button>
  ))}
@@ -329,7 +329,7 @@ export default function LoginPage() {
  className={`flex items-start gap-3 p-3 rounded-xl text-left transition-all border
  ${purpose === id
  ? 'bg-[var(--accent-soft)] border-[var(--brand)]/40 ring-1 ring-[var(--brand)]/20'
- : 'bg-white border-[var(--border)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)]/30'}`}>
+ : 'bg-surface border-[var(--border)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)]/30'}`}>
  <Icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${purpose === id ? 'text-[var(--brand)]' : 'text-[var(--text-muted)]'}`} />
  <div>
  <div className="text-sm font-semibold text-[var(--text)]">{label}</div>
@@ -354,7 +354,7 @@ export default function LoginPage() {
 
  const renderStep3 = () => (
  <motion.div key="step3" {...slideRight} className="space-y-5">
- <div className="bg-white rounded-2xl p-5 border border-[var(--border)] shadow-sm">
+ <div className="bg-surface rounded-2xl p-5 border border-[var(--border)] shadow-sm">
  <h3 className="text-sm font-semibold text-[var(--text)] mb-4 flex items-center gap-2">
  <div className="w-6 h-6 rounded-full bg-[var(--accent-soft)] flex items-center justify-center">
  <Check className="w-3.5 h-3.5 text-[var(--brand)]" />
@@ -397,13 +397,13 @@ export default function LoginPage() {
  </div>
  </div>
 
- <div className="bg-green-50/60 rounded-2xl p-4 border border-green-200/60 flex items-start gap-3">
+ <div className="bg-success-soft/60 rounded-2xl p-4 border border-green-200/60 flex items-start gap-3">
  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
- <Check className="w-4 h-4 text-green-600" />
+ <Check className="w-4 h-4 text-success" />
  </div>
  <div>
  <div className="text-sm font-semibold text-green-800">7 дней бесплатно</div>
- <div className="text-xs text-green-600 mt-0.5 leading-relaxed">
+ <div className="text-xs text-success mt-0.5 leading-relaxed">
  После регистрации вы получите полный доступ ко всем функциям на 7 дней.
  При оформлении подписки — $10 на баланс для AI-запросов ежемесячно.
  </div>
@@ -412,7 +412,7 @@ export default function LoginPage() {
 
  {error && (
  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
- className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm">{error}</motion.div>
+ className="p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm">{error}</motion.div>
  )}
 
  <div className="flex gap-3">
@@ -528,7 +528,7 @@ export default function LoginPage() {
  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
  className="relative z-10 w-full max-w-lg px-6"
  >
- <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 overflow-hidden">
+ <div className="bg-surface/80 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 overflow-hidden">
  {!isLogin && (
  <div className="bg-[var(--accent-soft)] border-b border-[var(--border)]/30 px-6 py-3 flex items-center justify-center gap-2">
  <span className="text-sm font-medium text-[var(--brand)]">7 дней бесплатного доступа при регистрации</span>
@@ -560,7 +560,7 @@ export default function LoginPage() {
  onClick={() => { if (!isLogin) { setIsLogin(true); setStep(0); setError(''); setStepErrors({}); } }}
  className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
  isLogin
- ? 'bg-white text-[var(--text)] shadow-sm'
+ ? 'bg-surface text-[var(--text)] shadow-sm'
  : 'text-[var(--text-muted)] hover:text-[var(--text)]'
  }`}
  >
@@ -570,7 +570,7 @@ export default function LoginPage() {
  onClick={() => { if (isLogin) { setIsLogin(false); setStep(0); setError(''); setStepErrors({}); } }}
  className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
  !isLogin
- ? 'bg-white text-[var(--text)] shadow-sm'
+ ? 'bg-surface text-[var(--text)] shadow-sm'
  : 'text-[var(--text-muted)] hover:text-[var(--text)]'
  }`}
  >

@@ -74,8 +74,8 @@ export default function FAQSection() {
                 <div
                   className={`rounded-xl border transition-colors duration-200 cursor-pointer ${
                     isOpen
-                      ? 'border-[var(--border)] bg-white'
-                      : 'border-[var(--border)] bg-white hover:bg-[var(--surface-2)]'
+                      ? 'border-[var(--border)] bg-surface'
+                      : 'border-[var(--border)] bg-surface hover:bg-[var(--surface-2)]'
                   }`}
                 >
                   <button

@@ -202,7 +202,7 @@ function FlowCanvas({
  <ReactFlow nodes={styledNodes} edges={styledEdges} fitView fitViewOptions={{ padding: 0.3 }} nodesDraggable={false} nodesConnectable={false} elementsSelectable={false} minZoom={0.3} maxZoom={1.8}>
  <Background color="#E8EAEF" gap={20} size={1} />
  <Controls
- className="[&>button]:bg-white [&>button]:border-[var(--border)] [&>button]:text-[var(--brand)] [&>button]:rounded-lg [&>button]:w-8 [&>button]:h-8 [&>button]:shadow-sm [&>button:hover]:bg-[var(--accent-soft)]"
+ className="[&>button]:bg-surface [&>button]:border-[var(--border)] [&>button]:text-[var(--brand)] [&>button]:rounded-lg [&>button]:w-8 [&>button]:h-8 [&>button]:shadow-sm [&>button:hover]:bg-[var(--accent-soft)]"
  showInteractive={false}
  />
  <MiniMap
@@ -214,13 +214,13 @@ function FlowCanvas({
  <button
  type="button"
  onClick={() => fitView({ padding: 0.3, duration: 400 })}
- className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--brand)] bg-white/90 backdrop-blur-sm border border-[var(--border)] rounded-lg shadow-sm hover:bg-[var(--accent-soft)] transition-colors"
+ className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--brand)] bg-surface/90 backdrop-blur-sm border border-[var(--border)] rounded-lg shadow-sm hover:bg-[var(--accent-soft)] transition-colors"
  >
  <Maximize2 size={13} />
  По размеру
  </button>
  {reasoningPath.length > 0 && (
- <div className="absolute bottom-3 left-3 right-3 z-10 bg-white/90 backdrop-blur-sm border border-[var(--border)] rounded-lg px-3 py-2 shadow-sm">
+ <div className="absolute bottom-3 left-3 right-3 z-10 bg-surface/90 backdrop-blur-sm border border-[var(--border)] rounded-lg px-3 py-2 shadow-sm">
  <div className="flex items-center gap-1.5 text-xs text-[var(--brand)] flex-wrap">
  <Brain size={13} className="text-[var(--brand)] flex-shrink-0" />
  <span className="font-semibold">Путь:</span>
@@ -305,7 +305,7 @@ function ChatPanel({
  <select
  value={selectedAgent}
  onChange={(e) => setSelectedAgent(e.target.value)}
- className={`w-full appearance-none bg-white border rounded-lg px-3 py-2 pr-8 text-sm text-[var(--text)] font-medium focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all cursor-pointer ${
+ className={`w-full appearance-none bg-surface border rounded-lg px-3 py-2 pr-8 text-sm text-[var(--text)] font-medium focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all cursor-pointer ${
  agentsError ? 'border-red-300' : 'border-[var(--border)]'
  }`}
  >
@@ -359,7 +359,7 @@ function ChatPanel({
  {msg.content}
  </div>
  ) : (
- <div className="bg-white border border-[var(--border)] rounded-2xl rounded-bl-md shadow-sm overflow-hidden">
+ <div className="bg-surface border border-[var(--border)] rounded-2xl rounded-bl-md shadow-sm overflow-hidden">
  {/* Reasoning trace breadcrumb */}
  {msg.reasoningTrace && msg.reasoningTrace.length > 0 && (
  <div className="flex items-center gap-1 px-4 py-2 bg-[var(--accent-soft)] border-b border-[var(--border)] text-[10px] text-[var(--brand)] flex-wrap">
@@ -428,7 +428,7 @@ function ChatPanel({
  exit={{ opacity: 0 }}
  className="flex justify-start"
  >
- <div className="bg-white border border-[var(--border)] rounded-2xl rounded-bl-md shadow-sm px-5 py-3">
+ <div className="bg-surface border border-[var(--border)] rounded-2xl rounded-bl-md shadow-sm px-5 py-3">
  <div className="flex items-center gap-1.5">
  <span className="w-2 h-2 rounded-full bg-[var(--brand)]/30 animate-bounce" style={{ animationDelay: '0ms' }} />
  <span className="w-2 h-2 rounded-full bg-[var(--brand)]/30 animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -670,7 +670,7 @@ function AgentTestPage() {
  <div className="h-[calc(100vh-0px)] flex">
  {/* Left Panel — Brain Map */}
  <div className="w-1/2 border-r border-[var(--border)] relative bg-[var(--bg)]">
- <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-[var(--border)] rounded-lg shadow-sm">
+ <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 bg-surface/90 backdrop-blur-sm border border-[var(--border)] rounded-lg shadow-sm">
  <Brain size={14} className="text-[var(--brand)]" />
  <span className="text-xs font-semibold text-[var(--brand)] uppercase tracking-wide">Brain Map</span>
  </div>
@@ -686,8 +686,8 @@ function AgentTestPage() {
  </div>
 
  {/* Right Panel — Chat */}
- <div className="w-1/2 flex flex-col bg-white">
- <div className="px-4 py-3 border-b border-[var(--border)] flex items-center gap-2.5 bg-white">
+ <div className="w-1/2 flex flex-col bg-surface">
+ <div className="px-4 py-3 border-b border-[var(--border)] flex items-center gap-2.5 bg-surface">
  <MessageSquare size={15} className="text-[var(--brand)]" />
  <span className="text-sm font-semibold text-[var(--text)]">Тестовый чат</span>
  <span className="flex-1" />

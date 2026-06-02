@@ -266,13 +266,13 @@ export default function ChatPage() {
  animate={{ opacity: 1 }}
  exit={{ opacity: 0 }}
  onClick={() => setSidebarOpen(false)}
- className="fixed inset-0 bg-black/20 z-40 lg:hidden"
+ className="fixed inset-0 bg-text/20 z-40 lg:hidden"
  />
  )}
  </AnimatePresence>
 
  <motion.aside 
- className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white border-r border-[var(--border)] flex flex-col shadow-xl lg:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-300`}
+ className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-surface border-r border-[var(--border)] flex flex-col shadow-xl lg:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-300`}
  >
  <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
  <a href="/agents" className="flex items-center gap-2">
@@ -333,7 +333,7 @@ export default function ChatPage() {
  </div>
  <button 
  onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
- className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-red-400 hover:text-red-600 transition-all"
+ className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-red-400 hover:text-danger transition-all"
  >
  <Trash2 className="w-3.5 h-3.5" />
  </button>
@@ -373,7 +373,7 @@ export default function ChatPage() {
  </motion.aside>
 
  <main className="flex-1 flex flex-col min-w-0">
- <header className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-white/80 backdrop-blur-sm">
+ <header className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-surface/80 backdrop-blur-sm">
  <button 
  onClick={() => setSidebarOpen(true)}
  className="lg:hidden p-2 rounded-lg hover:bg-[var(--accent-soft)] text-[var(--brand)]"
@@ -406,7 +406,7 @@ export default function ChatPage() {
  <div className="relative" ref={modelDropdownRef}>
  <button
  onClick={() => setModelDropdownOpen(prev => !prev)}
- className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-white text-xs font-medium text-[var(--brand)] hover:bg-[var(--accent-soft)] transition-all"
+ className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-surface text-xs font-medium text-[var(--brand)] hover:bg-[var(--accent-soft)] transition-all"
  >
  {selectedModel ? (
  <span className="max-w-[100px] truncate">{getModelName(selectedModel)}</span>
@@ -419,7 +419,7 @@ export default function ChatPage() {
  <ChevronDown className={`w-3 h-3 text-[var(--text-muted)] transition-transform ${modelDropdownOpen ? 'rotate-180' : ''}`} />
  </button>
  {modelDropdownOpen && (
- <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl border border-[var(--border)] shadow-lg z-50 py-1 overflow-hidden">
+ <div className="absolute right-0 top-full mt-1 w-56 bg-surface rounded-xl border border-[var(--border)] shadow-lg z-50 py-1 overflow-hidden">
  <button
  onClick={() => { setSelectedModel(''); setModelDropdownOpen(false); }}
  className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors ${!selectedModel ? 'bg-[var(--accent-soft)] text-[var(--brand)] font-semibold' : 'text-[var(--text)] hover:bg-[var(--accent-soft)]'}`}
@@ -486,7 +486,7 @@ export default function ChatPage() {
  const conv = currentConv || await createConversation();
  if (conv) sendMessage(item.text, conv.id);
  }}
- className="px-4 py-2 rounded-xl bg-white border border-[var(--border)] text-sm text-[var(--brand)] hover:bg-[var(--accent-soft)] hover:border-[var(--brand)]/30 transition-all flex items-center gap-2"
+ className="px-4 py-2 rounded-xl bg-surface border border-[var(--border)] text-sm text-[var(--brand)] hover:bg-[var(--accent-soft)] hover:border-[var(--brand)]/30 transition-all flex items-center gap-2"
  >
  <span>{item.icon}</span>
  {item.text}
@@ -511,7 +511,7 @@ export default function ChatPage() {
  msg.role === 'user' 
  ? 'bg-gradient-to-br from-[var(--brand)] to-[var(--brand)]/60' 
  : msg.model === 'error'
- ? 'bg-red-100 text-red-500'
+ ? 'bg-red-100 text-danger'
  : 'bg-gradient-to-br from-[var(--brand)]/30 to-[var(--border)]'
  }`}>
  {msg.role === 'user' 
@@ -522,7 +522,7 @@ export default function ChatPage() {
  <div className={`max-w-[80%] px-4 py-3 rounded-2xl ${
  msg.role === 'user'
  ? 'bg-[var(--accent)] text-white'
- : 'bg-white border border-[var(--border)] text-[var(--text)] shadow-sm'
+ : 'bg-surface border border-[var(--border)] text-[var(--text)] shadow-sm'
  }`}>
  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
  {msg.role === 'assistant' && msg.model && msg.model !== 'error' && (
@@ -546,7 +546,7 @@ export default function ChatPage() {
  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--brand)]/30 to-[var(--border)] flex items-center justify-center">
  <Sparkles className="w-4 h-4 text-white animate-pulse" />
  </div>
- <div className="bg-white border border-[var(--border)] rounded-2xl px-4 py-3 shadow-sm">
+ <div className="bg-surface border border-[var(--border)] rounded-2xl px-4 py-3 shadow-sm">
  <div className="flex items-center gap-2 text-sm text-[var(--brand)]">
  <Loader2 className="w-4 h-4 animate-spin" />
  <span>AgentCore думает...</span>
@@ -558,7 +558,7 @@ export default function ChatPage() {
  </div>
 
  {currentConv && (
- <div className="p-4 bg-white/80 backdrop-blur-sm border-t border-[var(--border)]">
+ <div className="p-4 bg-surface/80 backdrop-blur-sm border-t border-[var(--border)]">
  <div className="max-w-4xl mx-auto flex gap-3">
  <input
  type="text"
@@ -567,7 +567,7 @@ export default function ChatPage() {
  onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
  placeholder="Спросите что угодно — код, изображения, анализ..."
  disabled={loading}
- className="flex-1 px-5 py-3.5 rounded-xl border border-[var(--border)] bg-white focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus:border-transparent text-[var(--text)] placeholder:text-[var(--text-muted)] disabled:opacity-50 transition-all"
+ className="flex-1 px-5 py-3.5 rounded-xl border border-[var(--border)] bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus:border-transparent text-[var(--text)] placeholder:text-[var(--text-muted)] disabled:opacity-50 transition-all"
  />
  <button
  onClick={() => sendMessage()}

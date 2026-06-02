@@ -108,9 +108,9 @@ export default function UpgradePage() {
  <motion.div
  initial={{ opacity: 0, y: -20 }}
  animate={{ opacity: 1, y: 0 }}
- className="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center"
+ className="fixed inset-0 z-50 bg-surface/80 backdrop-blur-sm flex items-center justify-center"
  >
- <div className="bg-white rounded-2xl border border-[var(--border)] shadow-xl p-10 text-center max-w-sm mx-auto">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-xl p-10 text-center max-w-sm mx-auto">
  <Loader2 className="w-10 h-10 text-[var(--brand)] animate-spin mx-auto mb-4" />
  <h3 className="font-display font-semibold text-lg text-[var(--text)] mb-2">Перенаправление...</h3>
  <p className="text-[var(--text-muted)] text-sm">
@@ -261,7 +261,7 @@ export default function UpgradePage() {
  </motion.div>
 
  {/* Feature Comparison Table */}
- <motion.div variants={container} initial="hidden" animate="show" className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6 mb-8">
+ <motion.div variants={container} initial="hidden" animate="show" className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6 mb-8">
  <h2 className="font-display font-semibold text-lg text-[var(--text)] mb-5">Сравнение функций</h2>
  <div className="overflow-x-auto">
  <table className="w-full">

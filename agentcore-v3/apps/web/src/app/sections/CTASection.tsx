@@ -32,7 +32,7 @@ export default function CTASection() {
         >
           <a
             href="/login"
-            className="inline-flex items-center gap-2 bg-white text-[var(--accent)] px-8 py-4 rounded-xl font-semibold text-base hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 bg-surface text-[var(--accent)] px-8 py-4 rounded-xl font-semibold text-base hover:opacity-90 transition-opacity"
           >
             Создать агента
           </a>

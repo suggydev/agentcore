@@ -74,7 +74,7 @@ export default function ValuePropSection() {
                     className={`rounded-xl border p-4 sm:p-5 flex flex-col justify-between cursor-default min-h-[120px] sm:min-h-[140px] ${
                       card.accent
                         ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
-                        : 'bg-white border-[var(--border)]'
+                        : 'bg-surface border-[var(--border)]'
                     }`}
                   >
                     <card.icon className={`w-6 h-6 sm:w-7 sm:h-7 ${card.accent ? 'text-white/70' : 'text-[var(--brand)]'}`} />

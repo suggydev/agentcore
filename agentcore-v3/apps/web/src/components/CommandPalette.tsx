@@ -144,7 +144,7 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
  transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
  >
  <div
- className="w-full max-w-lg rounded-2xl bg-white/95 backdrop-blur-2xl shadow-2xl border border-[var(--border)] overflow-hidden"
+ className="w-full max-w-lg rounded-2xl bg-surface/95 backdrop-blur-2xl shadow-2xl border border-[var(--border)] overflow-hidden"
  onClick={(e) => e.stopPropagation()}
  >
  <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)]">

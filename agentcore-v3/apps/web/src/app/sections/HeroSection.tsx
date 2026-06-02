@@ -52,7 +52,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-sm mx-auto bg-white rounded-xl border border-[var(--border)] overflow-hidden"
+            className="max-w-sm mx-auto bg-surface rounded-xl border border-[var(--border)] overflow-hidden"
           >
             <div className="px-5 py-3.5 flex items-center gap-3 border-b border-[var(--border)]">
               <div className="w-8 h-8 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-sm">💬</div>
@@ -69,7 +69,7 @@ export default function HeroSection() {
 
             <div className="p-4 space-y-3 bg-[var(--bg)]">
               <div className="flex justify-end">
-                <div className="max-w-[80%] bg-white rounded-xl rounded-br-md px-4 py-2.5 border border-[var(--border)]">
+                <div className="max-w-[80%] bg-surface rounded-xl rounded-br-md px-4 py-2.5 border border-[var(--border)]">
                   <p className="text-[13px] text-[var(--text)] leading-relaxed">
                     {DEMO_CHAT.user}
                   </p>
@@ -92,7 +92,7 @@ export default function HeroSection() {
               </div>
 
               <div className="flex justify-start">
-                <div className="flex items-center gap-1.5 px-4 py-2.5 bg-white rounded-xl rounded-bl-md border border-[var(--border)]">
+                <div className="flex items-center gap-1.5 px-4 py-2.5 bg-surface rounded-xl rounded-bl-md border border-[var(--border)]">
                   <span className="text-[var(--text-muted)] text-sm tracking-wider">...</span>
                   <span className="text-[11px] text-[var(--text-muted)]">
                     печатает
@@ -101,7 +101,7 @@ export default function HeroSection() {
               </div>
 
               <div className="pt-1">
-                <div className="flex items-center gap-2 bg-white border border-[var(--border)] rounded-xl px-4 py-3">
+                <div className="flex items-center gap-2 bg-surface border border-[var(--border)] rounded-xl px-4 py-3">
                   <input
                     type="text"
                     placeholder="Написать сообщение..."

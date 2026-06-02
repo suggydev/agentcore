@@ -35,7 +35,7 @@ export default function Navigation() {
     <>
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-[var(--border)]' : 'bg-transparent'
+          scrolled ? 'bg-surface/90 backdrop-blur-xl border-b border-[var(--border)]' : 'bg-transparent'
         }`}
         style={{ opacity: hidden ? 0 : 1, transform: hidden ? 'translateY(-100%)' : 'translateY(0)', transition: 'opacity 0.3s, transform 0.3s' }}
       >
@@ -82,7 +82,7 @@ export default function Navigation() {
         {mobileOpen && (
           <>
             <motion.div
-              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-40 bg-text/20 backdrop-blur-sm md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -90,7 +90,7 @@ export default function Navigation() {
               onClick={closeMobile}
             />
             <motion.div
-              className="fixed top-0 right-0 bottom-0 z-40 w-[280px] bg-white flex flex-col md:hidden"
+              className="fixed top-0 right-0 bottom-0 z-40 w-[280px] bg-surface flex flex-col md:hidden"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}

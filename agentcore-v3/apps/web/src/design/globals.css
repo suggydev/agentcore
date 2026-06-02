@@ -2,41 +2,70 @@
   --bg: #FAFAF7;
   --surface: #FFFFFF;
   --surface-2: #F4F2EE;
+  --surface-3: #EDEAE5;
   --border: #E8E5DF;
+  --border-2: #D6D2CB;
   --text: #1A1A1A;
-  --text-muted: #6B6B6B;
+  --text-secondary: #4A4A4A;
+  --text-muted: #7A7A7A;
   --accent: #1A1A1A;
   --accent-soft: #EFEAFE;
   --brand: #6E56CF;
+  --brand-hover: #5B43BC;
   --brand-light: rgba(110,86,207,0.09);
+  --brand-soft: rgba(110,86,207,0.14);
   --success: #10B981;
+  --success-soft: rgba(16,185,129,0.1);
   --warning: #F59E0B;
+  --warning-soft: rgba(245,158,11,0.1);
   --danger: #EF4444;
+  --danger-soft: rgba(239,68,68,0.1);
   --radius-card: 12px;
   --radius-button: 8px;
   --radius-pill: 999px;
-  --shadow-hover: 0 1px 2px rgba(0,0,0,0.04);
-  --font-sans: var(--font-racama), 'Racama', system-ui, -apple-system, sans-serif;
-}
-
-[data-theme="dark"] {
-  --bg: #0F0F0E;
-  --surface: #1A1916;
-  --surface-2: #242320;
-  --border: #2E2D2A;
-  --text: #F5F5F0;
-  --text-muted: #9A9A9A;
-  --accent: #F5F5F0;
-  --accent-soft: rgba(110,86,207,0.12);
-  --brand: #7C6BD4;
-  --brand-light: rgba(124,107,212,0.09);
-  --success: #34D399;
-  --warning: #FBBF24;
-  --danger: #F87171;
-  --shadow-hover: 0 1px 2px rgba(0,0,0,0.12);
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.1);
   --font-sans: var(--font-racama), 'Racama', system-ui, -apple-system, sans-serif;
 }
 
 body {
   font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+}
+
+::selection {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }

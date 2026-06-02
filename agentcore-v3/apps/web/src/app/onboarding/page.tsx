@@ -218,7 +218,7 @@ export default function OnboardingPage() {
  </motion.div>
 
  {/* Card */}
- <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden relative">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden relative">
  <div className="px-8 pt-5 pb-0 flex items-center justify-between">
  <span className="text-xs font-medium text-[var(--text-muted)]">Шаг {step + 1} из 2</span>
  <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ export default function OnboardingPage() {
  <motion.div
  initial={{ opacity: 0, y: -6 }}
  animate={{ opacity: 1, y: 0 }}
- className="mx-8 mt-3 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm text-center"
+ className="mx-8 mt-3 p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm text-center"
  >
  {error}
  </motion.div>
@@ -355,7 +355,7 @@ function Step1({
 
  <div className="space-y-4">
  {/* Company Name */}
- <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] transition-all focus-within:ring-2 focus-within:ring-[var(--brand)] focus-within:border-[var(--brand)] focus-within:bg-white">
+ <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] transition-all focus-within:ring-2 focus-within:ring-[var(--brand)] focus-within:border-[var(--brand)] focus-within:bg-surface">
  <label className="block text-xs font-semibold uppercase tracking-label text-[var(--brand)] mb-2">
  Название компании
  </label>
@@ -411,7 +411,7 @@ function Step1({
  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
  selected
  ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-md scale-105'
- : 'bg-white text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:bg-[var(--accent-soft)] hover:text-[var(--brand)]'
+ : 'bg-surface text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:bg-[var(--accent-soft)] hover:text-[var(--brand)]'
  }`}
  >
  {selected && <Check className="w-3 h-3" />}
@@ -423,7 +423,7 @@ function Step1({
  </div>
 
  {/* Website URL */}
- <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] transition-all focus-within:ring-2 focus-within:ring-[var(--brand)] focus-within:border-[var(--brand)] focus-within:bg-white">
+ <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] transition-all focus-within:ring-2 focus-within:ring-[var(--brand)] focus-within:border-[var(--brand)] focus-within:bg-surface">
  <label className="block text-xs font-semibold uppercase tracking-label text-[var(--brand)] mb-2">
  Сайт компании
  </label>
@@ -483,7 +483,7 @@ function Step2({
  className={`flex items-start gap-4 p-4 rounded-xl border text-left transition-all duration-300 ${
  selected
  ? 'bg-[var(--accent-soft)] border-[var(--brand)]/40 shadow-lg ring-1 ring-[var(--brand)]/30'
- : 'bg-[var(--bg)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:shadow-lg hover:bg-white'
+ : 'bg-[var(--bg)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:shadow-lg hover:bg-surface'
  }`}
  >
  <div
@@ -571,7 +571,7 @@ function SelectField({
  placeholder: string;
 }) {
  return (
- <div className="relative p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] transition-all focus-within:ring-2 focus-within:ring-[var(--brand)] focus-within:border-[var(--brand)] focus-within:bg-white">
+ <div className="relative p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] transition-all focus-within:ring-2 focus-within:ring-[var(--brand)] focus-within:border-[var(--brand)] focus-within:bg-surface">
  <label className="block text-xs font-semibold uppercase tracking-label text-[var(--brand)] mb-2">
  {label}
  </label>

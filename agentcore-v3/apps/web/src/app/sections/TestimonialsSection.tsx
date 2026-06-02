@@ -80,7 +80,7 @@ export default function TestimonialsSection() {
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className="absolute inset-0"
               >
-                <div className="bg-white rounded-xl p-6 md:p-8 border border-[var(--border)]">
+                <div className="bg-surface rounded-xl p-6 md:p-8 border border-[var(--border)]">
                   <Quote className="w-8 h-8 text-[var(--brand)]/30 mb-4" />
 
                   <div className="flex gap-1 mb-4">

@@ -149,7 +149,7 @@ export default function OnboardingTour() {
  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
  className="relative z-20 w-[384px] max-w-[92vw]"
  >
- <div className="bg-white rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden">
+ <div className="bg-surface rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden">
  {/* Header */}
  <div className="flex items-center justify-between px-5 pt-5 pb-2">
  <div className="flex items-center gap-3">

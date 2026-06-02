@@ -10,10 +10,15 @@ module.exports = {
         surface: {
           DEFAULT: 'var(--surface)',
           2: 'var(--surface-2)',
+          3: 'var(--surface-3)',
         },
-        border: 'var(--border)',
+        border: {
+          DEFAULT: 'var(--border)',
+          2: 'var(--border-2)',
+        },
         text: {
           DEFAULT: 'var(--text)',
+          secondary: 'var(--text-secondary)',
           muted: 'var(--text-muted)',
         },
         accent: {
@@ -22,35 +27,21 @@ module.exports = {
         },
         brand: {
           DEFAULT: 'var(--brand)',
+          hover: 'var(--brand-hover)',
           light: 'var(--brand-light)',
+          soft: 'var(--brand-soft)',
         },
-        success: 'var(--success)',
-        warning: 'var(--warning)',
-        danger: 'var(--danger)',
-        mauve: {
-          50: '#FDF7FE',
-          100: '#F9EEFC',
-          200: '#F4D3F9',
-          300: '#D4B6D8',
-          400: '#A896AB',
-          500: '#817080',
-          600: '#5A4D59',
-          700: '#4A3D49',
-          800: '#3A2D39',
-          900: '#2A1D29',
+        success: {
+          DEFAULT: 'var(--success)',
+          soft: 'var(--success-soft)',
         },
-        ink: {
-          50: '#F8F9FB',
-          100: '#F0F1F5',
-          150: '#E8EAEF',
-          200: '#E2E4EB',
-          300: '#C5C9D4',
-          400: '#9BA0B0',
-          500: '#6B7080',
-          600: '#4A4F5C',
-          700: '#2D313A',
-          800: '#1A1D23',
-          900: '#111318',
+        warning: {
+          DEFAULT: 'var(--warning)',
+          soft: 'var(--warning-soft)',
+        },
+        danger: {
+          DEFAULT: 'var(--danger)',
+          soft: 'var(--danger-soft)',
         },
       },
       fontFamily: {
@@ -68,6 +59,12 @@ module.exports = {
         display: '-0.02em',
         label: '0.08em',
         heading: '-0.01em',
+      },
+      boxShadow: {
+        xs: 'var(--shadow-xs)',
+        sm: 'var(--shadow-sm)',
+        md: 'var(--shadow-md)',
+        lg: 'var(--shadow-lg)',
       },
       animation: {
         'fade-up': 'fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',

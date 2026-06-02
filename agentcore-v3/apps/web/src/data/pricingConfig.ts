@@ -179,7 +179,7 @@ export const PLAN_CARDS: PlanCard[] = [
  accentColor: 'border-[var(--border)]',
  topBarGradient: 'from-[var(--text-muted)] to-[var(--text-muted)]',
  topBarAccent: 'from-[var(--text-muted)] to-[var(--text-muted)]',
- btnClass: 'bg-white text-[var(--text)] border-2 border-[var(--border)] hover:bg-[var(--accent-soft)] hover:border-[var(--brand)]/40 transition-all duration-200',
+ btnClass: 'bg-surface text-[var(--text)] border-2 border-[var(--border)] hover:bg-[var(--accent-soft)] hover:border-[var(--brand)]/40 transition-all duration-200',
  scale: '',
  },
 ];
@@ -223,9 +223,9 @@ export const UPGRADE_PLANS: UpgradePlan[] = [
  btnLabel: 'Текущий план',
  btnDisabled: true,
  btnIcon: null,
- accentClass: 'border-[var(--border)] bg-white',
+ accentClass: 'border-[var(--border)] bg-surface',
  topBarGradient: 'from-[var(--brand)]/20 to-[var(--brand)]/30',
- btnClass: 'bg-white text-[var(--text)] border border-[var(--border)] hover:bg-[var(--accent-soft)]',
+ btnClass: 'bg-surface text-[var(--text)] border border-[var(--border)] hover:bg-[var(--accent-soft)]',
  },
  {
  id: 'pro',
@@ -276,9 +276,9 @@ export const UPGRADE_PLANS: UpgradePlan[] = [
  btnLabel: 'Связаться с продажами',
  btnDisabled: false,
  btnIcon: Shield,
- accentClass: 'border-[var(--border)] bg-white',
+ accentClass: 'border-[var(--border)] bg-surface',
  topBarGradient: 'from-[var(--text-muted)] to-[var(--text-muted)]',
- btnClass: 'bg-white text-[var(--text)] border border-[var(--border)] hover:bg-[var(--accent-soft)]',
+ btnClass: 'bg-surface text-[var(--text)] border border-[var(--border)] hover:bg-[var(--accent-soft)]',
  },
 ];
 

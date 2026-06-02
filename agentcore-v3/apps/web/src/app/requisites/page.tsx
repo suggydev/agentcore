@@ -74,7 +74,7 @@ export default function RequisitesPage() {
  </div>
  )}
 
- <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6 space-y-6">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6 space-y-6">
  <div>
  <h2 className="font-semibold text-[var(--text)] mb-4">Основные реквизиты</h2>
  <table className="w-full text-sm">

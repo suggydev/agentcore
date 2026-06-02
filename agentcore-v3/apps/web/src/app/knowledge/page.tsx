@@ -270,7 +270,7 @@ export default function KnowledgePage() {
  animate={{ opacity: 1, y: 0, scale: 1 }}
  exit={{ opacity: 0, y: -10, scale: 0.96 }}
  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
- className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-white border border-[var(--border)] shadow-lg"
+ className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-surface border border-[var(--border)] shadow-lg"
  >
  <div className="w-8 h-8 rounded-xl bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
  {toast.icon === 'notion' ? <BookOpen className="w-4 h-4 text-[var(--brand)]" /> : <HardDrive className="w-4 h-4 text-[var(--brand)]" />}
@@ -310,7 +310,7 @@ export default function KnowledgePage() {
  <motion.div
  key={stat.label}
  variants={item}
- className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-5 flex items-center gap-4"
+ className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-5 flex items-center gap-4"
  >
  <div className="w-10 h-10 rounded-xl bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
  <stat.icon className="w-5 h-5 text-[var(--brand)]" />
@@ -332,7 +332,7 @@ export default function KnowledgePage() {
  className={`relative rounded-2xl border-2 border-dashed p-10 text-center cursor-pointer group/upload ${
  dragOver
  ? 'border-[var(--brand)] bg-[var(--accent-soft)] scale-[1.01] shadow-lg '
- : 'border-[var(--border)] bg-white hover:border-[var(--brand)]/40 hover:bg-[var(--accent-soft)]/30'
+ : 'border-[var(--border)] bg-surface hover:border-[var(--brand)]/40 hover:bg-[var(--accent-soft)]/30'
  } transition-all duration-300 ease-out`}
  role="button"
  aria-label="Зона загрузки файлов"
@@ -358,7 +358,7 @@ export default function KnowledgePage() {
 
  <div className="grid sm:grid-cols-3 gap-3 mt-4">
  <div className="flex flex-col">
- <div className={`flex items-center gap-3 bg-white rounded-xl border p-3 ${urlError ? 'border-red-300' : 'border-[var(--border)]'}`}>
+ <div className={`flex items-center gap-3 bg-surface rounded-xl border p-3 ${urlError ? 'border-red-300' : 'border-[var(--border)]'}`}>
  <Globe className="w-5 h-5 text-[var(--brand)] flex-shrink-0" />
  <input
  type="url"
@@ -378,11 +378,11 @@ export default function KnowledgePage() {
  Разобрать
  </button>
  </div>
- {urlError && <p className="mt-1 text-[11px] text-red-500">{urlError}</p>}
+ {urlError && <p className="mt-1 text-[11px] text-danger">{urlError}</p>}
  </div>
  <button
  onClick={() => showComingSoon('notion')}
- className="flex items-center gap-3 bg-white rounded-xl border border-[var(--border)] p-3 text-sm text-[var(--text)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)] transition-all duration-200 group/btn"
+ className="flex items-center gap-3 bg-surface rounded-xl border border-[var(--border)] p-3 text-sm text-[var(--text)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)] transition-all duration-200 group/btn"
  >
  <div className="w-8 h-8 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60 group-hover/btn:scale-105 transition-transform duration-200">
  <BookOpen className="w-4 h-4 text-[var(--brand)]" />
@@ -394,7 +394,7 @@ export default function KnowledgePage() {
  </button>
  <button
  onClick={() => showComingSoon('drive')}
- className="flex items-center gap-3 bg-white rounded-xl border border-[var(--border)] p-3 text-sm text-[var(--text)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)] transition-all duration-200 group/btn"
+ className="flex items-center gap-3 bg-surface rounded-xl border border-[var(--border)] p-3 text-sm text-[var(--text)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)] transition-all duration-200 group/btn"
  >
  <div className="w-8 h-8 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60 group-hover/btn:scale-105 transition-transform duration-200">
  <HardDrive className="w-4 h-4 text-[var(--brand)]" />
@@ -417,7 +417,7 @@ export default function KnowledgePage() {
  value={search}
  onChange={(e) => setSearch(e.target.value)}
  aria-label="Поиск документов"
- className="w-full pl-11 pr-4 py-2.5 bg-white rounded-xl border border-[var(--border)] shadow-sm text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 transition-all duration-200"
+ className="w-full pl-11 pr-4 py-2.5 bg-surface rounded-xl border border-[var(--border)] shadow-sm text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 transition-all duration-200"
  />
  </div>
  </motion.div>
@@ -426,7 +426,7 @@ export default function KnowledgePage() {
  <motion.div variants={container} initial="hidden" animate="show" className="mb-10">
  <h2 className="font-display font-semibold text-lg text-[var(--text)] mb-4">Документы</h2>
  {filteredDocs.length === 0 ? (
- <motion.div variants={item} className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-[var(--border)]">
+ <motion.div variants={item} className="flex flex-col items-center justify-center py-16 text-center bg-surface rounded-2xl border border-[var(--border)]">
  <div className="w-16 h-16 rounded-2xl bg-[var(--accent-soft)] flex items-center justify-center mb-4 ring-1 ring-[var(--border)]/60">
  <FileText className="w-7 h-7 text-[var(--text-muted)]" />
  </div>
@@ -456,7 +456,7 @@ export default function KnowledgePage() {
  key={doc.id}
  variants={item}
  whileHover={{ y: -4, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } }}
- className="relative bg-white rounded-2xl border border-[var(--border)] shadow-sm hover:shadow-lg hover:border-[var(--border)] transition-all duration-300 p-5 group overflow-hidden"
+ className="relative bg-surface rounded-2xl border border-[var(--border)] shadow-sm hover:shadow-lg hover:border-[var(--border)] transition-all duration-300 p-5 group overflow-hidden"
  >
  <div className="flex items-start justify-between mb-3">
  <div className="w-10 h-10 rounded-xl bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60 group-hover:ring-[var(--brand)]/20 group-hover:scale-105 transition-all duration-300">
@@ -466,10 +466,10 @@ export default function KnowledgePage() {
  onClick={() => handleDelete(doc.id)}
  whileHover={{ scale: 1.15 }}
  whileTap={{ scale: 0.9 }}
- className="p-1.5 rounded-lg hover:bg-red-50 transition-all duration-200 opacity-0 group-hover:opacity-100"
+ className="p-1.5 rounded-lg hover:bg-danger-soft transition-all duration-200 opacity-0 group-hover:opacity-100"
  aria-label={`Удалить документ ${doc.title}`}
  >
- <Trash2 className="w-4 h-4 text-red-400 hover:text-red-600 transition-colors" />
+ <Trash2 className="w-4 h-4 text-red-400 hover:text-danger transition-colors" />
  </motion.button>
  </div>
  <h3 className="font-semibold text-[var(--text)] text-sm mb-2 line-clamp-2 group-hover:text-[var(--text)] transition-colors">{doc.title}</h3>
@@ -498,7 +498,7 @@ export default function KnowledgePage() {
  )}
  </motion.div>
 
- <motion.div variants={container} initial="hidden" animate="show" className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6">
+ <motion.div variants={container} initial="hidden" animate="show" className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
  <button
  onClick={() => setShowFAQ(!showFAQ)}
  className="flex items-center justify-between w-full group/faq-header"
@@ -542,7 +542,7 @@ export default function KnowledgePage() {
  onChange={(e) => setNewQuestion(e.target.value)}
  onKeyDown={(e) => e.key === 'Enter' && addFaq()}
  placeholder="например: Какой у вас график работы?"
- className="w-full px-3 py-2.5 bg-white rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200 hover:border-[var(--brand)]/30"
+ className="w-full px-3 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200 hover:border-[var(--brand)]/30"
  />
  </div>
  <div>
@@ -553,7 +553,7 @@ export default function KnowledgePage() {
  onChange={(e) => setNewAnswer(e.target.value)}
  onKeyDown={(e) => e.key === 'Enter' && addFaq()}
  placeholder="например: Мы работаем 9:00 – 18:00 Пн–Пт."
- className="w-full px-3 py-2.5 bg-white rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200 hover:border-[var(--brand)]/30"
+ className="w-full px-3 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200 hover:border-[var(--brand)]/30"
  />
  </div>
  </div>
@@ -612,10 +612,10 @@ export default function KnowledgePage() {
  onClick={() => removeFaq(faq.id)}
  whileHover={{ scale: 1.15 }}
  whileTap={{ scale: 0.9 }}
- className="p-1.5 rounded-lg hover:bg-red-50 transition-all duration-200 opacity-0 group-hover/faq:opacity-100"
+ className="p-1.5 rounded-lg hover:bg-danger-soft transition-all duration-200 opacity-0 group-hover/faq:opacity-100"
  aria-label={`Удалить FAQ: ${faq.question}`}
  >
- <Trash2 className="w-3.5 h-3.5 text-red-400 hover:text-red-600 transition-colors" />
+ <Trash2 className="w-3.5 h-3.5 text-red-400 hover:text-danger transition-colors" />
  </motion.button>
  </motion.div>
  ))}

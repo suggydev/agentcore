@@ -66,7 +66,7 @@ export default function CapabilitiesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05, duration: 0.4 }}
-              className="p-6 rounded-xl bg-white border border-[var(--border)]"
+              className="p-6 rounded-xl bg-surface border border-[var(--border)]"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] flex items-center justify-center mb-5">
                 <cap.icon className="w-6 h-6 text-[var(--brand)]" />

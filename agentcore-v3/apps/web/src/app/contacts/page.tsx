@@ -48,51 +48,51 @@ export default function ContactsPage() {
  <p className="text-sm text-[var(--text-muted)] mb-10">Свяжитесь с нами любым удобным способом</p>
 
  <div className="grid sm:grid-cols-2 gap-4 mb-10">
- <div className="bg-white rounded-2xl border border-[var(--border)] p-6 shadow-sm">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] p-6 shadow-sm">
  <Mail className="w-6 h-6 text-[var(--brand)] mb-3" />
  <h3 className="font-semibold text-[var(--text)] mb-1">Email</h3>
  <a href={`mailto:${email}`} className="text-sm text-[var(--brand)] hover:text-[var(--brand)]">{email}</a>
  <p className="text-xs text-[var(--text-muted)] mt-1">Общие вопросы</p>
  </div>
- <div className="bg-white rounded-2xl border border-[var(--border)] p-6 shadow-sm">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] p-6 shadow-sm">
  <Mail className="w-6 h-6 text-[var(--brand)] mb-3" />
  <h3 className="font-semibold text-[var(--text)] mb-1">Поддержка</h3>
  <a href={`mailto:${email}`} className="text-sm text-[var(--brand)] hover:text-[var(--brand)]">{email}</a>
  <p className="text-xs text-[var(--text-muted)] mt-1">Техническая поддержка</p>
  </div>
- <div className="bg-white rounded-2xl border border-[var(--border)] p-6 shadow-sm">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] p-6 shadow-sm">
  <Phone className="w-6 h-6 text-[var(--brand)] mb-3" />
  <h3 className="font-semibold text-[var(--text)] mb-1">Телефон</h3>
  <a href={`tel:${phone}`} className="text-sm text-[var(--brand)] hover:text-[var(--brand)]">{phone}</a>
  <p className="text-xs text-[var(--text-muted)] mt-1">{workingHours}</p>
  </div>
- <div className="bg-white rounded-2xl border border-[var(--border)] p-6 shadow-sm">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] p-6 shadow-sm">
  <Clock className="w-6 h-6 text-[var(--brand)] mb-3" />
  <h3 className="font-semibold text-[var(--text)] mb-1">Время работы</h3>
  <p className="text-sm text-[var(--text)]">{workingHours}</p>
  <p className="text-xs text-[var(--text-muted)] mt-1">AI-агенты работают 24/7</p>
  </div>
  {telegram && (
- <div className="bg-white rounded-2xl border border-[var(--border)] p-6 shadow-sm">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] p-6 shadow-sm">
  <h3 className="font-semibold text-[var(--text)] mb-1">Telegram</h3>
  <a href={`https://t.me/${telegram}`} target="_blank" className="text-sm text-[var(--brand)] hover:text-[var(--brand)]">@{telegram}</a>
  </div>
  )}
  {whatsapp && (
- <div className="bg-white rounded-2xl border border-[var(--border)] p-6 shadow-sm">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] p-6 shadow-sm">
  <h3 className="font-semibold text-[var(--text)] mb-1">WhatsApp</h3>
  <a href={`https://wa.me/${whatsapp.replace(/[+]/g, '')}`} target="_blank" className="text-sm text-[var(--brand)] hover:text-[var(--brand)]">{whatsapp}</a>
  </div>
  )}
  {instagram && (
- <div className="bg-white rounded-2xl border border-[var(--border)] p-6 shadow-sm">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] p-6 shadow-sm">
  <h3 className="font-semibold text-[var(--text)] mb-1">Instagram</h3>
  <a href={`https://instagram.com/${instagram}`} target="_blank" className="text-sm text-[var(--brand)] hover:text-[var(--brand)]">@{instagram}</a>
  </div>
  )}
  </div>
 
- <div className="bg-white rounded-2xl border border-[var(--border)] p-6 shadow-sm">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] p-6 shadow-sm">
  <h2 className="font-semibold text-[var(--text)] mb-3 flex items-center gap-2"><MapPin className="w-5 h-5 text-[var(--brand)]" /> Адрес</h2>
  <p className="text-sm text-[var(--text)]">{physicalAddress}</p>
  </div>

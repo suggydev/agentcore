@@ -90,7 +90,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
  return (
  <div className="min-h-screen bg-[var(--bg)]">
- <aside className="hidden lg:flex fixed inset-y-0 left-0 w-[240px] flex-col z-40 bg-white/75 backdrop-blur-2xl backdrop-saturate-150 border-r border-[var(--border)]">
+ <aside className="hidden lg:flex fixed inset-y-0 left-0 w-[240px] flex-col z-40 bg-surface/75 backdrop-blur-2xl backdrop-saturate-150 border-r border-[var(--border)]">
  <SidebarContent
  isActive={isActive}
  balance={balance}
@@ -104,7 +104,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
  <button
  type="button"
- className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white/80 backdrop-blur-xl border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow duration-200"
+ className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-surface/80 backdrop-blur-xl border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow duration-200"
  onClick={toggleMobile}
  aria-label={mobileOpen ? 'Закрыть меню' : 'Открыть меню'}
  >
@@ -123,7 +123,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
  onClick={closeMobile}
  />
  <motion.aside
- className="fixed inset-y-0 left-0 w-[280px] z-50 bg-white/95 backdrop-blur-2xl backdrop-saturate-150 border-r border-[var(--border)] flex flex-col lg:hidden shadow-2xl"
+ className="fixed inset-y-0 left-0 w-[280px] z-50 bg-surface/95 backdrop-blur-2xl backdrop-saturate-150 border-r border-[var(--border)] flex flex-col lg:hidden shadow-2xl"
  initial={{ x: '-105%' }}
  animate={{ x: 0 }}
  exit={{ x: '-105%' }}
@@ -140,7 +140,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
  />
  <button
  type="button"
- className="absolute top-4 right-4 p-2.5 rounded-xl bg-white/90 border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--accent-soft)] transition-colors duration-200 lg:hidden"
+ className="absolute top-4 right-4 p-2.5 rounded-xl bg-surface/90 border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--accent-soft)] transition-colors duration-200 lg:hidden"
  onClick={closeMobile}
  aria-label="Закрыть меню"
  >
@@ -155,7 +155,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
  className="lg:ml-[240px] min-h-screen"
  style={{ backgroundImage: 'radial-gradient(circle, rgba(90,77,89,0.03) 1px, transparent 1px)', backgroundSize: '32px 32px' }}
  >
- <div className="fixed top-4 right-4 z-50 hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-sm text-xs font-mono">
+ <div className="fixed top-4 right-4 z-50 hidden lg:flex items-center gap-2 px-3 py-1.5 bg-surface/90 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-sm text-xs font-mono">
  <span className="text-[var(--brand)]">Баланс</span>
  <span className="font-bold text-[var(--text)]">${balance.toFixed(2)}</span>
  </div>

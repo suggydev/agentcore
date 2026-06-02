@@ -106,7 +106,7 @@ export default function AgentReadyScreen({ agent, testPrompts, onClose }: AgentR
  animate={{ scale: 1, opacity: 1 }}
  transition={{ type: 'spring', stiffness: 120, damping: 16, delay: 0.1 }}
  >
- <div className="rounded-3xl border border-white/60 bg-white/70 p-8 shadow-2xl backdrop-blur-xl sm:p-10">
+ <div className="rounded-3xl border border-white/60 bg-surface/70 p-8 shadow-2xl backdrop-blur-xl sm:p-10">
  <div className="flex flex-col items-center text-center">
  <motion.div
  className="relative mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--brand)] to-[var(--brand)]/60 shadow-lg"
@@ -156,7 +156,7 @@ export default function AgentReadyScreen({ agent, testPrompts, onClose }: AgentR
  <motion.a
  key={card.href}
  href={href}
- className="group relative flex flex-col items-center gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border)]/80 hover:shadow-md sm:p-6"
+ className="group relative flex flex-col items-center gap-3 rounded-2xl border border-[var(--border)] bg-surface p-5 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border)]/80 hover:shadow-md sm:p-6"
  variants={{
  hidden: { opacity: 0, y: 20 },
  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
@@ -189,7 +189,7 @@ export default function AgentReadyScreen({ agent, testPrompts, onClose }: AgentR
  className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-300 ${
  activePrompt === prompt
  ? 'border-[var(--brand)]/40 bg-[var(--accent-soft)] text-[var(--brand)] shadow-sm'
- : 'border-[var(--border)] bg-white text-[var(--text)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)] hover:text-[var(--brand)]'
+ : 'border-[var(--border)] bg-surface text-[var(--text)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)] hover:text-[var(--brand)]'
  }`}
  onClick={() => handlePromptClick(prompt)}
  whileHover={{ scale: 1.03 }}
@@ -221,7 +221,7 @@ export default function AgentReadyScreen({ agent, testPrompts, onClose }: AgentR
  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--border)]">
  <span className="text-xs font-bold text-[var(--brand)]">U</span>
  </div>
- <div className="rounded-2xl rounded-tl-md bg-white px-3.5 py-2 text-sm text-[var(--text)] shadow-sm">
+ <div className="rounded-2xl rounded-tl-md bg-surface px-3.5 py-2 text-sm text-[var(--text)] shadow-sm">
  {activePrompt}
  </div>
  </motion.div>
@@ -251,7 +251,7 @@ export default function AgentReadyScreen({ agent, testPrompts, onClose }: AgentR
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.3, delay: 0.25 }}
  >
- <div className="flex flex-1 items-center gap-2 rounded-full border border-[var(--border)] bg-white px-3 py-1.5">
+ <div className="flex flex-1 items-center gap-2 rounded-full border border-[var(--border)] bg-surface px-3 py-1.5">
  <span className="text-xs text-[var(--text-muted)]">Напишите сообщение...</span>
  </div>
  <div
@@ -284,7 +284,7 @@ export default function AgentReadyScreen({ agent, testPrompts, onClose }: AgentR
  </motion.div>
 
  <motion.button
- className="mt-8 inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-white px-6 py-3 text-sm font-semibold text-[var(--text)] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--border)] hover:bg-[var(--surface-2)] hover:shadow-md active:scale-[0.98]"
+ className="mt-8 inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-surface px-6 py-3 text-sm font-semibold text-[var(--text)] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--border)] hover:bg-[var(--surface-2)] hover:shadow-md active:scale-[0.98]"
  onClick={onClose}
  initial={{ opacity: 0, y: 12 }}
  animate={{ opacity: 1, y: 0 }}

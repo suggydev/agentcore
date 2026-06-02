@@ -211,7 +211,7 @@ export default function SettingsPage() {
  </motion.div>
  </motion.div>
 
- <motion.div variants={item} initial="hidden" animate="show" className="flex gap-1 mb-8 bg-white rounded-xl border border-[var(--border)] p-1 shadow-sm overflow-x-auto" role="tablist" aria-label="Разделы настроек">
+ <motion.div variants={item} initial="hidden" animate="show" className="flex gap-1 mb-8 bg-surface rounded-xl border border-[var(--border)] p-1 shadow-sm overflow-x-auto" role="tablist" aria-label="Разделы настроек">
  {TABS.map((tab) => {
  const Icon = tab.icon;
  const active = activeTab === tab.id;
@@ -238,7 +238,7 @@ export default function SettingsPage() {
 
  <div role="tabpanel" id={`tabpanel-${activeTab}`}>
  {activeTab === 'profile' && (
- <motion.div variants={container} initial="hidden" animate="show" className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6">
+ <motion.div variants={container} initial="hidden" animate="show" className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
  <div className="flex items-center justify-between gap-4 mb-6 pb-5 border-b border-[var(--border)]">
  <div className="flex items-center gap-3">
  <div className="w-9 h-9 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
@@ -269,7 +269,7 @@ export default function SettingsPage() {
  value={profile.name}
  onChange={(e) => { setProfile((p) => ({ ...p, name: e.target.value })); setProfileSaved(false); }}
  placeholder="Ваше имя"
- className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
+ className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
  />
  </div>
  <div>
@@ -279,7 +279,7 @@ export default function SettingsPage() {
  value={profile.email}
  onChange={(e) => { setProfile((p) => ({ ...p, email: e.target.value })); setProfileSaved(false); }}
  placeholder="you@example.com"
- className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
+ className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
  />
  </div>
  <div>
@@ -290,7 +290,7 @@ export default function SettingsPage() {
  value={newPassword}
  onChange={(e) => { setNewPassword(e.target.value); setPasswordSaved(false); setPasswordError(''); }}
  placeholder="Минимум 6 символов"
- className="flex-1 px-3.5 py-2.5 bg-white rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
+ className="flex-1 px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
  />
  <button
  onClick={changePassword}
@@ -305,7 +305,7 @@ export default function SettingsPage() {
  {passwordSaved ? 'Сохранено' : 'Сменить'}
  </button>
  </div>
- {passwordError && <p className="mt-1 text-xs text-red-500">{passwordError}</p>}
+ {passwordError && <p className="mt-1 text-xs text-danger">{passwordError}</p>}
  </div>
  </div>
  </motion.div>
@@ -314,7 +314,7 @@ export default function SettingsPage() {
  {activeTab === 'subscription' && (
  <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
  {planInfo && (
- <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
  <div className="flex items-center gap-4">
  <div className="w-12 h-12 rounded-xl bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
  <CreditCard className="w-6 h-6 text-[var(--brand)]" />
@@ -329,7 +329,7 @@ export default function SettingsPage() {
  </div>
  </div>
  )}
- <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
  <h2 className="font-display font-semibold text-lg text-[var(--text)] mb-4">Изменить план</h2>
  <div className="grid sm:grid-cols-2 gap-4">
  <Link
@@ -366,7 +366,7 @@ export default function SettingsPage() {
  {activeTab === 'billing' && (
  <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
  <div className="grid lg:grid-cols-3 gap-4">
- <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6 group hover:shadow-md transition-all duration-300">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6 group hover:shadow-md transition-all duration-300">
  <div className="flex items-center gap-3">
  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[var(--accent-soft)] to-[var(--border)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
  <Wallet className="w-5 h-5 text-[var(--brand)]" />
@@ -381,7 +381,7 @@ export default function SettingsPage() {
  </div>
  <div className="bg-[var(--accent-soft)] rounded-2xl border border-[var(--border)] p-6 group hover:shadow-md transition-all duration-300">
  <div className="flex items-center gap-3">
- <div className="w-11 h-11 rounded-xl bg-white/90 flex items-center justify-center ring-1 ring-[var(--brand)]/20/60">
+ <div className="w-11 h-11 rounded-xl bg-surface/90 flex items-center justify-center ring-1 ring-[var(--brand)]/20/60">
  <Gift className="w-5 h-5 text-[var(--brand)]" />
  </div>
  <div>
@@ -393,7 +393,7 @@ export default function SettingsPage() {
  </div>
  </div>
  </div>
- <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6 group hover:shadow-md transition-all duration-300">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6 group hover:shadow-md transition-all duration-300">
  <div className="flex items-center gap-3">
  <div className="w-11 h-11 rounded-xl bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
  <Coins className="w-5 h-5 text-[var(--brand)]" />
@@ -409,14 +409,14 @@ export default function SettingsPage() {
  </div>
  </div>
 
- <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
  <h2 className="font-display font-semibold text-lg text-[var(--text)] mb-4 flex items-center gap-2">
  <Plus className="w-5 h-5 text-[var(--brand)]" />
  Пополнить баланс
  </h2>
  <p className="text-sm text-[var(--text-muted)] mb-4">Средства пополнения не сгорают и суммируются с кредитами подписки.</p>
- {topUpError && <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm mb-3">{topUpError}</div>}
- {topUpSuccess && <div className="p-3 rounded-xl bg-green-50 border border-green-100 text-green-600 text-sm mb-3">{topUpSuccess}</div>}
+ {topUpError && <div className="p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm mb-3">{topUpError}</div>}
+ {topUpSuccess && <div className="p-3 rounded-xl bg-success-soft border border-green-100 text-success text-sm mb-3">{topUpSuccess}</div>}
  <div className="flex flex-col sm:flex-row gap-3">
  <div className="relative flex-1">
  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm font-medium">$</span>
@@ -427,7 +427,7 @@ export default function SettingsPage() {
  value={topUpAmount}
  onChange={(e) => { setTopUpAmount(e.target.value); setTopUpError(''); }}
  placeholder="10"
- className={`w-full pl-8 pr-4 py-3 rounded-xl border bg-white focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all text-[var(--text)] text-sm ${topUpError ? 'border-red-300' : 'border-[var(--border)]'}`}
+ className={`w-full pl-8 pr-4 py-3 rounded-xl border bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all text-[var(--text)] text-sm ${topUpError ? 'border-red-300' : 'border-[var(--border)]'}`}
  />
  </div>
  <button
@@ -447,7 +447,7 @@ export default function SettingsPage() {
  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 border ${
  topUpAmount === String(amt)
  ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-sm scale-105'
- : 'bg-white text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:text-[var(--brand)]'
+ : 'bg-surface text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:text-[var(--brand)]'
  }`}
  >
  ${amt}
@@ -456,7 +456,7 @@ export default function SettingsPage() {
  </div>
  </div>
 
- <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
  <h2 className="font-display font-semibold text-lg text-[var(--text)] mb-4">История платежей</h2>
  <div className="flex flex-col items-center justify-center py-12 text-center">
  <div className="w-16 h-16 rounded-2xl bg-[var(--accent-soft)] flex items-center justify-center mb-4 ring-1 ring-[var(--border)]/60">
@@ -470,7 +470,7 @@ export default function SettingsPage() {
  )}
 
  {activeTab === 'team' && (
- <motion.div variants={container} initial="hidden" animate="show" className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6">
+ <motion.div variants={container} initial="hidden" animate="show" className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
  <div className="flex items-center gap-3 mb-4">
  <div className="w-9 h-9 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
  <Users className="w-[18px] h-[18px] text-[var(--brand)]" />
@@ -492,7 +492,7 @@ export default function SettingsPage() {
 
  {activeTab === 'security' && (
  <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
- <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6">
+ <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
  <div className="flex items-center gap-3 mb-4">
  <div className="w-9 h-9 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
  <Shield className="w-[18px] h-[18px] text-[var(--brand)]" />

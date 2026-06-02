@@ -264,7 +264,7 @@ export default function AgentsPage() {
       </AnimatePresence>
 
       {creating && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-text/10 backdrop-blur-sm z-50 flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-[var(--brand)] animate-spin" />
         </div>
       )}

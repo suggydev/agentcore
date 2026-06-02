@@ -39,7 +39,7 @@ export default function UseCasesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.06, duration: 0.4 }}
-              className="p-7 rounded-xl bg-white border border-[var(--border)]"
+              className="p-7 rounded-xl bg-surface border border-[var(--border)]"
             >
               <div className="text-5xl mb-5">{useCase.emoji}</div>
               <h3 className="heading-4 text-[var(--text)] mb-2">{useCase.title}</h3>

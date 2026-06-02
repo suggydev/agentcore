@@ -28,7 +28,7 @@ const NODE_TYPES_MAP = [
  { type: 'faq', label: 'FAQ', icon: HelpCircle, color: 'bg-[var(--bg)] border-[var(--border)]', iconColor: 'text-[var(--text)]', subtitle: 'Ответы на вопросы' },
  { type: 'escalation', label: 'Эскалация', icon: AlertTriangle, color: 'bg-amber-50 border-amber-200', iconColor: 'text-amber-600', subtitle: 'Передать человеку' },
  { type: 'integration', label: 'Интеграция', icon: Blocks, color: 'bg-blue-50 border-blue-200', iconColor: 'text-blue-600', subtitle: 'API / webhook' },
- { type: 'memory', label: 'Память', icon: Database, color: 'bg-green-50 border-green-200', iconColor: 'text-green-600', subtitle: 'Хранение контекста' },
+ { type: 'memory', label: 'Память', icon: Database, color: 'bg-success-soft border-green-200', iconColor: 'text-success', subtitle: 'Хранение контекста' },
  { type: 'handoff', label: 'Передача', icon: Users, color: 'bg-orange-50 border-orange-200', iconColor: 'text-orange-600', subtitle: 'Перехват человеком' },
 ];
 
@@ -39,7 +39,7 @@ function CustomNode({ data, selected }: NodeProps) {
  <div className={`px-4 py-3 rounded-xl border-2 shadow-sm min-w-[160px] transition-all duration-200 ${config.color} ${selected ? 'ring-2 ring-[var(--brand)] scale-105' : ''}`}>
  <Handle type="target" position={Position.Top} className="!bg-[var(--brand)]/30 !w-3 !h-3" />
  <div className="flex items-center gap-2">
- <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${config.iconColor === 'text-[var(--brand)]' ? 'bg-[var(--border)]' : 'bg-white'}`}>
+ <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${config.iconColor === 'text-[var(--brand)]' ? 'bg-[var(--border)]' : 'bg-surface'}`}>
  <Icon className={`w-3.5 h-3.5 ${config.iconColor}`} />
  </div>
  <div>
@@ -201,14 +201,14 @@ export default function BrainMapPage() {
  <>
  <div className="h-screen flex flex-col">
  {/* Toolbar */}
- <div className="flex items-center gap-3 px-5 py-3 bg-white border-b border-[var(--border)] z-10">
+ <div className="flex items-center gap-3 px-5 py-3 bg-surface border-b border-[var(--border)] z-10">
  <ArrowLeft className="w-4 h-4 text-[var(--text-muted)]" />
  <h1 className="font-semibold text-[var(--text)] text-sm">Редактор карты мозга агента <InfoTooltip content="Визуальный редактор логики агента. Добавляйте узлы (приветствие, FAQ, эскалация и др.), соединяйте их рёбрами и настраивайте сценарии диалогов." className="ml-1" /></h1>
  <div className="flex-1" />
  <select
  value={selectedAgent}
  onChange={e => setSelectedAgent(e.target.value)}
- className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs text-[var(--text)] bg-white focus:ring-2 focus-visible:ring-[var(--brand)]"
+ className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs text-[var(--text)] bg-surface focus:ring-2 focus-visible:ring-[var(--brand)]"
  >
  <option value="">Выберите агента...</option>
  {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -221,13 +221,13 @@ export default function BrainMapPage() {
  <AnimatePresence>
  {showAddMenu && (
  <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
- className="absolute top-full mt-1 right-0 bg-white rounded-xl border border-[var(--border)] shadow-xl p-1.5 z-50 min-w-[180px]">
+ className="absolute top-full mt-1 right-0 bg-surface rounded-xl border border-[var(--border)] shadow-xl p-1.5 z-50 min-w-[180px]">
  {NODE_TYPES_MAP.map(nt => {
  const DdIcon = nt.icon;
  return (
  <button key={nt.type} onClick={() => addNode(nt.type)}
  className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg hover:bg-[var(--accent-soft)] text-xs text-[var(--text)] transition-colors">
- <div className={`w-6 h-6 rounded-md flex items-center justify-center ${nt.iconColor === 'text-[var(--brand)]' ? 'bg-[var(--accent-soft)]' : 'bg-white border border-[var(--border)]'}`}>
+ <div className={`w-6 h-6 rounded-md flex items-center justify-center ${nt.iconColor === 'text-[var(--brand)]' ? 'bg-[var(--accent-soft)]' : 'bg-surface border border-[var(--border)]'}`}>
  <DdIcon className={`w-3 h-3 ${nt.iconColor}`} />
  </div>
  <span className="font-medium">{nt.label}</span>
@@ -271,7 +271,7 @@ export default function BrainMapPage() {
  animate={{ x: 0, opacity: 1 }}
  exit={{ x: -200, opacity: 0 }}
  transition={{ type: 'spring', damping: 25 }}
- className="w-52 bg-white border-r border-[var(--border)] overflow-y-auto flex-shrink-0 z-20 shadow-lg"
+ className="w-52 bg-surface border-r border-[var(--border)] overflow-y-auto flex-shrink-0 z-20 shadow-lg"
  >
  <div className="p-3">
  <div className="flex items-center justify-between mb-3">
@@ -297,7 +297,7 @@ export default function BrainMapPage() {
  onClick={() => addNode(nt.type)}
  className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg hover:bg-[var(--accent-soft)] text-xs text-[var(--text)] transition-colors text-left group"
  >
- <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${nt.iconColor === 'text-[var(--brand)]' ? 'bg-[var(--accent-soft)] group-hover:bg-[var(--border)]' : 'bg-white border border-[var(--border)] group-hover:border-[var(--border)]'}`}>
+ <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${nt.iconColor === 'text-[var(--brand)]' ? 'bg-[var(--accent-soft)] group-hover:bg-[var(--border)]' : 'bg-surface border border-[var(--border)] group-hover:border-[var(--border)]'}`}>
  <NIcon className={`w-3.5 h-3.5 ${nt.iconColor}`} />
  </div>
  <div className="min-w-0">
@@ -343,7 +343,7 @@ export default function BrainMapPage() {
  deleteKeyCode="Delete"
  >
  <Background color="#E8EAEF" gap={24} size={1} />
- <Controls className="[&>button]:bg-white [&>button]:border-[var(--border)] [&>button]:text-[var(--brand)] [&>button]:rounded-lg [&>button]:shadow-sm [&>button:hover]:bg-[var(--accent-soft)]" />
+ <Controls className="[&>button]:bg-surface [&>button]:border-[var(--border)] [&>button]:text-[var(--brand)] [&>button]:rounded-lg [&>button]:shadow-sm [&>button:hover]:bg-[var(--accent-soft)]" />
  <MiniMap nodeColor="#FDF7FE" maskColor="rgba(248,249,251,0.85)"
  style={{ border: '1px solid #E2E4EB', borderRadius: '10px' }} />
  </ReactFlow>
@@ -356,7 +356,7 @@ export default function BrainMapPage() {
  {panel && (
  <motion.div initial={{ x: 400, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 400, opacity: 0 }}
  transition={{ type: 'spring', damping: 25 }}
- className="fixed right-0 top-0 bottom-0 w-80 bg-white border-l border-[var(--border)] shadow-2xl z-50 overflow-y-auto">
+ className="fixed right-0 top-0 bottom-0 w-80 bg-surface border-l border-[var(--border)] shadow-2xl z-50 overflow-y-auto">
  <div className="p-5">
  <div className="flex items-center justify-between mb-5">
  <h3 className="font-semibold text-[var(--text)] text-sm">Редактировать узел</h3>
@@ -402,7 +402,7 @@ export default function BrainMapPage() {
  </button>
  <div className="border-t border-[var(--border)] pt-3">
  <button onClick={() => { pushUndo(); setNodes(nds => nds.filter(n => n.id !== panel.nodeId)); setPanel(null); }}
- className="w-full py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 hover:border-red-300 transition-all duration-200">
+ className="w-full py-2.5 rounded-xl border border-danger-soft text-danger text-sm font-medium hover:bg-danger-soft hover:border-red-300 transition-all duration-200">
  Удалить узел
  </button>
  </div>

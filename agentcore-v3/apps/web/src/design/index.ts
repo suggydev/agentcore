@@ -21,4 +21,3 @@ export { ThemeProvider, useTheme } from '@/design/ThemeProvider';
 export { t } from '@/design/i18n';
 
 export { tokens } from '@/design/tokens';
-export type { ThemeMode } from '@/design/tokens';

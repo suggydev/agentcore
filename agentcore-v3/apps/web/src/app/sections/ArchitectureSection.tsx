@@ -9,28 +9,24 @@ const LAYERS = [
     subtitle: 'Web · Чат · API · Голос',
     icon: Users,
     tags: ['Web', 'Telegram', 'WhatsApp', 'API'],
-    dark: false,
   },
   {
     title: 'Маршрутизатор',
     subtitle: 'Smart-модели · Классификация задач',
     icon: Workflow,
     tags: ['Code', 'Vision', 'Creative', 'Analysis', 'General', 'Voice'],
-    dark: false,
   },
   {
     title: 'Слой обработки',
     subtitle: 'Специализированные модели · Параллельное исполнение',
     icon: Zap,
     tags: [],
-    dark: false,
   },
   {
     title: 'Выход и хранение',
     subtitle: 'Структурированные ответы · Аудит · Аналитика',
     icon: Database,
     tags: ['Диалоги', 'CRM', 'База знаний', 'Отчёты'],
-    dark: true,
   },
 ];
 
@@ -63,20 +59,20 @@ export default function ArchitectureSection() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.08, duration: 0.4 }}
               className={`rounded-xl border p-5 ${
-                layer.dark
+                i === LAYERS.length - 1
                   ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
-                  : 'bg-white border-[var(--border)]'
+                  : 'bg-surface border-[var(--border)]'
               }`}
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                  layer.dark ? 'bg-white/10' : 'bg-[var(--surface-2)]'
+                  i === LAYERS.length - 1 ? 'bg-surface/10' : 'bg-[var(--surface-2)]'
                 }`}>
-                  <layer.icon className={`w-4 h-4 ${layer.dark ? 'text-white' : 'text-[var(--brand)]'}`} />
+                  <layer.icon className={`w-4 h-4 ${i === LAYERS.length - 1 ? 'text-white' : 'text-[var(--brand)]'}`} />
                 </div>
                 <div>
-                  <div className={`font-semibold text-sm ${layer.dark ? 'text-white' : 'text-[var(--text)]'}`}>{layer.title}</div>
-                  <div className={`text-xs ${layer.dark ? 'text-white/60' : 'text-[var(--text-muted)]'}`}>{layer.subtitle}</div>
+                  <div className={`font-semibold text-sm ${i === LAYERS.length - 1 ? 'text-white' : 'text-[var(--text)]'}`}>{layer.title}</div>
+                  <div className={`text-xs ${i === LAYERS.length - 1 ? 'text-white/60' : 'text-[var(--text-muted)]'}`}>{layer.subtitle}</div>
                 </div>
               </div>
 
@@ -86,8 +82,8 @@ export default function ArchitectureSection() {
                     <span
                       key={tag}
                       className={`px-2.5 py-1 rounded-md text-[11px] font-semibold ${
-                        layer.dark
-                          ? 'bg-white/10 text-white/80'
+                        i === LAYERS.length - 1
+                          ? 'bg-surface/10 text-white/80'
                           : 'bg-[var(--surface-2)] text-[var(--text)]'
                       }`}
                     >

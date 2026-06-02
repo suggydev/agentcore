@@ -44,7 +44,7 @@ export default function PricingSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="w-full max-w-md relative"
           >
-            <div className="relative p-7 rounded-xl border border-[var(--border)] bg-white">
+            <div className="relative p-7 rounded-xl border border-[var(--border)] bg-surface">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                 <span className="px-4 py-1 rounded-full bg-[var(--accent)] text-white text-[11px] font-semibold flex items-center gap-1">
                   <Zap className="w-3 h-3" />
@@ -88,7 +88,7 @@ export default function PricingSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full max-w-md"
           >
-            <div className="p-5 rounded-xl border border-[var(--border)] bg-white">
+            <div className="p-5 rounded-xl border border-[var(--border)] bg-surface">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-mono-display font-semibold text-sm text-[var(--text)] mb-0.5">

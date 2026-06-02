@@ -175,7 +175,7 @@ export default function SidebarContent({
  <button
  type="button"
  onClick={onOpenCommandPalette}
- className="flex items-center justify-between w-full px-3 py-2.5 rounded-lg bg-white/60 hover:bg-white/90 border border-[var(--border)] hover:border-[var(--border)]/50 transition-all duration-200 hover:shadow-sm"
+ className="flex items-center justify-between w-full px-3 py-2.5 rounded-lg bg-surface/60 hover:bg-surface/90 border border-[var(--border)] hover:border-[var(--border)]/50 transition-all duration-200 hover:shadow-sm"
  >
  <div className="flex items-center gap-2.5 text-xs text-[var(--text-muted)]">
  <Search size={14} />
@@ -228,7 +228,7 @@ export default function SidebarContent({
  animate={{ opacity: 1, y: 0, scale: 1 }}
  exit={{ opacity: 0, y: -4, scale: 0.96 }}
  transition={{ duration: 0.15 }}
- className="absolute bottom-full left-2 right-2 mb-1 bg-white rounded-xl border border-[var(--border)] shadow-lg overflow-hidden z-50"
+ className="absolute bottom-full left-2 right-2 mb-1 bg-surface rounded-xl border border-[var(--border)] shadow-lg overflow-hidden z-50"
  >
  <div className="p-3 border-b border-[var(--border)]">
  <p className="text-sm font-medium text-[var(--text)]">{displayName}</p>
@@ -249,7 +249,7 @@ export default function SidebarContent({
  localStorage.clear();
  window.location.href = '/login';
  }}
- className="flex items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150 w-full text-left"
+ className="flex items-center gap-2.5 px-3 py-2 text-sm text-danger hover:bg-danger-soft transition-colors duration-150 w-full text-left"
  >
  <LogOut size={15} />
  Выйти
