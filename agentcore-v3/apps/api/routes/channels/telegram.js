@@ -121,7 +121,7 @@ async function processWithAgent(botToken, chatId, text, workspaceId, agent, user
     : aiContent;
 
   const telegramProvider = new TelegramProvider({ botToken });
-  await telegramProvider.sendMessage(chatId, finalContent);
+  await telegramProvider.sendMessage(null, chatId, finalContent);
 }
 
 // POST /api/channels/telegram/webhook — приём сообщений от Telegram
@@ -147,7 +147,7 @@ router.post('/webhook', aiLimiter, async (req, res) => {
       if (cbData === '/start') {
         const botToken = req.headers['x-telegram-bot-token'] || '';
         const telegramProvider = new TelegramProvider({ botToken });
-        await telegramProvider.sendMessage(cbChatId, 'Привет! Я AI-агент AgentCore. Чем могу помочь?');
+        await telegramProvider.sendMessage(null, cbChatId, 'Привет! Я AI-агент AgentCore. Чем могу помочь?');
       }
       return res.json({ ok: true });
     }
@@ -169,7 +169,7 @@ router.post('/webhook', aiLimiter, async (req, res) => {
       const workspace = await getWorkspaceByTelegramToken(botToken);
 
       if (!workspace) {
-        await telegramProvider.sendMessage(chatId,
+        await telegramProvider.sendMessage(null, chatId,
           'Привет! Я AI-агент AgentCore. Как я могу вам помочь?\n\nПросто напишите ваш вопрос, и я постараюсь ответить.'
         );
         return res.json({ ok: true });
@@ -183,7 +183,7 @@ router.post('/webhook', aiLimiter, async (req, res) => {
         ? `Привет! Я ${escapeHtml(agent.name)}. ${escapeHtml(agent.description || '') || 'Как я могу вам помочь?'}`
         : 'Привет! Я AI-агент AgentCore. Как я могу вам помочь?';
 
-      await telegramProvider.sendMessage(chatId, greeting);
+      await telegramProvider.sendMessage(null, chatId, greeting);
 
       if (agent) {
         await processWithAgent(botToken, chatId, text, workspace.id, agent, username);
@@ -205,7 +205,7 @@ router.post('/webhook', aiLimiter, async (req, res) => {
       }
     }
 
-    await telegramProvider.sendMessage(chatId,
+    await telegramProvider.sendMessage(null, chatId,
       'Извините, я не могу обработать ваш запрос прямо сейчас. Пожалуйста, попробуйте позже.'
     );
 
@@ -218,7 +218,7 @@ router.post('/webhook', aiLimiter, async (req, res) => {
       if (chatId) {
         const botToken = req.headers['x-telegram-bot-token'] || '';
         const telegramProvider = new TelegramProvider({ botToken });
-        await telegramProvider.sendMessage(chatId,
+        await telegramProvider.sendMessage(null, chatId,
           'Произошла ошибка при обработке вашего сообщения. Пожалуйста, попробуйте позже.'
         );
       }
