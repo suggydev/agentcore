@@ -12,8 +12,7 @@ import { Modal } from '@/design/components/Modal';
 import { useToast } from '@/design/components/Toast';
 import { t } from '@/design/i18n';
 import { useAgentStore } from '@/store/agentStore';
-import { AGENT_TEMPLATES } from '@/data/agentTemplates';
-import TemplateGallery from '@/components/editor/TemplateGallery';
+import CreateAgentForm from '@/components/editor/CreateAgentForm';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -31,19 +30,6 @@ interface Agent {
 
 type FilterType = 'all' | 'active' | 'drafts';
 
-const TEMPLATE_EMOJIS: Record<string, string> = {
-  retail: '🌸',
-  ecommerce: '🛒',
-  saas: '☁️',
-  healthcare: '🏥',
-  realestate: '🏠',
-  consulting: '💼',
-  education: '🎓',
-  hospitality: '🏨',
-  legal: '⚖️',
-  finance: '🏦',
-};
-
 export default function AgentsPage() {
   const router = useRouter();
   const { addToast } = useToast();
@@ -54,8 +40,7 @@ export default function AgentsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
-  const [templateOpen, setTemplateOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [token, setToken] = useState('');
 
   useEffect(() => {
@@ -81,34 +66,17 @@ export default function AgentsPage() {
     setLoading(false);
   }, [token, addToast]);
 
-  const handleTemplateSelect = useCallback(async (templateId: string | null) => {
-    setCreating(true);
+  const handleCreate = useCallback(async (data: { name: string; systemPrompt: string; emoji: string }) => {
     try {
-      let name = 'Новый агент';
-      let systemPrompt = 'Вы полезный AI-ассистент.';
-      let emoji = '🤖';
-
-      if (templateId) {
-        const tmpl = AGENT_TEMPLATES.find((tp) => tp.id === templateId);
-        if (tmpl) {
-          name = tmpl.suggestedName;
-          systemPrompt = tmpl.systemPrompt(
-            tmpl.suggestedName,
-            workspaceSettings.companyName || 'Компания',
-            tmpl.industry
-          );
-          emoji = TEMPLATE_EMOJIS[templateId] || '🤖';
-        }
-      }
-
       const res = await fetch(`${API_BASE}/api/agents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name, systemPrompt, emoji, temperature: 0.7 }),
+        body: JSON.stringify({ name: data.name, systemPrompt: data.systemPrompt, emoji: data.emoji, temperature: 0.7 }),
       });
 
       if (res.ok) {
         const agent = await res.json();
+        setCreateOpen(false);
         router.push(`/agents/${agent.id}`);
       } else {
         addToast({ variant: 'error', message: t('toast.error') });
@@ -116,9 +84,7 @@ export default function AgentsPage() {
     } catch {
       addToast({ variant: 'error', message: t('toast.error') });
     }
-    setCreating(false);
-    setTemplateOpen(false);
-  }, [token, workspaceSettings.companyName, router, addToast]);
+  }, [token, router, addToast]);
 
   const filteredAgents = agents.filter((a) => {
     const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -138,7 +104,7 @@ export default function AgentsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-[var(--brand)] animate-spin" />
+        <Loader2 className="w-8 h-8 text-brand animate-spin" />
       </div>
     );
   }
@@ -147,10 +113,10 @@ export default function AgentsPage() {
     <div className="max-w-5xl mx-auto px-6 py-10">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-[28px] font-semibold text-[var(--text)] tracking-[-0.01em]">{t('agents.title')}</h1>
-          <p className="text-[14px] text-[var(--text-muted)] mt-1">{t('agents.subtitle')}</p>
+          <h1 className="text-[28px] font-semibold text-text tracking-[-0.01em]">{t('agents.title')}</h1>
+          <p className="text-[14px] text-text-muted mt-1">{t('agents.subtitle')}</p>
         </div>
-        <Button variant="primary" onClick={() => setTemplateOpen(true)} aria-label={t('agents.create')}>
+        <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')}>
           <Plus size={16} />
           {t('agents.create')}
         </Button>
@@ -170,10 +136,10 @@ export default function AgentsPage() {
             <button
               key={fb.id}
               onClick={() => setFilter(fb.id)}
-              className={`px-3 py-1.5 rounded-[var(--radius-pill)] text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] ${
+              className={`px-3 py-1.5 rounded-pill text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                 filter === fb.id
-                  ? 'bg-[var(--accent-soft)] text-[var(--brand)]'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text)]'
+                  ? 'bg-accent-soft text-brand'
+                  : 'text-text-muted hover:text-text'
               }`}
               aria-label={fb.label}
             >
@@ -185,9 +151,9 @@ export default function AgentsPage() {
 
       {filteredAgents.length === 0 && agents.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <Brain size={48} className="text-[var(--text-muted)] mb-4" />
-          <p className="text-[16px] font-medium text-[var(--text)] mb-2">{t('agents.createFirst')}</p>
-          <Button variant="primary" onClick={() => setTemplateOpen(true)} aria-label={t('agents.create')}>
+          <Brain size={48} className="text-text-muted mb-4" />
+          <p className="text-[16px] font-medium text-text mb-2">{t('agents.createFirst')}</p>
+          <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')}>
             <Plus size={16} />
             {t('agents.create')}
           </Button>
@@ -207,22 +173,22 @@ export default function AgentsPage() {
                 className="flex flex-col"
               >
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-[var(--radius-button)] bg-[var(--accent-soft)] flex items-center justify-center text-[22px] flex-shrink-0">
+                  <div className="w-10 h-10 rounded-button bg-accent-soft flex items-center justify-center text-[22px] flex-shrink-0">
                     {agent.emoji || '🤖'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-[15px] font-semibold text-[var(--text)] truncate">{agent.name}</h3>
+                    <h3 className="text-[15px] font-semibold text-text truncate">{agent.name}</h3>
                     <StatusBadge
                       variant={agent.isActive ? 'active' : 'draft'}
                       className="mt-1"
                     />
                   </div>
                 </div>
-                <p className="text-[13px] text-[var(--text-muted)] line-clamp-1">
+                <p className="text-[13px] text-text-muted line-clamp-1">
                   {agent.description || agent.systemPrompt.slice(0, 80)}
                 </p>
                 <div className="flex items-center gap-2 mt-3">
-                  <span className="text-[11px] px-2 py-0.5 rounded-[var(--radius-pill)] bg-[var(--surface-2)] text-[var(--text-muted)]">
+                  <span className="text-[11px] px-2 py-0.5 rounded-pill bg-surface-2 text-text-muted">
                     {agent.model.split('/').pop()}
                   </span>
                 </div>
@@ -237,37 +203,32 @@ export default function AgentsPage() {
           >
             <Card
               hoverable
-              onClick={() => setTemplateOpen(true)}
+              onClick={() => setCreateOpen(true)}
               className="flex flex-col items-center justify-center h-full border-dashed min-h-[140px]"
             >
-              <Plus size={24} className="text-[var(--text-muted)] mb-2" />
-              <p className="text-[14px] font-medium text-[var(--text-muted)]">{t('agents.create')}</p>
+              <Plus size={24} className="text-text-muted mb-2" />
+              <p className="text-[14px] font-medium text-text-muted">{t('agents.create')}</p>
             </Card>
           </motion.div>
         </div>
       )}
 
       <AnimatePresence>
-        {templateOpen && (
+        {createOpen && (
           <Modal
-            open={templateOpen}
-            onClose={() => setTemplateOpen(false)}
-            title={t('templates.title')}
+            open={createOpen}
+            onClose={() => setCreateOpen(false)}
+            title="Новый агент"
             size="lg"
           >
-            <TemplateGallery
-              onSelect={handleTemplateSelect}
+            <CreateAgentForm
               companyName={workspaceSettings.companyName || 'Компания'}
+              onSubmit={handleCreate}
+              onCancel={() => setCreateOpen(false)}
             />
           </Modal>
         )}
       </AnimatePresence>
-
-      {creating && (
-        <div className="fixed inset-0 bg-text/10 backdrop-blur-sm z-50 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-[var(--brand)] animate-spin" />
-        </div>
-      )}
     </div>
   );
 }
