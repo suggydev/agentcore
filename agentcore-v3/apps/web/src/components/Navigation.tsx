@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import Logo from './Logo';
-import MagneticButton from './MagneticButton';
 import { useAgentStore } from '@/store/agentStore';
 
 const navItems = [
@@ -34,29 +33,25 @@ export default function Navigation() {
 
   return (
     <>
-      <motion.nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled ? 'glass-surface' : 'bg-transparent'
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-[var(--border)]' : 'bg-transparent'
         }`}
-        initial={{ y: -100 }}
-        animate={{ y: hidden ? -100 : 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        style={{ opacity: hidden ? 0 : 1, transform: hidden ? 'translateY(-100%)' : 'translateY(0)', transition: 'opacity 0.3s, transform 0.3s' }}
       >
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-3.5 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
           <Logo />
 
           <div className="hidden md:flex items-center gap-7">
             {navItems.map((item) => (
               <NavLink key={item.href} href={item.href}>{item.label}</NavLink>
             ))}
-            <MagneticButton strength={0.2}>
-              <a
-                href={isAuthenticated ? '/dashboard' : '/login'}
-                className="btn-primary text-sm py-2 px-5"
-              >
-                {isAuthenticated ? 'Перейти в панель' : 'Попробовать бесплатно'}
-              </a>
-            </MagneticButton>
+            <a
+              href={isAuthenticated ? '/agents' : '/login'}
+              className="btn-primary text-sm py-2 px-5"
+            >
+              {isAuthenticated ? 'Перейти в панель' : 'Попробовать бесплатно'}
+            </a>
           </div>
 
           <button
@@ -65,29 +60,29 @@ export default function Navigation() {
             aria-label="Toggle menu"
           >
             <motion.span
-              className="block w-5 h-px bg-ink-900 rounded-full origin-center"
+              className="block w-5 h-px bg-[var(--text)] rounded-full origin-center"
               animate={mobileOpen ? { rotate: 45, y: 5.5 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.3 }}
             />
             <motion.span
-              className="block w-5 h-px bg-ink-900 rounded-full"
+              className="block w-5 h-px bg-[var(--text)] rounded-full"
               animate={mobileOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
               transition={{ duration: 0.2 }}
             />
             <motion.span
-              className="block w-5 h-px bg-ink-900 rounded-full origin-center"
+              className="block w-5 h-px bg-[var(--text)] rounded-full origin-center"
               animate={mobileOpen ? { rotate: -45, y: -5.5 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.3 }}
             />
           </button>
         </div>
-      </motion.nav>
+      </nav>
 
       <AnimatePresence>
         {mobileOpen && (
           <>
             <motion.div
-              className="fixed inset-0 z-40 bg-ink-900/30 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -95,15 +90,15 @@ export default function Navigation() {
               onClick={closeMobile}
             />
             <motion.div
-              className="fixed top-0 right-0 bottom-0 z-40 w-[280px] bg-white/95 backdrop-blur-2xl flex flex-col md:hidden shadow-2xl"
+              className="fixed top-0 right-0 bottom-0 z-40 w-[280px] bg-white flex flex-col md:hidden"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.3 }}
             >
               <div className="flex-1 flex flex-col justify-center px-8 gap-6">
-                {navItems.map((item, i) => (
-                  <motion.a
+                {navItems.map((item) => (
+                  <a
                     key={item.href}
                     href={item.href}
                     onClick={(e) => {
@@ -114,28 +109,20 @@ export default function Navigation() {
                       }
                       closeMobile();
                     }}
-                    className="text-2xl font-medium text-ink-800 hover:text-ink-900 transition-colors"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 + i * 0.05, duration: 0.3 }}
+                    className="text-2xl font-medium text-[var(--text)] hover:text-[var(--text-muted)] transition-colors"
                   >
                     {item.label}
-                  </motion.a>
+                  </a>
                 ))}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.3 }}
-                  className="pt-4"
-                >
+                <div className="pt-4">
                   <a
-                    href={isAuthenticated ? '/dashboard' : '/login'}
+                    href={isAuthenticated ? '/agents' : '/login'}
                     onClick={closeMobile}
                     className="btn-primary text-sm py-2.5 px-6 inline-block"
                   >
                     {isAuthenticated ? 'Перейти в панель' : 'Попробовать бесплатно'}
                   </a>
-                </motion.div>
+                </div>
               </div>
             </motion.div>
           </>
@@ -160,7 +147,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     <a
       href={href}
       onClick={handleClick}
-      className="text-sm font-medium text-ink-500 hover:text-ink-900 transition-colors underline-animated"
+      className="text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
     >
       {children}
     </a>

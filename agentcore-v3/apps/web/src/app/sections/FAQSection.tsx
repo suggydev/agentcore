@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 const FAQ_ITEMS = [
   {
-    question: 'Сколько времени занимает запуск ИИ-сотрудника?',
+    question: 'Сколько времени занимает запуск цифрового сотрудника?',
     answer:
-      'Буквально 60 секунд. Выберите сферу бизнеса, и агент готов к работе. Остальные настройки можно сделать позже.',
+      'Буквально 2 минуты. Выберите сферу бизнеса, и агент готов к работе. Остальные настройки можно сделать позже.',
   },
   {
     question: 'Нужен ли программист для настройки?',
@@ -32,22 +32,7 @@ const FAQ_ITEMS = [
   },
 ];
 
-const headerContainer = {
-  hidden: {},
-  show: {
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
-};
-
-const headerItem = {
-  hidden: { opacity: 0, y: 35 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
-};
-
 export default function FAQSection() {
-  const sectionRef = useRef<HTMLElement>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const toggle = (idx: number) => {
@@ -55,25 +40,24 @@ export default function FAQSection() {
   };
 
   return (
-    <section ref={sectionRef} id="faq" className="py-20 lg:py-24 section-padding bg-white">
-      <div className="max-w-3xl mx-auto">
+    <section id="faq" className="py-24 bg-[var(--bg)]">
+      <div className="max-w-3xl mx-auto px-6">
         <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: '-100px' }}
-          variants={headerContainer}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
           className="text-center mb-14"
         >
-          <motion.div variants={headerItem} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-mauve-50 border border-mauve-200/30 mb-4">
-            <HelpCircle className="w-3.5 h-3.5 text-mauve-600" />
-            <span className="text-xs font-medium text-mauve-600">FAQ</span>
-          </motion.div>
-          <motion.h2 variants={headerItem} className="heading-2 text-ink-900 mb-3">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-xs font-semibold text-[var(--text)] tracking-wide uppercase mb-4">
+            FAQ
+          </span>
+          <h2 className="heading-2 text-[var(--text)] mb-3">
             Часто задаваемые вопросы
-          </motion.h2>
-          <motion.p variants={headerItem} className="body-large max-w-lg mx-auto">
+          </h2>
+          <p className="body-large max-w-lg mx-auto">
             Всё, что нужно знать перед стартом
-          </motion.p>
+          </p>
         </motion.div>
 
         <div className="space-y-3">
@@ -82,16 +66,16 @@ export default function FAQSection() {
             return (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ delay: i * 0.05, duration: 0.4 }}
               >
                 <div
-                  className={`rounded-xl border transition-colors duration-300 cursor-pointer ${
+                  className={`rounded-xl border transition-colors duration-200 cursor-pointer ${
                     isOpen
-                      ? 'border-mauve-200 bg-white shadow-sm'
-                      : 'border-ink-100 bg-white hover:bg-mauve-50/30'
+                      ? 'border-[var(--border)] bg-white'
+                      : 'border-[var(--border)] bg-white hover:bg-[var(--surface-2)]'
                   }`}
                 >
                   <button
@@ -99,13 +83,13 @@ export default function FAQSection() {
                     className="w-full flex items-center justify-between p-5 text-left"
                     aria-expanded={isOpen}
                   >
-                    <span className="text-lg font-semibold text-ink-900 pr-4">{item.question}</span>
+                    <span className="text-base font-semibold text-[var(--text)] pr-4">{item.question}</span>
                     <motion.span
                       animate={{ rotate: isOpen ? 180 : 0 }}
                       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
                       className="flex-shrink-0"
                     >
-                      <ChevronDown className="w-5 h-5 text-mauve-600" />
+                      <ChevronDown className="w-5 h-5 text-[var(--text-muted)]" />
                     </motion.span>
                   </button>
 
@@ -116,11 +100,11 @@ export default function FAQSection() {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ height: { duration: 0.4, ease: [0.16, 1, 0.3, 1] }, opacity: { duration: 0.25, ease: 'easeOut' } }}
+                        transition={{ height: { duration: 0.3 }, opacity: { duration: 0.2 } }}
                         className="overflow-hidden"
                       >
-                        <div className="px-5 pb-5 border-t border-ink-100">
-                          <p className="text-sm leading-relaxed text-ink-500 pt-4">{item.answer}</p>
+                        <div className="px-5 pb-5 border-t border-[var(--border)]">
+                          <p className="text-sm leading-relaxed text-[var(--text-muted)] pt-4">{item.answer}</p>
                         </div>
                       </motion.div>
                     )}

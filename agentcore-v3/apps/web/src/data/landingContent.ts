@@ -1,20 +1,8 @@
-export interface LandingStat {
-  value: number;
-  suffix: string;
-  label: string;
-}
-
 export interface DemoMessage {
   user: string;
   agent: string;
   userTime: string;
   agentTime: string;
-}
-
-export interface FloatingCard {
-  icon: string;
-  value: string;
-  label: string;
 }
 
 export interface Testimonial {
@@ -32,14 +20,7 @@ export interface UseCase {
   href: string;
 }
 
-export const LANDING_STATS: LandingStat[] = [
-  { value: 60, suffix: ' сек', label: 'На создание агента' },
-  { value: 8, suffix: ' сек', label: 'Среднее время ответа' },
-  { value: 24, suffix: '/7', label: 'Работает без выходных' },
-  { value: 80, suffix: '%', label: 'Задач на автопилоте' },
-];
-
-export const AI_MODELS: string[] = ['OpenAI GPT', 'Anthropic Claude', 'DeepSeek', 'Kimi'];
+export const AI_MODELS: string[] = ['GPT-4', 'DeepSeek', 'Kimi'];
 
 export const COMPANIES_COUNT = '50+ компаний';
 
@@ -50,11 +31,6 @@ export const DEMO_CHAT: DemoMessage = {
   agentTime: '14:02',
 };
 
-export const FLOATING_CARDS: FloatingCard[] = [
-  { icon: '⚡', value: '+150', label: 'заявок за неделю' },
-  { icon: '👥', value: '3+', label: 'Довольные клиенты' },
-];
-
 export const TESTIMONIALS: Testimonial[] = [
   {
     quote: 'AgentCore обрабатывает 200+ заявок в месяц в нашем интернет-магазине. Клиенты получают ответ за 8 секунд, конверсия выросла на 35%. Раньше мы теряли заявки по ночам — теперь каждая получает мгновенный ответ.',
@@ -63,7 +39,7 @@ export const TESTIMONIALS: Testimonial[] = [
     rating: 5,
   },
   {
-    quote: 'Подключили ИИ-консультанта в Telegram для сети салонов. Клиенты записываются сами, агент напоминает о записи, рассказывает об услугах. Неявки сократились в 3 раза, администратор освободил 15 часов в неделю.',
+    quote: 'Подключили цифрового сотрудника в Telegram для сети салонов. Клиенты записываются сами, агент напоминает о записи, рассказывает об услугах. Неявки сократились в 3 раза, администратор освободил 15 часов в неделю.',
     author: 'Гульнара М.',
     role: 'Управляющая сети салонов Glam Studio',
     rating: 5,
@@ -75,7 +51,7 @@ export const TESTIMONIALS: Testimonial[] = [
     rating: 5,
   },
   {
-    quote: 'Интегрировали AI-агента в WhatsApp и Instagram. Раньше клиенты ждали ответа до 2 часов, теперь — меньше минуты. Без программистов, настроили сами за 10 минут. Рекомендую всем владельцам малого бизнеса.',
+    quote: 'Интегрировали агента в WhatsApp и Instagram. Раньше клиенты ждали ответа до 2 часов, теперь — меньше минуты. Без программистов, настроили сами за 10 минут. Рекомендую всем владельцам малого бизнеса.',
     author: 'Алия С.',
     role: 'Владелец цветочного магазина',
     rating: 5,

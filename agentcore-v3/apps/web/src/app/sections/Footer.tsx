@@ -34,59 +34,52 @@ export default function Footer() {
   }, []);
 
   return (
-    <motion.footer
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-      className="bg-white border-t border-ink-200 py-12 section-padding"
-    >
+    <footer className="bg-[var(--surface)] border-t border-[var(--border)] py-12 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-4 gap-10 mb-10">
           <div className="md:col-span-2">
             <Logo className="mb-3" />
-            <p className="text-ink-400 max-w-xs text-sm leading-relaxed">
-              ИИ-сотрудники для вашего бизнеса. Отвечают клиентам 24/7, собирают заявки, помогают продавать. Без программистов.
+            <p className="text-[var(--text-muted)] max-w-xs text-sm leading-relaxed">
+              Цифровые сотрудники для вашего бизнеса. Отвечают клиентам 24/7, собирают заявки, помогают продавать. Без программистов.
             </p>
-            <div className="mt-5 flex items-center gap-3 text-[11px] text-ink-300">
+            <div className="mt-5 flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
               <span className="font-mono">{APP_VERSION}</span>
-              <span className="w-1 h-1 rounded-full bg-ink-200" />
+              <span className="w-1 h-1 rounded-full bg-[var(--border)]" />
               <span>{companyName}</span>
             </div>
           </div>
-          
+
           <div>
-            <h4 className="font-semibold text-ink-900 mb-4 text-xs uppercase tracking-wider">Продукт</h4>
-            <ul className="space-y-3 text-sm text-ink-400">
-              <li><a href="#capabilities" className="hover:text-ink-900 transition-colors underline-animated">Возможности</a></li>
-              <li><a href="#workflow" className="hover:text-ink-900 transition-colors underline-animated">Как работает</a></li>
-              <li><a href="#pricing" className="hover:text-ink-900 transition-colors underline-animated">Тарифы</a></li>
-              <li><a href="/agents" className="hover:text-ink-900 transition-colors underline-animated">Дашборд</a></li>
+            <h4 className="font-semibold text-[var(--text)] mb-4 text-xs uppercase tracking-wider">Продукт</h4>
+            <ul className="space-y-3 text-sm text-[var(--text-muted)]">
+              <li><a href="#capabilities" className="hover:text-[var(--text)] transition-colors">Возможности</a></li>
+              <li><a href="#pricing" className="hover:text-[var(--text)] transition-colors">Тарифы</a></li>
+              <li><a href="/agents" className="hover:text-[var(--text)] transition-colors">Дашборд</a></li>
             </ul>
           </div>
-          
+
           <div>
-            <h4 className="font-semibold text-ink-900 mb-4 text-xs uppercase tracking-wider">Компания</h4>
-            <ul className="space-y-3 text-sm text-ink-400">
-              <li><Link href="/contacts" className="hover:text-ink-900 transition-colors underline-animated">Контакты</Link></li>
-              <li><Link href="/requisites" className="hover:text-ink-900 transition-colors underline-animated">Реквизиты</Link></li>
-              <li><Link href="/delivery" className="hover:text-ink-900 transition-colors underline-animated">Доставка и оплата</Link></li>
-              <li><Link href="/refund" className="hover:text-ink-900 transition-colors underline-animated">Возврат</Link></li>
+            <h4 className="font-semibold text-[var(--text)] mb-4 text-xs uppercase tracking-wider">Компания</h4>
+            <ul className="space-y-3 text-sm text-[var(--text-muted)]">
+              <li><Link href="/contacts" className="hover:text-[var(--text)] transition-colors">Контакты</Link></li>
+              <li><Link href="/requisites" className="hover:text-[var(--text)] transition-colors">Реквизиты</Link></li>
+              <li><Link href="/delivery" className="hover:text-[var(--text)] transition-colors">Доставка и оплата</Link></li>
+              <li><Link href="/refund" className="hover:text-[var(--text)] transition-colors">Возврат</Link></li>
             </ul>
           </div>
         </div>
-        
+
         <div className="arch-line mb-6" />
-        
+
         <div className="flex flex-col md:flex-row justify-between items-center gap-3">
-          <p className="text-ink-300 text-xs">© 2026 {companyName}. Все права защищены.</p>
-          <div className="flex gap-5 text-ink-300 text-xs">
-            <Link href="/privacy" className="hover:text-ink-500 transition-colors">Конфиденциальность</Link>
-            <Link href="/terms" className="hover:text-ink-500 transition-colors">Оферта</Link>
-            <Link href="/contacts" className="hover:text-ink-500 transition-colors">Контакты</Link>
+          <p className="text-[var(--text-muted)] text-xs">© 2026 {companyName}. Все права защищены.</p>
+          <div className="flex gap-5 text-[var(--text-muted)] text-xs">
+            <Link href="/privacy" className="hover:text-[var(--text)] transition-colors">Конфиденциальность</Link>
+            <Link href="/terms" className="hover:text-[var(--text)] transition-colors">Оферта</Link>
+            <Link href="/contacts" className="hover:text-[var(--text)] transition-colors">Контакты</Link>
           </div>
         </div>
       </div>
-    </motion.footer>
+    </footer>
   );
 }
