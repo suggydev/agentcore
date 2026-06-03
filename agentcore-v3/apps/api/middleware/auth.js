@@ -13,7 +13,7 @@ async function authenticate(req, res, next) {
     const userId = decoded.userId || decoded.id; // Support old tokens (id) and new (userId)
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user || user.tokenVersion !== decoded.tokenVersion) {
-      return res.status(401).json({ error: 'Token expired, please login again' });
+      return res.status(401).json({ error: 'Сессия истекла. Пожалуйста, войдите снова.', code: 'TOKEN_EXPIRED' });
     }
     req.user = {
       userId: user.id,
@@ -26,9 +26,9 @@ async function authenticate(req, res, next) {
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired' });
+      return res.status(401).json({ error: 'Сессия истекла. Пожалуйста, войдите снова.', code: 'TOKEN_EXPIRED' });
     }
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({ error: 'Недействительный токен. Пожалуйста, войдите снова.', code: 'INVALID_TOKEN' });
   }
 }
 

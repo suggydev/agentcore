@@ -54,6 +54,15 @@ export default function AgentsPage() {
     loadAgents();
   }, [token]);
 
+  const handleAuthError = useCallback((status: number, msg: string) => {
+    if (status === 401) {
+      localStorage.removeItem('token');
+      router.push('/login');
+      return;
+    }
+    addToast({ variant: 'error', message: msg });
+  }, [router, addToast]);
+
   const loadAgents = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/agents`, {
@@ -64,14 +73,14 @@ export default function AgentsPage() {
       } else {
         const errData = await res.json().catch(() => ({}));
         const msg = errData.error || errData.message || `Ошибка ${res.status}: не удалось загрузить агентов`;
-        addToast({ variant: 'error', message: msg });
+        handleAuthError(res.status, msg);
       }
     } catch (err) {
       console.error('[AgentsPage]', err);
       addToast({ variant: 'error', message: err instanceof Error ? err.message : 'Не удалось загрузить агентов: сетевая ошибка' });
     }
     setLoading(false);
-  }, [token, addToast]);
+  }, [token, addToast, handleAuthError]);
 
   const handleCreate = useCallback(async (data: { name: string; systemPrompt: string; emoji: string }) => {
     try {
@@ -88,12 +97,12 @@ export default function AgentsPage() {
       } else {
         const errData = await res.json().catch(() => ({}));
         const msg = errData.error || errData.message || `Ошибка ${res.status}: не удалось создать агента`;
-        addToast({ variant: 'error', message: msg });
+        handleAuthError(res.status, msg);
       }
     } catch (err) {
       addToast({ variant: 'error', message: err instanceof Error ? err.message : 'Не удалось создать агента: сетевая ошибка' });
     }
-  }, [token, router, addToast]);
+  }, [token, router, addToast, handleAuthError]);
 
   const filteredAgents = agents.filter((a) => {
     const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase()) ||
