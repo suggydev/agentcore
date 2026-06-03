@@ -82,9 +82,9 @@ export default function KnowledgePage() {
  const token = localStorage.getItem('token');
  if (!token) return;
  try {
- const res = await fetch(`${API_BASE}/api/knowledge/documents`, {
- headers: { Authorization: `Bearer ${token}` },
- });
+  const res = await fetch(`${API_BASE}/api/knowledge/`, {
+  headers: { Authorization: `Bearer ${token}` },
+  });
  if (res.ok) {
  const data = await res.json();
  setDocuments(Array.isArray(data) ? data : (data.data || []));

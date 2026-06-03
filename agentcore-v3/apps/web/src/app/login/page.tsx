@@ -229,7 +229,7 @@ if (score <= 2) return { score: 1, label: 'Слабый', color: 'bg-[var(--dang
  <div>
  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Как вас зовут?</label>
  <input type="text" value={name} onChange={e => setName(e.target.value)}
- className={inputClass} placeholder="Иван Иванов" autoFocus />
+  className={inputClass} placeholder="Иван Иванов" />
  </div>
  <div>
  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Рабочий email</label>
@@ -280,7 +280,7 @@ if (score <= 2) return { score: 1, label: 'Слабый', color: 'bg-[var(--dang
  <div className="relative">
  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
  <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)}
- className={`${inputClass} pl-10`} placeholder="Например: ООО «Ромашка»" autoFocus />
+  className={`${inputClass} pl-10`} placeholder="Например: ООО «Ромашка»" />
  </div>
  </div>
  <div className="grid grid-cols-2 gap-3">

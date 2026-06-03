@@ -86,9 +86,9 @@ export default function BrainMapPage() {
  const t = localStorage.getItem('token');
  if (!t) { window.location.href = '/login'; return; }
  setToken(t);
- fetch(`${API_BASE}/api/agents`, { headers: { Authorization: `Bearer ${t}` } })
- .then(r => r.ok ? r.json() : [])
- .then(setAgents)
+  fetch(`${API_BASE}/api/agents`, { headers: { Authorization: `Bearer ${t}` } })
+  .then(r => r.ok ? r.json() : [])
+  .then(data => setAgents(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []))
  .catch(err => { console.error('[BrainMapPage] Failed to load agents:', err); setSaveError('Не удалось загрузить список агентов.'); });
  }, []);
 

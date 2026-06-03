@@ -46,8 +46,9 @@ interface BalanceData {
 }
 
 interface PlanInfo {
- name: string;
- price: string;
+  plan: string;
+  trialEndsAt: string | null;
+  limits: { agents: number; messages: number; knowledge: number };
 }
 
 export default function SettingsPage() {
@@ -323,10 +324,10 @@ export default function SettingsPage() {
  </div>
  <div>
  <div className="flex items-center gap-2">
- <h2 className="font-display font-semibold text-lg text-[var(--text)]">{planInfo.name} План</h2>
- <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--accent-soft)] text-[var(--brand)] border border-[var(--border)]">Текущий</span>
- </div>
- <p className="text-sm text-[var(--text-muted)]">{planInfo.price}/мес</p>
+  <h2 className="font-display font-semibold text-lg text-[var(--text)]">{planInfo.plan} План</h2>
+  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--accent-soft)] text-[var(--brand)] border border-[var(--border)]">Текущий</span>
+  </div>
+  <p className="text-sm text-[var(--text-muted)]">{planInfo.limits.agents} агентов · {planInfo.limits.messages === 999999 ? '∞' : planInfo.limits.messages} сообщений</p>
  </div>
  </div>
  </div>

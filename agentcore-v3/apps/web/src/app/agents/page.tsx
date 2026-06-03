@@ -70,7 +70,7 @@ export default function AgentsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setAgents(Array.isArray(data) ? data : []);
+        setAgents(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []);
       } else {
         const errData = await res.json().catch(() => ({}));
         const msg = errData.error || errData.message || `Ошибка ${res.status}: не удалось загрузить агентов`;

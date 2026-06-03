@@ -60,15 +60,20 @@ export default function NewSidebar({ onOpenCommandPalette }: NewSidebarProps) {
   return pathname.startsWith(href);
  };
 
- const storedName = typeof window !== 'undefined' ? localStorage.getItem('userName') : null;
- const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : null;
- const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
- let parsedUser: { name?: string; email?: string } | null = null;
- if (userStr) {
-  try { parsedUser = JSON.parse(userStr); } catch { /* ignore */ }
- }
- const displayName = storedName || parsedUser?.name || null;
- const displayEmail = storedEmail || parsedUser?.email || null;
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [displayEmail, setDisplayEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+   const storedName = localStorage.getItem('userName');
+   const storedEmail = localStorage.getItem('userEmail');
+   const userStr = localStorage.getItem('user');
+   let parsedUser: { name?: string; email?: string } | null = null;
+   if (userStr) {
+    try { parsedUser = JSON.parse(userStr); } catch { /* ignore */ }
+   }
+   setDisplayName(storedName || parsedUser?.name || null);
+   setDisplayEmail(storedEmail || parsedUser?.email || null);
+  }, []);
 
  return (
   <div className="flex flex-col h-full bg-surface/80 backdrop-blur-xl border-r border-border">

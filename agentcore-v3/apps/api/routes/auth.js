@@ -96,7 +96,7 @@ router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = z.object({ email: z.string().email(), password: z.string() }).parse(req.body);
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !await bcrypt.compare(password, user.password)) {
+    if (!user || !user.password || !await bcrypt.compare(password, user.password)) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     const workspace = await prisma.workspace.findUnique({ where: { id: user.workspaceId } });
@@ -167,6 +167,29 @@ router.get('/me', authenticate, async (req, res) => {
     res.json({ id: user.id, name: user.name, email: user.email, role: user.role, workspace: user.workspace });
   } catch (err) {
     safeError(res, err);
+  }
+});
+
+router.patch('/me', authenticate, async (req, res) => {
+  try {
+    const schema = z.object({
+      name: z.string().min(2).optional(),
+      email: z.string().email().optional(),
+    });
+    const data = schema.parse(req.body);
+    const updateData = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.email !== undefined) updateData.email = data.email;
+    const user = await prisma.user.update({
+      where: { id: req.user.userId },
+      data: updateData
+    });
+    res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: err.flatten() });
+    }
+    safeError(res, err, 400, 'Failed to update profile');
   }
 });
 

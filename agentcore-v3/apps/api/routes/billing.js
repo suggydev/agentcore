@@ -57,8 +57,8 @@ router.get('/plan', authenticate, generalLimiter, async (req, res) => {
       settings: workspace?.settings || {},
       limits: {
         agents: isPaid ? 10 : 1,
-        messages: isPaid ? Infinity : 100,
-        knowledge: isPaid ? Infinity : 10
+        messages: isPaid ? 999999 : 100,
+        knowledge: isPaid ? 999999 : 10
       }
     });
   } catch (err) {

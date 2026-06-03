@@ -104,4 +104,72 @@ router.delete('/:id', authenticate, async (req, res) => {
   }
 });
 
+// FAQ endpoints — stored in workspace.settings.faq to avoid migration
+router.get('/faq', authenticate, generalLimiter, async (req, res) => {
+  try {
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: req.user.workspaceId },
+      select: { settings: true }
+    });
+    const faqs = workspace?.settings?.faq || [];
+    res.json({ data: faqs, total: faqs.length });
+  } catch (err) {
+    safeError(res, err);
+  }
+});
+
+router.post('/faq', authenticate, async (req, res) => {
+  try {
+    const schema = z.object({
+      question: z.string().min(1).max(500),
+      answer: z.string().min(1),
+    });
+    const data = schema.parse(req.body);
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: req.user.workspaceId },
+      select: { settings: true }
+    });
+    const settings = workspace?.settings || {};
+    const faqs = settings.faq || [];
+    const newFaq = {
+      id: `faq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      ...data,
+      createdAt: new Date().toISOString()
+    };
+    faqs.push(newFaq);
+    await prisma.workspace.update({
+      where: { id: req.user.workspaceId },
+      data: { settings: { ...settings, faq: faqs } }
+    });
+    res.json(newFaq);
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: err.flatten() });
+    }
+    safeError(res, err, 400, 'Failed to create FAQ');
+  }
+});
+
+router.delete('/faq/:id', authenticate, async (req, res) => {
+  try {
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: req.user.workspaceId },
+      select: { settings: true }
+    });
+    const settings = workspace?.settings || {};
+    const faqs = settings.faq || [];
+    const filtered = faqs.filter(f => f.id !== req.params.id);
+    if (filtered.length === faqs.length) {
+      return res.status(404).json({ error: 'FAQ not found' });
+    }
+    await prisma.workspace.update({
+      where: { id: req.user.workspaceId },
+      data: { settings: { ...settings, faq: filtered } }
+    });
+    res.json({ success: true });
+  } catch (err) {
+    safeError(res, err, 400, 'Failed to delete FAQ');
+  }
+});
+
 module.exports = router;
