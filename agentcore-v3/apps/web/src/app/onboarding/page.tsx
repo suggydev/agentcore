@@ -147,8 +147,8 @@ export default function OnboardingPage() {
  agentGoal: form.agentGoal,
  };
 
- const res = await fetch(`${API_BASE}/api/workspace/onboarding`, {
- method: 'PUT',
+  const res = await fetch(`${API_BASE}/api/workspace`, {
+  method: 'PUT',
  headers: {
  'Content-Type': 'application/json',
  Authorization: `Bearer ${token}`,
@@ -173,7 +173,7 @@ export default function OnboardingPage() {
   if (!token) return;
   setLoading(true);
   try {
-  await fetch(`${API_BASE}/api/workspace/onboarding`, {
+  await fetch(`${API_BASE}/api/workspace`, {
   method: 'PUT',
   headers: {
   'Content-Type': 'application/json',
@@ -187,7 +187,7 @@ export default function OnboardingPage() {
   };
 
  return (
- <div className="min-h-screen bg-[var(--bg)] relative flex flex-col items-center justify-center px-4 py-12">
+  <div className="min-h-screen bg-[var(--bg)] relative flex flex-col items-center justify-center px-4 py-12" suppressHydrationWarning>
  <div className="absolute inset-0 grid-lines opacity-40" />
 
  <motion.div
@@ -578,20 +578,21 @@ function SelectField({
  {label}
  </label>
  <div className="relative">
- <select
- value={value}
- onChange={e => onChange(e.target.value)}
- className="w-full bg-transparent text-[var(--text)] text-sm outline-none cursor-pointer appearance-none pr-8"
- >
- <option value="" disabled>
- {placeholder}
- </option>
- {options.map(opt => (
- <option key={opt} value={opt}>
- {opt}
- </option>
- ))}
- </select>
+  <select
+  value={value}
+  onChange={e => onChange(e.target.value)}
+  className="w-full bg-transparent text-[var(--text)] text-sm outline-none cursor-pointer appearance-none pr-8"
+  suppressHydrationWarning
+  >
+  <option value="">
+  {placeholder}
+  </option>
+  {options.map(opt => (
+  <option key={opt} value={opt}>
+  {opt}
+  </option>
+  ))}
+  </select>
  <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
  <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
  <path d="M1 1.5L6 6.5L11 1.5" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

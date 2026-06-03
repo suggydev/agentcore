@@ -69,7 +69,8 @@ export default function AgentsPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        setAgents(await res.json());
+        const data = await res.json();
+        setAgents(Array.isArray(data) ? data : []);
       } else {
         const errData = await res.json().catch(() => ({}));
         const msg = errData.error || errData.message || `Ошибка ${res.status}: не удалось загрузить агентов`;
@@ -110,14 +111,14 @@ export default function AgentsPage() {
     }
   }, [token, router, addToast, handleAuthError]);
 
-  const filteredAgents = agents.filter((a) => {
+  const filteredAgents = Array.isArray(agents) ? agents.filter((a) => {
     const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase()) ||
       (a.description?.toLowerCase().includes(search.toLowerCase()) ?? false);
     const matchesFilter = filter === 'all' ||
       (filter === 'active' && a.isActive) ||
       (filter === 'drafts' && !a.isActive);
     return matchesSearch && matchesFilter;
-  });
+  }) : [];
 
   const filterButtons: { id: FilterType; label: string }[] = [
     { id: 'all', label: t('agents.filters.all') },
