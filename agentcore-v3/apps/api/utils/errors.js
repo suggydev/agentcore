@@ -64,12 +64,11 @@ function sendError(res, key, overrides = {}) {
 }
 
 function safeError(res, err, status = 500, fallbackMessage = 'Внутренняя ошибка сервера') {
-  const isDev = process.env.NODE_ENV === 'development';
   if (status === 500) {
     console.error('[SAFE_ERROR]', err.message, err.stack?.split('\n').slice(0, 3).join(' | '));
   }
   res.status(status).json({
-    error: isDev ? err.message : fallbackMessage
+    error: err.message || fallbackMessage
   });
 }
 

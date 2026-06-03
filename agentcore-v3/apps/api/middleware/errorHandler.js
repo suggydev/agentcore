@@ -8,9 +8,8 @@ function errorHandler(err, req, res, next) {
   }));
   const errorId = req.requestId || uuidv4();
   res.status(err.status || 500).json({
-    error: 'Внутренняя ошибка сервера',
-    errorId,
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+    error: err.message || 'Внутренняя ошибка сервера',
+    errorId
   });
 }
 

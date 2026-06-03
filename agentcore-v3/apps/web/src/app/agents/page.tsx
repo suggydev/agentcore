@@ -62,11 +62,13 @@ export default function AgentsPage() {
       if (res.ok) {
         setAgents(await res.json());
       } else {
-        addToast({ variant: 'error', message: t('toast.error') });
+        const errData = await res.json().catch(() => ({}));
+        const msg = errData.error || errData.message || `Ошибка ${res.status}: не удалось загрузить агентов`;
+        addToast({ variant: 'error', message: msg });
       }
     } catch (err) {
       console.error('[AgentsPage]', err);
-      addToast({ variant: 'error', message: t('toast.error') });
+      addToast({ variant: 'error', message: err instanceof Error ? err.message : 'Не удалось загрузить агентов: сетевая ошибка' });
     }
     setLoading(false);
   }, [token, addToast]);
@@ -84,10 +86,12 @@ export default function AgentsPage() {
         setCreateOpen(false);
         router.push(`/agents/${agent.id}`);
       } else {
-        addToast({ variant: 'error', message: t('toast.error') });
+        const errData = await res.json().catch(() => ({}));
+        const msg = errData.error || errData.message || `Ошибка ${res.status}: не удалось создать агента`;
+        addToast({ variant: 'error', message: msg });
       }
-    } catch {
-      addToast({ variant: 'error', message: t('toast.error') });
+    } catch (err) {
+      addToast({ variant: 'error', message: err instanceof Error ? err.message : 'Не удалось создать агента: сетевая ошибка' });
     }
   }, [token, router, addToast]);
 
