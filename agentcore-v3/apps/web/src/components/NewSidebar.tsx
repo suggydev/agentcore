@@ -142,7 +142,7 @@ export default function NewSidebar({ onOpenCommandPalette }: NewSidebarProps) {
   </div>
   <div className="font-mono font-bold text-lg text-text">${balance.toFixed(2)}</div>
   <Link
-  href="/settings/billing"
+  href="/settings"
   className="text-[10px] text-brand hover:text-brand-hover mt-1 inline-block transition-colors duration-200"
   aria-label="Пополнить баланс"
   >
