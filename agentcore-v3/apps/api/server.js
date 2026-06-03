@@ -46,6 +46,7 @@ app.use(generalLimiter);
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/agents', require('./routes/agents'));
+app.use('/api/agents/generate', require('./routes/agentGenerate'));
 app.use('/api/conversations', require('./routes/conversations'));
 app.use('/api/v1/models', require('./routes/models'));
 app.use('/api/v1/chat', require('./routes/chat'));
