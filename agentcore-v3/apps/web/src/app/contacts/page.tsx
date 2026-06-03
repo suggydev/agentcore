@@ -19,14 +19,15 @@ interface ContactsData {
 
 export default function ContactsPage() {
  const [data, setData] = useState<ContactsData | null>(null);
+ const [fetchError, setFetchError] = useState('');
 
  useEffect(() => {
  const token = localStorage.getItem('token');
  if (!token) return;
   fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-  .then(r => { if (!r.ok) throw new Error('Request failed'); return r.json(); })
+  .then(r => { if (!r.ok) throw new Error(`GET /api/auth/me failed: ${r.status} ${r.statusText}`); return r.json(); })
   .then(data => { if (data?.workspace?.settings) setData(data.workspace.settings); })
-  .catch((err) => { console.error('[ContactsPage]', err); });
+  .catch((err) => { console.error('[ContactsPage]', err); setFetchError('Не удалось загрузить контактные данные. Проверьте подключение.'); });
  }, []);
 
  const companyName = data?.companyName || 'AgentCore';
@@ -47,7 +48,10 @@ export default function ContactsPage() {
  <h1 className="heading-2 text-[var(--text)] mb-3">Контакты</h1>
  <p className="text-sm text-[var(--text-muted)] mb-10">Свяжитесь с нами любым удобным способом</p>
 
- <div className="grid sm:grid-cols-2 gap-4 mb-10">
+ {fetchError && (
+  <div className="mb-6 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm text-center">{fetchError}</div>
+  )}
+<div className="grid sm:grid-cols-2 gap-4 mb-10">
  <div className="bg-surface rounded-2xl border border-[var(--border)] p-6 shadow-sm">
  <Mail className="w-6 h-6 text-[var(--brand)] mb-3" />
  <h3 className="font-semibold text-[var(--text)] mb-1">Email</h3>

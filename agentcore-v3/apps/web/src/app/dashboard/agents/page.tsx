@@ -106,7 +106,7 @@ export default function AgentsPage() {
   setToken(t);
   fetch(`${API_BASE}/api/agents`, { headers: { Authorization: `Bearer ${t}` } }).then(r => r.json()).then(d => {
  setAgents(Array.isArray(d) ? d : (d?.data || []));
- }).catch(() => {}).finally(() => setLoading(false));
+ }).catch(err => { console.error('[AgentsPage] Failed to load agents:', err); }).finally(() => setLoading(false));
  }, []);
 
  const deleteAgent = async (id: string, e: React.MouseEvent) => {

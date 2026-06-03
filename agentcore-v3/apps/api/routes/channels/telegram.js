@@ -206,7 +206,7 @@ router.post('/webhook', aiLimiter, async (req, res) => {
     }
 
     await telegramProvider.sendMessage(null, chatId,
-      'Извините, я не могу обработать ваш запрос прямо сейчас. Пожалуйста, попробуйте позже.'
+      'Не удалось найти активного агента для обработки сообщения. Убедитесь, что в панели управления создан и активирован агент, и Telegram-интеграция настроена корректно.'
     );
 
     res.json({ ok: true });
@@ -219,7 +219,7 @@ router.post('/webhook', aiLimiter, async (req, res) => {
         const botToken = req.headers['x-telegram-bot-token'] || '';
         const telegramProvider = new TelegramProvider({ botToken });
         await telegramProvider.sendMessage(null, chatId,
-          'Произошла ошибка при обработке вашего сообщения. Пожалуйста, попробуйте позже.'
+          'Ошибка сервера при обработке Telegram-сообщения: не удалось связаться с AI-сервисом или сохранить диалог. Попробуйте позже или обратитесь в поддержку.'
         );
       }
     } catch (fallbackErr) {

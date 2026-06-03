@@ -181,7 +181,7 @@ export default function OnboardingPage() {
   },
   body: JSON.stringify({ skipped: true }),
   });
-  } catch (err) { console.error('[OnboardingPage] handleSkipForNow:', err); }
+  } catch (err) { console.error('[OnboardingPage] handleSkipForNow:', err); setError(err instanceof Error ? err.message : 'Не удалось пропустить онбординг. Попробуйте снова.'); }
   finally { setLoading(false); }
   window.location.href = '/dashboard';
   };

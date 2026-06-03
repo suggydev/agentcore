@@ -73,7 +73,7 @@ router.post('/:provider/connect', authenticate, generalLimiter, async (req, res)
     if (!agent) return res.status(404).json({ error: 'Agent not found' });
 
     const provider = createProviderInstance(providerName, credentials || {});
-    if (!provider) return res.status(500).json({ error: 'Failed to create provider instance' });
+    if (!provider) return res.status(500).json({ error: `Failed to create ${providerName} provider instance: constructor returned null or missing dependencies` });
 
     try {
       await provider.initialize(credentials || {});
@@ -205,7 +205,7 @@ router.post('/:provider/test-message', authenticate, generalLimiter, async (req,
     const credsJson = decrypt(integration.credentials);
     const creds = JSON.parse(credsJson);
     const provider = createProviderInstance(providerName, creds);
-    if (!provider) return res.status(500).json({ error: 'Provider not available' });
+    if (!provider) return res.status(500).json({ error: `Provider ${providerName} not available: integration inactive or credentials invalid` });
 
     await provider.initialize(creds);
     const result = await provider.sendMessage(agentId, conversationId || 'test', message);

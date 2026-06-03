@@ -21,8 +21,8 @@ export default function DashboardError({
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
  </svg>
  </div>
- <h2 className="text-xl font-bold text-[var(--text)]">Что-то пошло не так</h2>
- <p className="text-[var(--brand)] text-sm">При загрузке панели произошла ошибка. Попробуйте обновить страницу.</p>
+ <h2 className="text-xl font-bold text-[var(--text)]">Ошибка загрузки дашборда</h2>
+ <p className="text-[var(--brand)] text-sm">Не удалось загрузить панель управления: {error.message || 'сбой рендеринга страницы'}. Попробуйте обновить страницу или войти снова.</p>
  <button
  onClick={reset}
  className="px-6 py-2.5 rounded-xl bg-[var(--text)] text-white text-sm font-medium hover:bg-[var(--text)] transition-colors"

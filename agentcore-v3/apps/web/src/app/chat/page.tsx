@@ -52,6 +52,7 @@ export default function ChatPage() {
  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
  const [sidebarFilter, setSidebarFilter] = useState('');
  const [initialLoadDone, setInitialLoadDone] = useState(false);
+ const [pageError, setPageError] = useState('');
  const modelDropdownRef = useRef<HTMLDivElement>(null);
  const messagesEndRef = useRef<HTMLDivElement>(null);
  const abortRef = useRef<AbortController | null>(null);
@@ -101,13 +102,14 @@ export default function ChatPage() {
   const fetchModels = async (signal?: AbortSignal) => {
   try {
   const res = await fetch(`${API_BASE}/api/v1/models`, { signal });
-  if (!res.ok) throw new Error('Request failed');
+  if (!res.ok) throw new Error(`GET /api/v1/models failed: ${res.status} ${res.statusText}`);
   const data = await res.json();
   const allModels = Array.isArray(data) ? data : (data?.data || []);
   setModels(allModels.filter((m: { supports_chat?: boolean; id?: string }) => m.supports_chat === true && !m.id?.includes('flux')));
   } catch (err) {
   if (signal?.aborted) return;
   console.error('[ChatPage] fetchModels:', err);
+  setPageError('Не удалось загрузить список AI-моделей. Проверьте подключение к серверу.');
   }
   };
 
@@ -127,6 +129,7 @@ export default function ChatPage() {
   } catch (err) {
   if (signal?.aborted) return;
   console.error('[ChatPage] loadConversations:', err);
+  setPageError('Не удалось загрузить диалоги. Проверьте подключение к серверу.');
   }
  };
 
@@ -245,17 +248,25 @@ export default function ChatPage() {
  const token = getToken();
  if (!token) return;
   try {
+  setPageError('');
   const res = await fetch(`${API_BASE}/api/conversations/${id}`, {
   method: 'DELETE',
   headers: { Authorization: `Bearer ${token}` }
   });
-  if (!res.ok) { console.error('[ChatPage] deleteConversation failed:', res.status); }
+  if (!res.ok) {
+    console.error('[ChatPage] deleteConversation failed:', res.status);
+    setPageError(`Не удалось удалить диалог: сервер вернул ${res.status}`);
+    return;
+  }
   setConversations(prev => prev.filter(c => c.id !== id));
   if (currentConv?.id === id) {
   setCurrentConv(null);
   setMessages([]);
   }
-  } catch (err) { console.error('[ChatPage] deleteConversation:', err); }
+  } catch (err) {
+  console.error('[ChatPage] deleteConversation:', err);
+  setPageError('Не удалось удалить диалог. Проверьте подключение к интернету.');
+  }
  };
 
  const getModelIcon = (modelId?: string) => {
@@ -389,6 +400,9 @@ export default function ChatPage() {
  </motion.aside>
 
  <main className="flex-1 flex flex-col min-w-0">
+  {pageError && (
+  <div className="px-4 py-2 bg-red-50 border-b border-red-100 text-red-600 text-xs text-center">{pageError}</div>
+  )}
  <header className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-surface/80 backdrop-blur-sm">
  <button 
  onClick={() => setSidebarOpen(true)}

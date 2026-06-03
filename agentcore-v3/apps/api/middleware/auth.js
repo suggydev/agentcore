@@ -53,7 +53,7 @@ async function checkTrial(req, res, next) {
     next();
   } catch (err) {
     console.error('checkTrial middleware error:', err.message);
-    res.status(500).json({ error: 'Internal server error — unable to verify trial status' });
+    res.status(500).json({ error: `Internal server error — unable to verify trial status: ${err.message}` });
   }
 }
 

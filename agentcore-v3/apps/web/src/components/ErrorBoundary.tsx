@@ -37,7 +37,7 @@ export default class ErrorBoundary extends Component<Props, State> {
  </div>
  <h2 className="text-xl font-semibold text-[var(--text)] mb-2">Что-то пошло не так</h2>
  <p className="text-sm text-[var(--text-muted)] mb-6 max-w-md">
- {process.env.NODE_ENV === 'development' ? this.state.error?.message : 'Произошла непредвиденная ошибка. Попробуйте ещё раз.'}
+ {process.env.NODE_ENV === 'development' ? this.state.error?.message : `Ошибка отображения компонента: ${this.state.error?.name || 'сбой рендеринга'}. Попробуйте обновить страницу. Если проблема повторяется, сообщите в поддержку.`}
  </p>
  <button
  onClick={() => window.location.reload()}

@@ -40,7 +40,7 @@ function mockAxiosSuccess(data) {
 }
 
 function mockAxiosError(status, message) {
-  const err = new Error(message || 'Request failed');
+  const err = new Error(message || `HTTP request failed with status ${status}`);
   err.response = { status, data: { error: message }, headers: {} };
   return err;
 }

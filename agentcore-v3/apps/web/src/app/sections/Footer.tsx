@@ -17,7 +17,7 @@ export default function Footer() {
       try {
         const parsed = JSON.parse(cached);
         if (parsed.companyName) setCompanyName(parsed.companyName);
-      } catch {}
+      } catch (err) { console.error('[Footer] Failed to parse cached workspaceSettings:', err); }
     }
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -28,9 +28,9 @@ export default function Footer() {
         const s = data.workspace.settings;
         if (s.legalName) setCompanyName(s.legalName);
         else if (s.companyName) setCompanyName(s.companyName);
-        try { localStorage.setItem('workspaceSettings', JSON.stringify(s)); } catch {}
+        try { localStorage.setItem('workspaceSettings', JSON.stringify(s)); } catch (err) { console.error('[Footer] Failed to cache workspaceSettings:', err); }
       })
-      .catch(() => {});
+      .catch((err) => { console.error('[Footer] Failed to fetch workspace settings:', err); });
   }, []);
 
   return (

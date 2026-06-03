@@ -40,7 +40,7 @@ export default function NewSidebar({ onOpenCommandPalette }: NewSidebarProps) {
   })
   .then((res) => (res.ok ? res.json() : Promise.reject(res)))
   .then((data) => setBalance(data.balance ?? 0))
-  .catch(() => {});
+  .catch(err => { console.error('[NewSidebar] Failed to load balance:', err); });
  }, []);
 
  useEffect(() => {

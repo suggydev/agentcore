@@ -131,7 +131,7 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
               const parsed = JSON.parse(data);
               const delta = parsed.choices?.[0]?.delta?.content;
               if (delta) fullContent += delta;
-            } catch {}
+            } catch (parseErr) { console.warn('[Chat] Failed to parse streaming chunk:', data, parseErr.message); }
           }
         }
       });

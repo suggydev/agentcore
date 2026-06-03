@@ -20,6 +20,7 @@ interface RequisitesData {
 export default function RequisitesPage() {
  const [data, setData] = useState<RequisitesData | null>(null);
  const [workspaceName, setWorkspaceName] = useState<string>('');
+ const [fetchError, setFetchError] = useState('');
  const [loading, setLoading] = useState(true);
 
  useEffect(() => {
@@ -31,7 +32,7 @@ export default function RequisitesPage() {
  if (res?.workspace?.settings) setData(res.workspace.settings);
  if (res?.workspace?.name) setWorkspaceName(res.workspace.name);
  })
- .catch(() => {})
+ .catch(err => { console.error('[RequisitesPage] Failed to load workspace settings:', err); setFetchError('Не удалось загрузить данные компании. Проверьте подключение.'); })
  .finally(() => setLoading(false));
  }, []);
 
@@ -46,7 +47,10 @@ export default function RequisitesPage() {
 
  return (
  <div className="min-h-screen bg-[var(--bg)]">
- <div className="max-w-3xl mx-auto px-5 py-16">
+ {fetchError && (
+  <div className="mb-6 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm text-center">{fetchError}</div>
+  )}
+<div className="max-w-3xl mx-auto px-5 py-16">
  <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-[var(--brand)] hover:text-[var(--brand)] mb-8 transition-colors">
  <ArrowLeft className="w-4 h-4" /> На главную
  </Link>

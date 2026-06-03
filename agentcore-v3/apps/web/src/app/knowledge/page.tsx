@@ -89,7 +89,7 @@ export default function KnowledgePage() {
  const data = await res.json();
  setDocuments(Array.isArray(data) ? data : (data.data || []));
  }
- } catch (err) { console.error('Failed to fetch documents:', err); }
+ } catch (err) { console.error('Failed to fetch documents:', err); setError('Не удалось загрузить документы. Проверьте подключение к серверу.'); }
  }, []);
 
  useEffect(() => {
@@ -106,7 +106,7 @@ export default function KnowledgePage() {
  const data = await faqRes.json();
  setFaqs(Array.isArray(data) ? data : (data.data || []));
  }
-  } catch (err) { console.error('[KnowledgePage] FAQ fetch:', err); }
+  } catch (err) { console.error('[KnowledgePage] FAQ fetch:', err); setError('Не удалось загрузить FAQ. Проверьте подключение к серверу.'); }
  } catch (err) {
  console.error('Failed to load knowledge base:', err);
  setError('Не удалось загрузить базу знаний');
@@ -127,7 +127,7 @@ export default function KnowledgePage() {
   });
   if (!res.ok) { console.error('[KnowledgePage] Delete failed:', res.status); }
   setDocuments((prev) => prev.filter((d) => d.id !== id));
-  } catch (err) { console.error('[KnowledgePage]', err); }
+  } catch (err) { console.error('[KnowledgePage]', err); setError('Не удалось удалить документ. Попробуйте снова.'); }
  };
 
  const handleUrlParse = async () => {
@@ -218,7 +218,7 @@ export default function KnowledgePage() {
   headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) { console.error('[KnowledgePage] removeFaq failed:', res.status); }
-  } catch (err) { console.error('[KnowledgePage]', err); }
+  } catch (err) { console.error('[KnowledgePage]', err); setError('Не удалось удалить FAQ. Попробуйте снова.'); }
  setFaqs((prev) => prev.filter((f) => f.id !== id));
  };
 

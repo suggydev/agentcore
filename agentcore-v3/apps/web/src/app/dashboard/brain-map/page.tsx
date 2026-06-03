@@ -71,6 +71,7 @@ export default function BrainMapPage() {
  const [nodes, setNodes, onNodesChange] = useNodesState(WELCOME_NODES);
  const [edges, setEdges, onEdgesChange] = useEdgesState(WELCOME_EDGES);
  const [saving, setSaving] = useState(false);
+ const [saveError, setSaveError] = useState('');
  const [panel, setPanel] = useState<PanelData | null>(null);
  const nodesRef = useRef(nodes);
  const edgesRef = useRef(edges);
@@ -88,7 +89,7 @@ export default function BrainMapPage() {
  fetch(`${API_BASE}/api/agents`, { headers: { Authorization: `Bearer ${t}` } })
  .then(r => r.ok ? r.json() : [])
  .then(setAgents)
- .catch(() => {});
+ .catch(err => { console.error('[BrainMapPage] Failed to load agents:', err); setSaveError('Не удалось загрузить список агентов.'); });
  }, []);
 
  useEffect(() => {
@@ -184,7 +185,10 @@ export default function BrainMapPage() {
  settings: { brainMap: { nodes, edges } },
  }),
  });
- } catch {}
+ } catch (err) {
+  console.error('[BrainMapPage] saveFlow error:', err);
+  setSaveError('Не удалось сохранить карту мозга. Проверьте подключение и попробуйте снова.');
+ }
  setSaving(false);
  };
 
@@ -254,7 +258,10 @@ export default function BrainMapPage() {
  className="p-1.5 rounded-lg hover:bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
  <Maximize2 className="w-4 h-4" />
  </button>
- <button onClick={saveFlow} disabled={!selectedAgent || saving}
+ {saveError && (
+  <span className="text-xs text-red-500 mr-2">{saveError}</span>
+  )}
+<button onClick={saveFlow} disabled={!selectedAgent || saving}
  className="btn-primary text-xs py-1.5 px-4 gap-1.5 disabled:opacity-50">
  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
  Сохранить

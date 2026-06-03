@@ -8,6 +8,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function PrivacyPage() {
  const [lastUpdated, setLastUpdated] = useState('2026-06-01');
+ const [fetchError, setFetchError] = useState('');
 
  useEffect(() => {
  const token = localStorage.getItem('token');
@@ -19,12 +20,15 @@ export default function PrivacyPage() {
  setLastUpdated(res.workspace.settings.lastUpdatedDate);
  }
  })
- .catch(() => {});
+ .catch(err => { console.error('[PrivacyPage] Failed to load settings:', err); setFetchError('Не удалось загрузить данные. Проверьте подключение.'); });
  }, []);
 
  return (
  <div className="min-h-screen bg-[var(--bg)]">
- <div className="max-w-3xl mx-auto px-5 py-16">
+ {fetchError && (
+  <div className="mb-6 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm text-center">{fetchError}</div>
+  )}
+<div className="max-w-3xl mx-auto px-5 py-16">
  <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-[var(--brand)] hover:text-[var(--brand)] mb-8 transition-colors">
  <ArrowLeft className="w-4 h-4" /> На главную
  </Link>

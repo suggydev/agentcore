@@ -69,9 +69,9 @@ router.post('/register', authLimiter, async (req, res) => {
         });
       } catch (agentErr) {
         console.error('[Auth] Default agent creation failed, rolling back:', agentErr);
-        await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
-        await prisma.workspace.delete({ where: { id: workspace.id } }).catch(() => {});
-        return res.status(500).json({ error: 'Registration failed: could not create default agents' });
+        await prisma.user.delete({ where: { id: user.id } }).catch(err => { console.error('[Auth] Rollback user delete failed:', err.message); });
+        await prisma.workspace.delete({ where: { id: workspace.id } }).catch(err => { console.error('[Auth] Rollback workspace delete failed:', err.message); });
+        return res.status(500).json({ error: `Registration failed: could not create default agents — ${agentErr.message}` });
       }
     }
 
