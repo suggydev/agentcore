@@ -190,7 +190,15 @@ export default function NewSidebar({ onOpenCommandPalette }: NewSidebarProps) {
   </Link>
   <button
   type="button"
-  onClick={() => {
+  onClick={async () => {
+  // Clear server-side cookie first
+  document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;';
+  // Also clear via API to be safe
+  try {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+  } catch {
+    // Ignore API errors — cookie already cleared client-side
+  }
   localStorage.clear();
   window.location.href = '/login';
   }}
