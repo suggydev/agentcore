@@ -19,7 +19,7 @@ const messageItemSchema = z.object({
 const completionsSchema = z.object({
   messages: z.array(messageItemSchema).min(1),
   model: z.string().optional(),
-  agentId: z.string().uuid().optional(),
+  agentId: z.string().min(1).optional(),
   temperature: z.number().min(0).max(2).optional().default(0.7),
   max_tokens: z.number().int().min(1).max(32000).optional().default(2000),
   stream: z.boolean().optional().default(false)

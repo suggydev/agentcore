@@ -15,6 +15,7 @@ async function authenticate(req, res, next) {
       return res.status(401).json({ error: 'Token expired, please login again' });
     }
     req.user = {
+      userId: user.id,
       id: user.id,
       email: user.email,
       role: user.role,

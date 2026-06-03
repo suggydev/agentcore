@@ -19,6 +19,31 @@ const webchatMessageSchema = z.object({
   customerEmail: z.string().email().optional().or(z.literal(''))
 });
 
+router.get('/config', async (req, res) => {
+  try {
+    const workspaceId = req.query.workspaceId;
+    if (!workspaceId) return res.status(400).json({ error: 'workspaceId required' });
+
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { id: true, name: true, settings: true }
+    });
+    if (!workspace) return res.status(404).json({ error: 'Workspace not found' });
+
+    const settings = workspace.settings && typeof workspace.settings === 'object' ? workspace.settings : {};
+    res.json({
+      workspaceId: workspace.id,
+      workspaceName: workspace.name,
+      theme: settings.theme || 'light',
+      primaryColor: settings.primaryColor || '#6E56CF',
+      welcomeMessage: settings.welcomeMessage || 'Привет! Чем могу помочь?',
+      agentName: settings.agentName || 'AI-ассистент',
+    });
+  } catch (err) {
+    safeError(res, err);
+  }
+});
+
 router.post('/message', webchatAuth, aiLimiter, async (req, res) => {
   try {
     const parsed = webchatMessageSchema.safeParse(req.body);

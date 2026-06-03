@@ -51,4 +51,16 @@ router.get('/dashboard', authenticate, generalLimiter, async (req, res) => {
   }
 });
 
+router.get('/agents', authenticate, generalLimiter, async (req, res) => {
+  try {
+    const agents = await prisma.agent.findMany({
+      where: { workspaceId: req.user.workspaceId },
+      select: { id: true, name: true, isActive: true, createdAt: true, _count: { select: { conversations: true } } }
+    });
+    res.json({ data: agents, total: agents.length });
+  } catch (err) {
+    safeError(res, err);
+  }
+});
+
 module.exports = router;

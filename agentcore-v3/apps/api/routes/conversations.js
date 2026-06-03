@@ -11,12 +11,12 @@ const { safeError } = require('../utils/errors');
 
 const createConversationSchema = z.object({
   title: z.string().min(1).max(500).optional(),
-  agentId: z.string().uuid().optional().nullable()
+  agentId: z.string().min(1).optional().nullable()
 });
 
 const updateConversationSchema = z.object({
   title: z.string().min(1).max(500).optional(),
-  agentId: z.string().uuid().optional().nullable()
+  agentId: z.string().min(1).optional().nullable()
 });
 
 const messageSchema = z.object({
@@ -227,6 +227,24 @@ router.delete('/:id', authenticate, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     safeError(res, err, 400, 'Failed to delete conversation');
+  }
+});
+
+router.get('/:id/messages', authenticate, generalLimiter, async (req, res) => {
+  try {
+    const conversation = await prisma.conversation.findFirst({
+      where: { id: req.params.id, workspaceId: req.user.workspaceId }
+    });
+    if (!conversation) return res.status(404).json({ error: 'Conversation not found' });
+
+    const messages = await prisma.message.findMany({
+      where: { conversationId: req.params.id },
+      orderBy: { order: 'asc' },
+      take: 200
+    });
+    res.json({ data: messages, total: messages.length });
+  } catch (err) {
+    safeError(res, err);
   }
 });
 

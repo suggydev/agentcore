@@ -9,6 +9,43 @@ const { safeError } = require('../utils/errors');
 
 const router = express.Router();
 
+router.get('/balance', authenticate, generalLimiter, async (req, res) => {
+  try {
+    const [workspace, topUpSum] = await Promise.all([
+      prisma.workspace.findUnique({ where: { id: req.user.workspaceId } }),
+      prisma.billingTransaction.aggregate({
+        where: { workspaceId: req.user.workspaceId, type: 'topup', status: 'completed' },
+        _sum: { amount: true }
+      })
+    ]);
+    if (!workspace) return res.status(404).json({ error: 'Workspace not found' });
+
+    const isTrial = workspace.plan === 'TRIAL';
+    const trialActive = isTrial && workspace.trialEndsAt && new Date() <= workspace.trialEndsAt;
+    const hasActiveSub = workspace.subscriptionActive === true || trialActive;
+    const planCredit = isTrial ? (trialActive ? config.TRIAL_CREDIT_AMOUNT : 0) : config.BUSINESS_CREDIT_AMOUNT;
+    const toppedUpBalance = (topUpSum._sum?.amount) || 0;
+    const balance = toppedUpBalance + planCredit;
+
+    res.json({ balance, toppedUpBalance, subscriptionCredit: planCredit, subscriptionActive: hasActiveSub, plan: workspace.plan, trialActive });
+  } catch (err) {
+    safeError(res, err);
+  }
+});
+
+router.get('/transactions', authenticate, generalLimiter, async (req, res) => {
+  try {
+    const transactions = await prisma.billingTransaction.findMany({
+      where: { workspaceId: req.user.workspaceId },
+      orderBy: { createdAt: 'desc' },
+      take: 100
+    });
+    res.json({ data: transactions, total: transactions.length });
+  } catch (err) {
+    safeError(res, err);
+  }
+});
+
 router.get('/plan', authenticate, generalLimiter, async (req, res) => {
   try {
     const workspace = await prisma.workspace.findUnique({ where: { id: req.user.workspaceId } });
