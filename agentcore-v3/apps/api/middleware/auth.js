@@ -10,7 +10,8 @@ async function authenticate(req, res, next) {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET, { algorithms: ['HS256'] });
-    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    const userId = decoded.userId || decoded.id; // Support old tokens (id) and new (userId)
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user || user.tokenVersion !== decoded.tokenVersion) {
       return res.status(401).json({ error: 'Token expired, please login again' });
     }
