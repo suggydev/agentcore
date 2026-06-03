@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Check, Building2, Users, Briefcase, Target, MessageCircle, Search, UserPlus, Share2, Megaphone, Linkedin, Instagram, Zap, Heart, Star, Send } from 'lucide-react';
 import { useAgentStore } from '@/store/agentStore';
@@ -53,7 +54,8 @@ const fadeUp = {
 };
 
 export default function LoginPage() {
- const [isLogin, setIsLogin] = useState(true);
+  const router = useRouter();
+  const [isLogin, setIsLogin] = useState(true);
  const [step, setStep] = useState(0);
 
  const [name, setName] = useState('');
@@ -149,9 +151,9 @@ if (score <= 2) return { score: 1, label: 'Слабый', color: 'bg-[var(--dang
  const data = await res.json();
  if (!res.ok) throw new Error(data.error || 'Ошибка регистрации');
 
- persistAuth(data.accessToken, data.user, data.workspaceId);
- window.location.href = '/onboarding';
- } catch (err: unknown) {
+  persistAuth(data.accessToken, data.user, data.workspaceId);
+  router.push('/onboarding');
+  } catch (err: unknown) {
  setError(err instanceof Error ? err.message : 'Ошибка регистрации');
  setStep(0);
  } finally {
@@ -179,12 +181,12 @@ if (score <= 2) return { score: 1, label: 'Слабый', color: 'bg-[var(--dang
  });
  if (meRes.ok) {
  const me = await meRes.json();
- if (me.workspace?.settings?.onboardingCompleted) {
- window.location.href = '/dashboard';
- return;
- }
- }
- window.location.href = '/onboarding';
+  if (me.workspace?.settings?.onboardingCompleted) {
+  router.push('/dashboard');
+  return;
+  }
+  }
+  router.push('/onboarding');
  } catch (err: unknown) {
  setError(err instanceof Error ? err.message : 'Ошибка входа');
  } finally {

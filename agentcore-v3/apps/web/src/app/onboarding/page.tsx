@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
  TrendingUp,
@@ -87,8 +88,9 @@ const slideUp = {
 };
 
 export default function OnboardingPage() {
- const [step, setStep] = useState(0);
- const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(false);
  const [error, setError] = useState('');
  const [token, setToken] = useState('');
 
@@ -105,10 +107,10 @@ export default function OnboardingPage() {
 
  useEffect(() => {
  const t = localStorage.getItem('token');
- if (!t) {
- window.location.href = '/login';
- return;
- }
+  if (!t) {
+  router.push('/login');
+  return;
+  }
  setToken(t);
  }, []);
 
@@ -161,9 +163,9 @@ export default function OnboardingPage() {
  throw new Error(data.error || 'Не удалось сохранить данные');
  }
 
- window.location.href = '/dashboard';
- } catch (err: unknown) {
- setError(err instanceof Error ? err.message : 'Не удалось сохранить данные');
+  router.push('/dashboard');
+  } catch (err: unknown) {
+  setError(err instanceof Error ? err.message : 'Не удалось сохранить данные');
  } finally {
  setLoading(false);
  }
@@ -183,7 +185,7 @@ export default function OnboardingPage() {
   });
   } catch (err) { console.error('[OnboardingPage] handleSkipForNow:', err); setError(err instanceof Error ? err.message : 'Не удалось пропустить онбординг. Попробуйте снова.'); }
   finally { setLoading(false); }
-  window.location.href = '/dashboard';
+  router.push('/dashboard');
   };
 
  return (

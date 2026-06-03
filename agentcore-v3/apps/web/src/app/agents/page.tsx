@@ -247,7 +247,7 @@ export default function AgentsPage() {
                 </p>
                 <div className="flex items-center gap-2 mt-3">
                   <span className="text-[11px] px-2 py-0.5 rounded-pill bg-surface-2 text-text-muted">
-                    {agent.model.split('/').pop()}
+                     {agent.model?.split('/').pop() ?? 'default'}
                   </span>
                 </div>
               </Card>
