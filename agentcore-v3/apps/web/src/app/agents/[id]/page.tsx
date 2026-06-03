@@ -56,11 +56,25 @@ export default function AgentEditorPage() {
     setToken(tk);
   }, [auth.token, router]);
 
+  const handleAuthError = useCallback((status: number) => {
+    if (status === 401) {
+      localStorage.removeItem('token');
+      router.push('/login');
+      return true;
+    }
+    return false;
+  }, [router]);
+
   useEffect(() => {
     if (!token) return;
     fetch(`${API_BASE}/api/agents/${id}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
-      .then((d) => {
+      .then(async (r) => {
+        if (!r.ok) {
+          if (handleAuthError(r.status)) return;
+          addToast({ variant: 'error', message: `Ошибка ${r.status}: не удалось загрузить агента` });
+          return;
+        }
+        const d = await r.json();
         const raw = d as unknown as Record<string, unknown>;
         const agentData: AgentData = {
           ...d,
@@ -70,11 +84,12 @@ export default function AgentEditorPage() {
         setAgent(agentData);
         setLivePrompt(agentData.systemPrompt);
       })
-      .catch(() => {
-        addToast({ variant: 'error', message: t('toast.error') });
+      .catch((err) => {
+        console.error('[AgentEditorPage] load agent:', err);
+        addToast({ variant: 'error', message: err instanceof Error ? err.message : 'Не удалось загрузить агента' });
       })
       .finally(() => setLoading(false));
-  }, [id, token, addToast]);
+  }, [id, token, addToast, handleAuthError]);
 
   useEffect(() => {
     if (!token) return;
@@ -119,11 +134,16 @@ export default function AgentEditorPage() {
         if (updates.systemPrompt !== undefined) {
           setLivePrompt(updates.systemPrompt);
         }
+      } else {
+        if (handleAuthError(res.status)) return;
+        const errData = await res.json().catch(() => ({}));
+        addToast({ variant: 'error', message: errData.error || `Ошибка ${res.status}: не удалось сохранить изменения` });
       }
-    } catch {
-      addToast({ variant: 'error', message: t('toast.error') });
+    } catch (err) {
+      console.error('[AgentEditorPage] update:', err);
+      addToast({ variant: 'error', message: err instanceof Error ? err.message : 'Не удалось сохранить изменения' });
     }
-  }, [agent, id, token, addToast]);
+  }, [agent, id, token, addToast, handleAuthError]);
 
   const handlePromptLiveUpdate = useCallback((prompt: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
