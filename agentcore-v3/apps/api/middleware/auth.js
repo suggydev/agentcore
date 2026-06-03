@@ -5,7 +5,7 @@ const config = require('../config');
 async function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({ error: 'Требуется авторизация. Пожалуйста, войдите.', code: 'UNAUTHORIZED' });
   }
   const token = authHeader.split(' ')[1];
   try {
