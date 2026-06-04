@@ -212,17 +212,19 @@ export default function ChatPage() {
  });
 
  const data = await res.json();
- if (res.ok && data.aiMessage && !data.error) {
- setMessages(prev => {
- const filtered = prev.filter(m => m.id !== tempId);
- return [...filtered, data.userMessage, data.aiMessage];
- });
- if (messages.length === 0) {
- setConversations(prev => prev.map(c => 
- c.id === convId ? { ...c, title: content.slice(0, 50) } : c
- ));
- }
- } else {
+  if (res.ok && data.aiMessage && !data.error) {
+  setMessages(prev => {
+  const filtered = prev.filter(m => m.id !== tempId);
+  return [...filtered, data.userMessage, data.aiMessage];
+  });
+  setConversations(prev => {
+  const target = prev.find(c => c.id === convId);
+  if (target && (!target.title || target.title === 'New Chat')) {
+    return prev.map(c => c.id === convId ? { ...c, title: content.slice(0, 50) } : c);
+  }
+  return prev;
+  });
+  } else {
   setMessages(prev => [...prev, {
   id: `err-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   content: typeof data.error === 'string' ? data.error : data.aiMessage?.content || 'Не удалось получить ответ. Попробуйте ещё раз.',

@@ -210,4 +210,34 @@ router.patch('/me', authenticate, async (req, res) => {
   }
 });
 
+router.post('/change-password', authenticate, async (req, res) => {
+  try {
+    const schema = z.object({
+      oldPassword: z.string().min(1),
+      newPassword: z.string().min(6),
+    });
+    const data = schema.parse(req.body);
+    const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+    if (!user || !user.password) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+    const valid = await bcrypt.compare(data.oldPassword, user.password);
+    if (!valid) {
+      return res.status(400).json({ error: 'Invalid old password' });
+    }
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword, tokenVersion: { increment: 1 } }
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Change password error:', err);
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: err.flatten() });
+    }
+    safeError(res, err, 500, 'Failed to change password');
+  }
+});
+
 module.exports = router;

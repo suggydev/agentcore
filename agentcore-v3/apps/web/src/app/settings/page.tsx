@@ -63,10 +63,12 @@ export default function SettingsPage() {
  const [topUpLoading, setTopUpLoading] = useState(false);
  const [topUpError, setTopUpError] = useState('');
  const [topUpSuccess, setTopUpSuccess] = useState('');
- const [newPassword, setNewPassword] = useState('');
- const [passwordSaving, setPasswordSaving] = useState(false);
- const [passwordSaved, setPasswordSaved] = useState(false);
- const [passwordError, setPasswordError] = useState('');
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
  useEffect(() => {
  const token = localStorage.getItem('token');
@@ -157,34 +159,44 @@ export default function SettingsPage() {
  }
  };
 
- const changePassword = async () => {
- if (!newPassword || newPassword.length < 6) {
- setPasswordError('Пароль должен быть не менее 6 символов');
- return;
- }
- setPasswordSaving(true);
- setPasswordSaved(false);
- setPasswordError('');
- try {
- const token = localStorage.getItem('token');
- const res = await fetch(`${API_BASE}/api/auth/change-password`, {
- method: 'POST',
- headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
- body: JSON.stringify({ newPassword }),
- });
- if (res.ok) {
- setPasswordSaved(true);
- setNewPassword('');
- } else {
- const data = await res.json().catch(() => ({}));
- setPasswordError(data.message || 'Не удалось сменить пароль');
- }
- } catch {
- setPasswordError('Ошибка соединения');
- } finally {
- setPasswordSaving(false);
- }
- };
+  const changePassword = async () => {
+  if (!oldPassword) {
+  setPasswordError('Введите текущий пароль');
+  return;
+  }
+  if (!newPassword || newPassword.length < 6) {
+  setPasswordError('Пароль должен быть не менее 6 символов');
+  return;
+  }
+  if (newPassword !== confirmPassword) {
+  setPasswordError('Пароли не совпадают');
+  return;
+  }
+  setPasswordSaving(true);
+  setPasswordSaved(false);
+  setPasswordError('');
+  try {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE}/api/auth/change-password`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+  body: JSON.stringify({ oldPassword, newPassword }),
+  });
+  if (res.ok) {
+  setPasswordSaved(true);
+  setOldPassword('');
+  setNewPassword('');
+  setConfirmPassword('');
+  } else {
+  const data = await res.json().catch(() => ({}));
+  setPasswordError(data.error || data.message || 'Не удалось сменить пароль');
+  }
+  } catch {
+  setPasswordError('Ошибка соединения');
+  } finally {
+  setPasswordSaving(false);
+  }
+  };
 
  const container = {
  hidden: { opacity: 0 },
@@ -285,31 +297,51 @@ export default function SettingsPage() {
  className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
  />
  </div>
- <div>
- <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Новый пароль</label>
- <div className="flex gap-3">
- <input
- type="password"
- value={newPassword}
- onChange={(e) => { setNewPassword(e.target.value); setPasswordSaved(false); setPasswordError(''); }}
- placeholder="Минимум 6 символов"
- className="flex-1 px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
- />
- <button
- onClick={changePassword}
- disabled={passwordSaving || passwordSaved}
- className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
- passwordSaved
- ? 'bg-[var(--success-soft)] text-[var(--success)] border border-[var(--success-soft)]'
- : 'bg-[var(--accent)] text-white hover:bg-[var(--accent)]'
- }`}
- >
- {passwordSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : passwordSaved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
- {passwordSaved ? 'Сохранено' : 'Сменить'}
- </button>
- </div>
- {passwordError && <p className="mt-1 text-xs text-danger">{passwordError}</p>}
- </div>
+  <div>
+  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Текущий пароль</label>
+  <input
+  type="password"
+  value={oldPassword}
+  onChange={(e) => { setOldPassword(e.target.value); setPasswordSaved(false); setPasswordError(''); }}
+  placeholder="Введите текущий пароль"
+  className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
+  />
+  </div>
+  <div>
+  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Новый пароль</label>
+  <input
+  type="password"
+  value={newPassword}
+  onChange={(e) => { setNewPassword(e.target.value); setPasswordSaved(false); setPasswordError(''); }}
+  placeholder="Минимум 6 символов"
+  className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
+  />
+  </div>
+  <div>
+  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Подтвердите новый пароль</label>
+  <div className="flex gap-3">
+  <input
+  type="password"
+  value={confirmPassword}
+  onChange={(e) => { setConfirmPassword(e.target.value); setPasswordSaved(false); setPasswordError(''); }}
+  placeholder="Повторите новый пароль"
+  className="flex-1 px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
+  />
+  <button
+  onClick={changePassword}
+  disabled={passwordSaving || passwordSaved}
+  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
+  passwordSaved
+  ? 'bg-[var(--success-soft)] text-[var(--success)] border border-[var(--success-soft)]'
+  : 'bg-[var(--accent)] text-white hover:bg-[var(--accent)]'
+  }`}
+  >
+  {passwordSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : passwordSaved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+  {passwordSaved ? 'Сохранено' : 'Сменить'}
+  </button>
+  </div>
+  {passwordError && <p className="mt-1 text-xs text-danger">{passwordError}</p>}
+  </div>
  </div>
  </motion.div>
  )}

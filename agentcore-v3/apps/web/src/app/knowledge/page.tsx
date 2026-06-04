@@ -117,18 +117,23 @@ export default function KnowledgePage() {
  load();
  }, [fetchDocuments]);
 
- const handleDelete = async (id: string) => {
- const token = localStorage.getItem('token');
- if (!token) return;
-  try {
-  const res = await fetch(`${API_BASE}/api/knowledge/documents/${id}`, {
-  method: 'DELETE',
-  headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) { console.error('[KnowledgePage] Delete failed:', res.status); }
-  setDocuments((prev) => prev.filter((d) => d.id !== id));
-  } catch (err) { console.error('[KnowledgePage]', err); setError('Не удалось удалить документ. Попробуйте снова.'); }
- };
+  const handleDelete = async (id: string) => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+   const previous = documents;
+   setDocuments((prev) => prev.filter((d) => d.id !== id));
+   try {
+   const res = await fetch(`${API_BASE}/api/knowledge/documents/${id}`, {
+   method: 'DELETE',
+   headers: { Authorization: `Bearer ${token}` },
+   });
+   if (!res.ok) {
+    console.error('[KnowledgePage] Delete failed:', res.status);
+    setDocuments(previous);
+    setError('Не удалось удалить документ. Попробуйте снова.');
+   }
+   } catch (err) { console.error('[KnowledgePage]', err); setDocuments(previous); setError('Не удалось удалить документ. Попробуйте снова.'); }
+  };
 
  const handleUrlParse = async () => {
  if (!urlInput.trim()) return;
