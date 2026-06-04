@@ -76,6 +76,9 @@ jobs:
             set -e
             cd /opt/agentcore-v3
 
+            echo "--- Backup database before migration ---"
+            pg_dump -Fc agentcore > "/opt/backups/agentcore-pre-deploy-$(date +%Y%m%d-%H%M%S).dump" || echo "Backup skipped (pg_dump not available)"
+
             echo "--- Extracting archive ---"
             tar -xzf agentcore-deploy.tar.gz --overwrite
             rm -f agentcore-deploy.tar.gz
@@ -88,11 +91,11 @@ jobs:
             cd /opt/agentcore-v3/deploy/api
             cp /opt/agentcore-v3/deploy/prisma/schema.prisma ./ 2>/dev/null || true
             npx prisma generate
-            npx prisma db push --accept-data-loss
+            npx prisma migrate deploy
 
             echo "--- Rsync to live directory ---"
             rsync -av --delete /opt/agentcore-v3/deploy/api/ /opt/agentcore-v3/apps/api/
-            rsync -av /opt/agentcore-v3/deploy/web/ /opt/agentcore-v3/apps/web/
+            rsync -av --delete /opt/agentcore-v3/deploy/web/ /opt/agentcore-v3/apps/web/
             rm -rf /opt/agentcore-v3/deploy
 
             echo "--- Restarting PM2 ---"
@@ -100,17 +103,31 @@ jobs:
             pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
 
             echo "--- Health check ---"
-            sleep 4
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/api/health || echo "000")
-            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "500" ]; then
-              echo "API health: $HTTP_CODE (ok/degraded)"
-            else
+            for i in {1..30}; do
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/api/health || echo "000")
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "API health: $HTTP_CODE OK"
+                break
+              fi
+              sleep 2
+            done
+            if [ "$HTTP_CODE" != "200" ]; then
               echo "API health: $HTTP_CODE FAIL"
               exit 1
             fi
 
-            WEB_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ || echo "000")
-            echo "Web health: $WEB_CODE"
+            for i in {1..30}; do
+              WEB_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ || echo "000")
+              if [ "$WEB_CODE" = "200" ]; then
+                echo "Web health: $WEB_CODE OK"
+                break
+              fi
+              sleep 2
+            done
+            if [ "$WEB_CODE" != "200" ]; then
+              echo "Web health: $WEB_CODE FAIL"
+              exit 1
+            fi
 
             pm2 status
             echo "--- Deploy complete ---"

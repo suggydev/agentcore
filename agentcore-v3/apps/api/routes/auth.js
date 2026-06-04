@@ -14,15 +14,20 @@ const router = express.Router();
 router.post('/register', authLimiter, async (req, res) => {
   try {
     const schema = z.object({
-      name: z.string().min(2),
-      email: z.string().email(),
+      name: z.string().min(2).max(255),
+      email: z.string().email().max(255),
       password: z.string().min(6),
-      workspaceName: z.string().optional()
+      workspaceName: z.string().max(100).optional()
     });
     const data = schema.parse(req.body);
+    const email = data.email.toLowerCase().trim();
 
-    const existing = await prisma.user.findUnique({ where: { email: data.email } });
-    if (existing) return res.status(400).json({ error: 'Email already registered' });
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      // perform dummy hash to prevent timing attacks
+      await bcrypt.hash(data.password, 10);
+      return res.status(400).json({ error: 'Email already registered' });
+    }
 
     const trialEndsAt = new Date(Date.now() + config.TRIAL_DAYS * 24 * 60 * 60 * 1000);
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -39,7 +44,7 @@ router.post('/register', authLimiter, async (req, res) => {
       const user = await tx.user.create({
         data: {
           name: data.name,
-          email: data.email,
+          email,
           password: hashedPassword,
           workspaceId: workspace.id,
           role: 'OWNER'
@@ -58,14 +63,16 @@ router.post('/register', authLimiter, async (req, res) => {
           analyst: routeToModel('analyze document', 'analyze long text', models)?.id || 'accounts/fireworks/models/deepseek-v4-pro'
         };
 
-        await prisma.agent.createMany({
-          data: [
-            { name: 'AI Assistant', description: 'General purpose assistant', workspaceId: workspace.id, model: defaultModels.assistant, systemPrompt: 'You are a helpful AI assistant.' },
-            { name: 'Code Expert', description: 'Coding and technical tasks', workspaceId: workspace.id, model: defaultModels.coder, systemPrompt: 'You are an expert programmer. Write clean, well-documented code.' },
-            { name: 'Creative Writer', description: 'Creative writing and content', workspaceId: workspace.id, model: defaultModels.creative, systemPrompt: 'You are a creative writer with excellent storytelling skills.' },
-            { name: 'Data Analyst', description: 'Data analysis and research', workspaceId: workspace.id, model: defaultModels.analyst, systemPrompt: 'You are a data analyst and researcher. Provide thorough, evidence-based analysis.' }
-          ],
-          skipDuplicates: true
+        await prisma.$transaction(async (tx) => {
+          await tx.agent.createMany({
+            data: [
+              { name: 'AI Assistant', description: 'General purpose assistant', workspaceId: workspace.id, model: defaultModels.assistant, systemPrompt: 'You are a helpful AI assistant.' },
+              { name: 'Code Expert', description: 'Coding and technical tasks', workspaceId: workspace.id, model: defaultModels.coder, systemPrompt: 'You are an expert programmer. Write clean, well-documented code.' },
+              { name: 'Creative Writer', description: 'Creative writing and content', workspaceId: workspace.id, model: defaultModels.creative, systemPrompt: 'You are a creative writer with excellent storytelling skills.' },
+              { name: 'Data Analyst', description: 'Data analysis and research', workspaceId: workspace.id, model: defaultModels.analyst, systemPrompt: 'You are a data analyst and researcher. Provide thorough, evidence-based analysis.' }
+            ],
+            skipDuplicates: true
+          });
         });
       } catch (agentErr) {
         console.error('[Auth] Default agent creation failed, rolling back:', agentErr);
@@ -75,7 +82,7 @@ router.post('/register', authLimiter, async (req, res) => {
       }
     }
 
-    const token = jwt.sign({ userId: user.id, workspaceId: workspace.id, role: user.role, tokenVersion: user.tokenVersion }, config.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user.id, workspaceId: workspace.id, role: user.role, tokenVersion: user.tokenVersion }, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRES_IN || '7d' });
     res.json({
       accessToken: token,
       user: { id: user.id, name: user.name, email: user.email },
@@ -88,19 +95,23 @@ router.post('/register', authLimiter, async (req, res) => {
     if (err instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: err.flatten() });
     }
-    safeError(res, err, 400, 'Registration failed');
+    safeError(res, err, 500, 'Registration failed');
   }
 });
 
 router.post('/login', authLimiter, async (req, res) => {
   try {
-    const { email, password } = z.object({ email: z.string().email(), password: z.string() }).parse(req.body);
+    const { email: rawEmail, password } = z.object({ email: z.string().email(), password: z.string() }).parse(req.body);
+    const email = rawEmail.toLowerCase().trim();
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !user.password || !await bcrypt.compare(password, user.password)) {
+    const dummyHash = '$2a$10$dummyhashdummyhashdummyhashdummyhashdu';
+    const hashToCompare = user?.password || dummyHash;
+    const valid = await bcrypt.compare(password, hashToCompare);
+    if (!user || !valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     const workspace = await prisma.workspace.findUnique({ where: { id: user.workspaceId } });
-    const token = jwt.sign({ userId: user.id, workspaceId: user.workspaceId, role: user.role, tokenVersion: user.tokenVersion }, config.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user.id, workspaceId: user.workspaceId, role: user.role, tokenVersion: user.tokenVersion }, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRES_IN || '7d' });
     res.json({
       accessToken: token,
       user: { id: user.id, name: user.name, email: user.email },
@@ -113,7 +124,7 @@ router.post('/login', authLimiter, async (req, res) => {
     if (err instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: err.flatten() });
     }
-    safeError(res, err, 400, 'Login failed');
+    safeError(res, err, 500, 'Login failed');
   }
 });
 
@@ -122,17 +133,16 @@ router.post('/refresh', authenticate, async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const newTokenVersion = user.tokenVersion + 1;
-    await prisma.user.update({
+    const updated = await prisma.user.update({
       where: { id: user.id },
-      data: { tokenVersion: newTokenVersion }
+      data: { tokenVersion: { increment: 1 } }
     });
 
     const workspace = await prisma.workspace.findUnique({ where: { id: user.workspaceId } });
     const token = jwt.sign(
-      { userId: user.id, workspaceId: user.workspaceId, role: user.role, tokenVersion: newTokenVersion },
+      { userId: user.id, workspaceId: user.workspaceId, role: user.role, tokenVersion: updated.tokenVersion },
       config.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: config.JWT_EXPIRES_IN || '7d' }
     );
 
     res.json({
@@ -162,7 +172,7 @@ router.post('/logout', authenticate, async (req, res) => {
 
 router.get('/me', authenticate, async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.user.userId }, include: { workspace: true } });
+    const user = await prisma.user.findUnique({ where: { id: req.user.userId }, include: { workspace: { select: { id: true, name: true, plan: true, trialEndsAt: true, settings: true } } } });
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ id: user.id, name: user.name, email: user.email, role: user.role, workspace: user.workspace });
   } catch (err) {
@@ -173,13 +183,20 @@ router.get('/me', authenticate, async (req, res) => {
 router.patch('/me', authenticate, async (req, res) => {
   try {
     const schema = z.object({
-      name: z.string().min(2).optional(),
-      email: z.string().email().optional(),
+      name: z.string().min(2).max(255).optional(),
+      email: z.string().email().max(255).optional(),
     });
     const data = schema.parse(req.body);
     const updateData = {};
     if (data.name !== undefined) updateData.name = data.name;
-    if (data.email !== undefined) updateData.email = data.email;
+    if (data.email !== undefined) {
+      const newEmail = data.email.toLowerCase().trim();
+      const existing = await prisma.user.findUnique({ where: { email: newEmail } });
+      if (existing && existing.id !== req.user.userId) {
+        return res.status(400).json({ error: 'Email already registered' });
+      }
+      updateData.email = newEmail;
+    }
     const user = await prisma.user.update({
       where: { id: req.user.userId },
       data: updateData
@@ -189,7 +206,7 @@ router.patch('/me', authenticate, async (req, res) => {
     if (err instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: err.flatten() });
     }
-    safeError(res, err, 400, 'Failed to update profile');
+    safeError(res, err, 500, 'Failed to update profile');
   }
 });
 

@@ -42,13 +42,6 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
 
     let selectedModel = model;
 
-    if (!selectedModel && messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      const models = await fetchModels();
-      const routed = routeToModel(lastMessage.role, lastMessage.content, models);
-      selectedModel = routed ? routed.id : 'accounts/fireworks/models/glm-5p1';
-    }
-
     if (!selectedModel && agentId) {
       const agent = await prisma.agent.findFirst({
         where: { id: agentId, workspaceId: req.user.workspaceId }
@@ -56,6 +49,14 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
       if (agent && agent.model) {
         selectedModel = agent.model;
       }
+    }
+
+    if (!selectedModel && messages.length > 0) {
+      const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+      const contentToRoute = lastUserMessage?.content || messages[messages.length - 1].content;
+      const models = await fetchModels();
+      const routed = routeToModel(null, contentToRoute, models);
+      selectedModel = routed ? routed.id : 'accounts/fireworks/models/glm-5p1';
     }
 
     const response = await axios.post(
@@ -78,11 +79,13 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
       }
     );
 
+    const firstUserMsg = messages.find(m => m.role === 'user');
+    const title = firstUserMsg?.content?.substring(0, 50) || 'New Chat';
     const conversation = await prisma.conversation.create({
       data: {
         workspaceId: req.user.workspaceId,
         agentId: agentId || null,
-        title: messages[0]?.content?.substring(0, 50) || 'New Chat',
+        title,
         messages: {
           create: messages.map((m, idx) => ({
             role: m.role,
@@ -120,9 +123,11 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
         }
       };
 
+      let buffer = '';
       response.data.on('data', (chunk) => {
-        const text = chunk.toString();
-        const lines = text.split('\n');
+        buffer += chunk.toString();
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // keep incomplete line in buffer
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6).trim();
@@ -137,6 +142,20 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
       });
 
       response.data.on('end', async () => {
+        if (buffer) {
+          // process final buffered line
+          const line = buffer.trim();
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6).trim();
+            if (data !== '[DONE]') {
+              try {
+                const parsed = JSON.parse(data);
+                const delta = parsed.choices?.[0]?.delta?.content;
+                if (delta) fullContent += delta;
+              } catch (parseErr) { /* ignore final parse error */ }
+            }
+          }
+        }
         if (!streamEnded) {
           streamEnded = true;
           await saveAssistantMessage(fullContent || '[Streaming response - no content received]');
@@ -169,7 +188,12 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
     }
 
     res.json({
-      ...response.data,
+      id: response.data.id,
+      object: response.data.object,
+      created: response.data.created,
+      model: response.data.model,
+      choices: response.data.choices,
+      usage: response.data.usage,
       _meta: {
         model_used: selectedModel,
         conversation_id: conversation.id
@@ -180,10 +204,14 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
     if (err.code === 'ECONNABORTED') {
       return res.status(504).json({ error: 'Превышено время ожидания от AI-модели' });
     }
-    if (err.response?.status === 429) {
+    const upstreamStatus = err.response?.status;
+    if (upstreamStatus === 429 || err.response?.status === 429) {
       return res.status(429).json({ error: 'Слишком много запросов. Подождите.' });
     }
-    safeError(res, err, 502, 'AI service unavailable');
+    if (upstreamStatus === 400) {
+      return res.status(400).json({ error: 'Invalid request to AI provider', detail: err.response?.data?.error?.message });
+    }
+    safeError(res, err, upstreamStatus || 502, 'AI service unavailable');
   }
 });
 
@@ -215,12 +243,17 @@ router.post('/images/generations', authenticate, checkTrial, aiLimiter, async (r
     );
 
     res.json({
-      ...response.data,
+      created: response.data.created,
+      data: response.data.data,
       _meta: { model_used: imageModel }
     });
   } catch (err) {
     console.error('Image generation error:', err.code || err.response?.status || err.message);
-    safeError(res, err, 502, 'Image generation service unavailable');
+    const upstreamStatus = err.response?.status;
+    if (upstreamStatus === 400) {
+      return res.status(400).json({ error: 'Invalid request to image provider', detail: err.response?.data?.error?.message });
+    }
+    safeError(res, err, upstreamStatus || 502, 'Image generation service unavailable');
   }
 });
 

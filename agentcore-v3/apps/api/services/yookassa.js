@@ -64,7 +64,7 @@ class YooKassaProvider extends IntegrationProvider {
 
     this.shopId = credentials.shopId || config.YOOKASSA_SHOP_ID;
     this.secretKey = credentials.secretKey || config.YOOKASSA_SECRET_KEY;
-    this.webhookSecret = credentials.webhookSecret || config.YOOKASSA_WEBHOOK_SECRET || this.secretKey;
+    this.webhookSecret = credentials.webhookSecret || config.YOOKASSA_WEBHOOK_SECRET;
     this._client = null;
     this._axiosToken = null;
     this.credentialSource = credentials.shopId ? 'database' : 'env';
@@ -93,10 +93,12 @@ class YooKassaProvider extends IntegrationProvider {
     return this._axiosToken;
   }
 
-  async rawApiCall(method, path, body = null) {
+  async rawApiCall(method, path, body = null, idempotenceKey = null) {
     if (!this.shopId || !this.secretKey) {
       throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
     }
+
+    const key = idempotenceKey || uuidv4();
 
     try {
       const response = await this.execute(async () => {
@@ -106,7 +108,7 @@ class YooKassaProvider extends IntegrationProvider {
           headers: {
             Authorization: `Basic ${this.authToken}`,
             'Content-Type': 'application/json',
-            'Idempotence-Key': uuidv4(),
+            'Idempotence-Key': key,
           },
           data: body,
           timeout: 30000,
@@ -181,6 +183,9 @@ class YooKassaProvider extends IntegrationProvider {
     }
 
     const idempotenceKey = uuidv4();
+    if (!Number.isFinite(amount)) {
+      throw new AppError(RUSSIAN_ERRORS.validation_error, 400, 'YOOKASSA_VALIDATION_ERROR');
+    }
 
     const payload = {
       amount: { value: amount.toFixed(2), currency },
@@ -235,7 +240,7 @@ class YooKassaProvider extends IntegrationProvider {
     }
 
     try {
-      const result = await this.client.getPayment(paymentId, uuidv4());
+      const result = await this.client.getPayment(paymentId);
       return result;
     } catch (err) {
       throw mapYooKassaError(err);
@@ -250,7 +255,7 @@ class YooKassaProvider extends IntegrationProvider {
     const idempotenceKey = uuidv4();
     let payload;
 
-    if (amount !== undefined) {
+    if (amount !== undefined && Number.isFinite(amount)) {
       payload = { amount: { value: amount.toFixed(2), currency: 'RUB' } };
     }
 
@@ -268,7 +273,7 @@ class YooKassaProvider extends IntegrationProvider {
     }
 
     try {
-      const result = await this.client.cancelPayment(paymentId, uuidv4());
+      const result = await this.client.cancelPayment(paymentId);
       return result;
     } catch (err) {
       throw mapYooKassaError(err);
@@ -278,6 +283,9 @@ class YooKassaProvider extends IntegrationProvider {
   async createRefund({ paymentId, amount, currency = 'RUB', description }) {
     if (!this.shopId || !this.secretKey) {
       throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
+    }
+    if (!Number.isFinite(amount)) {
+      throw new AppError(RUSSIAN_ERRORS.validation_error, 400, 'YOOKASSA_VALIDATION_ERROR');
     }
 
     const idempotenceKey = uuidv4();
@@ -308,6 +316,12 @@ class YooKassaProvider extends IntegrationProvider {
     if (!this.shopId || !this.secretKey) {
       throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
     }
+    if (!Array.isArray(receiptItems)) {
+      throw new AppError(RUSSIAN_ERRORS.validation_error, 400, 'YOOKASSA_VALIDATION_ERROR');
+    }
+    if (!Number.isFinite(amount)) {
+      throw new AppError(RUSSIAN_ERRORS.validation_error, 400, 'YOOKASSA_VALIDATION_ERROR');
+    }
 
     const idempotenceKey = uuidv4();
     const payload = {
@@ -327,7 +341,7 @@ class YooKassaProvider extends IntegrationProvider {
           value: Number(item.amount).toFixed(2),
           currency: currency,
         },
-        vat_code: item.vat_code || 1,
+        vat_code: item.vat_code ?? 1,
       })),
       type: 'refund',
     };
@@ -346,7 +360,7 @@ class YooKassaProvider extends IntegrationProvider {
     }
 
     try {
-      const result = await this.client.getRefund(refundId, uuidv4());
+      const result = await this.client.getRefund(refundId);
       return result;
     } catch (err) {
       throw mapYooKassaError(err);
@@ -358,7 +372,7 @@ class YooKassaProvider extends IntegrationProvider {
       throw new AppError(RUSSIAN_ERRORS.not_configured, 500, 'YOOKASSA_NOT_CONFIGURED');
     }
 
-    if (!paymentId && !type) {
+    if (!paymentId) {
       throw new AppError(
         'Не указан payment_id для чека',
         400,
@@ -374,6 +388,15 @@ class YooKassaProvider extends IntegrationProvider {
       );
     }
 
+    const total = items.reduce((sum, item) => {
+      const amount = Number(item.amount);
+      const quantity = Number(item.quantity);
+      if (!Number.isFinite(amount) || !Number.isFinite(quantity)) {
+        throw new AppError(RUSSIAN_ERRORS.receipt_error, 400, 'YOOKASSA_RECEIPT_ERROR');
+      }
+      return sum + amount * quantity;
+    }, 0);
+
     const payload = {
       type: type === 'refund' ? 'refund' : 'payment',
       payment_id: paymentId,
@@ -385,7 +408,7 @@ class YooKassaProvider extends IntegrationProvider {
           value: Number(item.amount).toFixed(2),
           currency: 'RUB',
         },
-        vat_code: item.vat_code || 1,
+        vat_code: item.vat_code ?? 1,
         payment_mode: item.payment_mode || 'full_prepayment',
         payment_subject: item.payment_subject || 'commodity',
       })),
@@ -393,7 +416,7 @@ class YooKassaProvider extends IntegrationProvider {
         {
           type: 'cashless',
           amount: {
-            value: items.reduce((sum, item) => sum + Number(item.amount) * Number(item.quantity), 0).toFixed(2),
+            value: total.toFixed(2),
             currency: 'RUB',
           },
         },
@@ -460,8 +483,11 @@ class YooKassaProvider extends IntegrationProvider {
       );
     }
 
-    const idempotenceKey = uuidv4();
+    if (!Number.isFinite(amount)) {
+      throw new AppError(RUSSIAN_ERRORS.validation_error, 400, 'YOOKASSA_VALIDATION_ERROR');
+    }
 
+    const idempotenceKey = uuidv4();
     const payload = {
       amount: { value: amount.toFixed(2), currency },
       capture: true,
@@ -500,16 +526,16 @@ class YooKassaProvider extends IntegrationProvider {
 
     try {
       const response = await this.rawApiCall('GET', '/me');
-      const data = response;
+      const { data } = response;
 
-      const accounts = Array.isArray(data.accounts) ? data.accounts : [];
+      const accounts = Array.isArray(data?.accounts) ? data.accounts : [];
       const account = accounts.find(a => a.currency === 'RUB') || accounts[0] || {};
 
       return {
-        accountId: data.account_id || null,
-        status: data.status || 'unknown',
-        test: data.test || false,
-        fiscalization: data.fiscalization || null,
+        accountId: data?.account_id || null,
+        status: data?.status || 'unknown',
+        test: data?.test || false,
+        fiscalization: data?.fiscalization || null,
         balance: account.balance ? {
           value: Number(account.balance.value),
           currency: account.balance.currency || 'RUB',
@@ -527,46 +553,30 @@ class YooKassaProvider extends IntegrationProvider {
   }
 }
 
-let singleton = null;
-
-function getProvider(credentials) {
-  if (!credentials && singleton) return singleton;
-
-  if (credentials && credentials.shopId && credentials.secretKey) {
-    if (!singleton) {
-      singleton = new YooKassaProvider(credentials);
-    } else {
-      singleton.initialize(credentials);
-    }
-    return singleton;
-  }
-
-  if (!singleton) {
-    singleton = new YooKassaProvider({});
-  }
-  return singleton;
+function getProvider(credentials = {}) {
+  return new YooKassaProvider(credentials);
 }
 
 module.exports = {
   YooKassaProvider,
   AppError,
 
-  createPayment: (...args) => getProvider().createPayment(...args),
-  getPayment: (...args) => getProvider().getPayment(...args),
-  capturePayment: (...args) => getProvider().capturePayment(...args),
-  cancelPayment: (...args) => getProvider().cancelPayment(...args),
+  createPayment: (opts) => getProvider().createPayment(opts),
+  getPayment: (paymentId) => getProvider().getPayment(paymentId),
+  capturePayment: (paymentId, amount) => getProvider().capturePayment(paymentId, amount),
+  cancelPayment: (paymentId) => getProvider().cancelPayment(paymentId),
 
-  createRefund: (...args) => getProvider().createRefund(...args),
-  getRefund: (...args) => getProvider().getRefund(...args),
+  createRefund: (opts) => getProvider().createRefund(opts),
+  getRefund: (refundId) => getProvider().getRefund(refundId),
 
-  createReceipt: (...args) => getProvider().createReceipt(...args),
-  createRefundWithReceipt: (...args) => getProvider().createRefundWithReceipt(...args),
+  createReceipt: (opts) => getProvider().createReceipt(opts),
+  createRefundWithReceipt: (opts) => getProvider().createRefundWithReceipt(opts),
 
-  createSubscriptionPayment: (...args) => getProvider().createSubscriptionPayment(...args),
-  makeRecurrentPayment: (...args) => getProvider().makeRecurrentPayment(...args),
+  createSubscriptionPayment: (opts) => getProvider().createSubscriptionPayment(opts),
+  makeRecurrentPayment: (opts) => getProvider().makeRecurrentPayment(opts),
 
-  verifyWebhookSignature: (...args) => getProvider().verifyWebhookSignature(...args),
-  getBalance: (...args) => getProvider().getBalance(...args),
+  verifyWebhookSignature: (body, signature) => getProvider().verifyWebhookSignature(body, signature),
+  getBalance: () => getProvider().getBalance(),
 
   getProvider,
 };

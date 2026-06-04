@@ -35,8 +35,8 @@ const router = express.Router();
 
 router.get('/', authenticate, generalLimiter, async (req, res) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
     const skip = (page - 1) * limit;
     const [agents, total] = await Promise.all([
       prisma.agent.findMany({
@@ -52,7 +52,7 @@ router.get('/', authenticate, generalLimiter, async (req, res) => {
   }
 });
 
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', authenticate, generalLimiter, async (req, res) => {
   try {
     const agent = await prisma.agent.findFirst({
       where: { id: req.params.id, workspaceId: req.user.workspaceId }
@@ -64,7 +64,7 @@ router.get('/:id', authenticate, async (req, res) => {
   }
 });
 
-router.post('/', authenticate, async (req, res) => {
+router.post('/', authenticate, generalLimiter, async (req, res) => {
   try {
     const parsed = agentPostSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -99,7 +99,7 @@ router.post('/', authenticate, async (req, res) => {
   }
 });
 
-router.put('/:id', authenticate, async (req, res) => {
+router.put('/:id', authenticate, generalLimiter, async (req, res) => {
   try {
     const parsed = agentPutSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -129,17 +129,18 @@ router.put('/:id', authenticate, async (req, res) => {
     if (data.maxTokens !== undefined) updateData.maxTokens = data.maxTokens;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
 
-    const agent = await prisma.agent.update({
-      where: { id: req.params.id },
+    const agent = await prisma.agent.updateMany({
+      where: { id: req.params.id, workspaceId: req.user.workspaceId },
       data: updateData
     });
-    res.json(agent);
+    if (agent.count === 0) return res.status(404).json({ error: 'Agent not found' });
+    res.json({ success: true });
   } catch (err) {
-    safeError(res, err, 400, 'Failed to update agent');
+    safeError(res, err, 500, 'Failed to update agent');
   }
 });
 
-router.delete('/:id', authenticate, async (req, res) => {
+router.delete('/:id', authenticate, generalLimiter, async (req, res) => {
   try {
     const result = await prisma.agent.deleteMany({
       where: { id: req.params.id, workspaceId: req.user.workspaceId }
