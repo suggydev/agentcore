@@ -59,70 +59,59 @@ export default function HeroSection() {
 
         <div className="hidden lg:block">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-sm mx-auto bg-white rounded-[10px] overflow-hidden"
-            style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}
+            initial={{ opacity: 0, y: 60, rotateY: -15 }}
+            animate={{ opacity: 1, y: 0, rotateY: -5 }}
+            transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="mx-auto"
+            style={{ maxWidth: '320px', perspective: '1000px' }}
           >
-            <div className="px-5 py-3.5 flex items-center gap-3 border-b" style={{ borderColor: 'var(--border)' }}>
-              <div className="w-8 h-8 rounded-[40px] flex items-center justify-center text-sm" style={{ background: 'var(--surface-2)' }}>
-                💬
-              </div>
-              <div className="flex-1">
-                <p className="text-[#343433] text-sm font-semibold leading-tight">
-                  Чат с клиентом
-                </p>
-                <p className="text-[#848281] text-xs flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--success)' }} />
-                  онлайн
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 space-y-3" style={{ background: 'var(--bg)' }}>
-              <div className="flex justify-end">
-                <div className="max-w-[80%] bg-white rounded-xl rounded-br-md px-4 py-2.5" style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
-                  <p className="text-[13px] text-[#343433] leading-relaxed">
-                    {DEMO_CHAT.user}
-                  </p>
-                  <span className="block text-[10px] text-[#848281] mt-1 text-right">
-                    {DEMO_CHAT.userTime}
-                  </span>
+            <div 
+              className="relative bg-[#121212] rounded-[32px] p-3"
+              style={{ 
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.1)',
+                transform: 'rotateY(-5deg) rotateX(5deg)',
+                transformStyle: 'preserve-3d'
+              }}
+            >
+              <div className="bg-[#fbfaf9] rounded-[24px] overflow-hidden">
+                {/* Notch */}
+                <div className="flex justify-center pt-2 pb-1">
+                  <div className="w-20 h-5 bg-[#121212] rounded-full" />
                 </div>
-              </div>
-
-              <div className="flex justify-start">
-                <div className="max-w-[85%] rounded-xl rounded-bl-md px-4 py-2.5" style={{ background: 'var(--brand-light)', boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
-                  <p className="text-[13px] text-[#343433] leading-relaxed">
-                    {DEMO_CHAT.agent}
-                  </p>
-                  <div className="flex items-center justify-end gap-1 mt-1">
-                    <CheckCheck className="w-3 h-3" style={{ color: 'var(--brand)' }} />
-                    <span className="text-[10px] text-[#848281]">{DEMO_CHAT.agentTime}</span>
+                
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-full bg-[#f8f7f4] flex items-center justify-center text-sm">🤖</div>
+                    <div className="text-[13px] font-semibold text-[#343433]">AgentCore</div>
+                    <div className="ml-auto text-[10px] text-[#848281]">онлайн</div>
                   </div>
-                </div>
-              </div>
-
-              <div className="flex justify-start">
-                <div className="flex items-center gap-1.5 px-4 py-2.5 bg-white rounded-xl rounded-bl-md" style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
-                  <span className="text-[#848281] text-sm tracking-wider">...</span>
-                  <span className="text-[11px] text-[#848281]">
-                    печатает
-                  </span>
-                </div>
-              </div>
-
-              <div className="pt-1">
-                <div className="flex items-center gap-2 bg-white border rounded-xl px-4 py-3" style={{ borderColor: 'var(--border)' }}>
-                  <input
-                    type="text"
-                    placeholder="Написать сообщение..."
-                    className="flex-1 text-[13px] bg-transparent outline-none text-[#343433] placeholder:text-[#a7a7a7]"
-                    readOnly
-                  />
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'var(--accent)' }}>
-                    <Send className="w-3.5 h-3.5 text-white" />
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-end">
+                      <div className="bg-[#171717] text-white text-[12px] px-4 py-2.5 rounded-2xl rounded-br-sm max-w-[80%]">
+                        {DEMO_CHAT.user}
+                      </div>
+                    </div>
+                    <div className="flex justify-start">
+                      <div className="bg-[#f8f7f4] text-[#343433] text-[12px] px-4 py-2.5 rounded-2xl rounded-bl-sm max-w-[85%]">
+                        {DEMO_CHAT.agent}
+                      </div>
+                    </div>
+                    <div className="flex justify-start">
+                      <div className="flex items-center gap-1.5 px-4 py-2.5 bg-[#f8f7f4] rounded-2xl rounded-bl-sm">
+                        <span className="text-[#848281] text-sm tracking-wider">...</span>
+                        <span className="text-[11px] text-[#848281]">печатает</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="flex-1 h-9 rounded-full bg-[#f8f7f4] flex items-center px-4 text-[12px] text-[#848281]">
+                      Написать сообщение...
+                    </div>
+                    <div className="w-9 h-9 rounded-full bg-[#171717] flex items-center justify-center">
+                      <Send className="w-4 h-4 text-white" />
+                    </div>
                   </div>
                 </div>
               </div>
