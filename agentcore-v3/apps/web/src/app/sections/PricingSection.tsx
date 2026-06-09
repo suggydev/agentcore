@@ -18,8 +18,8 @@ const PRO_FEATURES = [
 
 export default function PricingSection() {
   return (
-    <section id="pricing" className="py-24 bg-[var(--surface)]">
-      <div className="max-w-4xl mx-auto px-6">
+    <section id="pricing" className="py-24 bg-white">
+      <div className="max-w-[1200px] mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -27,8 +27,8 @@ export default function PricingSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-14"
         >
-          <span className="label text-[var(--brand)] mb-3 block">Стоимость</span>
-          <h2 className="heading-2 text-[var(--text)] mb-3">
+          <span className="label mb-3 block" style={{ color: '#ff3e00' }}>Стоимость</span>
+          <h2 className="heading-2 mb-3">
             14 дней бесплатно, потом $29 в месяц
           </h2>
           <p className="body-large max-w-lg mx-auto">
@@ -44,38 +44,39 @@ export default function PricingSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="w-full max-w-md relative"
           >
-            <div className="relative p-7 rounded-xl border border-[var(--border)] bg-surface">
+            <div className="relative p-7 rounded-[10px] bg-white"
+              style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="px-4 py-1 rounded-full bg-[var(--accent)] text-white text-[11px] font-semibold flex items-center gap-1">
+                <span className="px-4 py-1 rounded-[32px] bg-[#121212] text-white text-[11px] font-semibold flex items-center gap-1">
                   <Zap className="w-3 h-3" />
                   Популярный
                 </span>
               </div>
 
-              <h3 className="font-mono-display font-semibold text-base text-[var(--text)] mb-0.5">
+              <h3 className="font-mono font-semibold text-base text-[#343433] mb-0.5">
                 Pro
               </h3>
-              <p className="text-xs text-[var(--text-muted)] mb-5">Для малого бизнеса и частных предпринимателей</p>
+              <p className="text-xs text-[#848281] mb-5">Для малого бизнеса и частных предпринимателей</p>
 
               <div className="mb-6">
-                <span className="text-3xl font-mono-display font-bold text-[var(--text)]">{proPrice}</span>
-                <span className="text-[var(--text-muted)] text-sm">/месяц</span>
+                <span className="text-3xl font-mono font-bold text-[#343433]">{proPrice}</span>
+                <span className="text-[#848281] text-sm">/месяц</span>
               </div>
 
-              <div className="h-px bg-[var(--border)] mb-5" />
+              <div className="h-px bg-[#f2f0ed] mb-5" />
 
               <ul className="space-y-3 mb-6">
                 {PRO_FEATURES.map(f => (
-                  <li key={f} className="flex items-start gap-3 text-sm text-[var(--text)]">
-                    <div className="w-5 h-5 rounded-full bg-[var(--surface-2)] flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3.5 h-3.5 text-[var(--brand)]" strokeWidth={2.5} />
+                  <li key={f} className="flex items-start gap-3 text-sm text-[#474645]">
+                    <div className="w-5 h-5 rounded-full bg-[#f8f7f4] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3.5 h-3.5 text-[#ff3e00]" strokeWidth={2.5} />
                     </div>
                     <span className="leading-snug">{f}</span>
                   </li>
                 ))}
               </ul>
 
-              <Link href="/login" className="block w-full py-3 rounded-xl font-semibold text-sm btn-primary text-center">
+              <Link href="/login" className="block w-full py-3 rounded-[32px] font-semibold text-sm btn-primary text-center">
                 Попробовать бесплатно
               </Link>
             </div>
@@ -88,15 +89,16 @@ export default function PricingSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full max-w-md"
           >
-            <div className="p-5 rounded-xl border border-[var(--border)] bg-surface">
+            <div className="p-5 rounded-[10px] bg-white"
+              style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-mono-display font-semibold text-sm text-[var(--text)] mb-0.5">
+                  <h3 className="font-mono font-semibold text-sm text-[#343433] mb-0.5">
                     Старт
                   </h3>
-                  <p className="text-xs text-[var(--text-muted)]">Бесплатно 14 дней — $10 кредитов на AI, полный доступ, без карты</p>
+                  <p className="text-xs text-[#848281]">Бесплатно 14 дней — $10 кредитов на AI, полный доступ, без карты</p>
                 </div>
-                <Link href="/login" className="px-4 py-2 rounded-lg font-semibold text-xs btn-secondary whitespace-nowrap inline-block">
+                <Link href="/login" className="px-4 py-2 rounded-[32px] font-semibold text-xs btn-secondary whitespace-nowrap inline-block">
                   Попробовать
                 </Link>
               </div>

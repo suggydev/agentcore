@@ -34,37 +34,37 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer className="bg-[var(--surface)] border-t border-[var(--border)] py-12 px-6">
-      <div className="max-w-7xl mx-auto">
+    <footer className="py-12 px-6" style={{ background: 'var(--bg)', boxShadow: 'rgba(0,0,0,0.04) 0px 0px 0px 1px inset' }}>
+      <div className="max-w-[1200px] mx-auto">
         <div className="grid md:grid-cols-4 gap-10 mb-10">
           <div className="md:col-span-2">
             <Logo className="mb-3" />
-            <p className="text-[var(--text-muted)] max-w-xs text-sm leading-relaxed">
+            <p className="text-[#848281] max-w-xs text-sm leading-relaxed">
               Цифровые сотрудники для вашего бизнеса. Отвечают клиентам 24/7, собирают заявки, помогают продавать. Без программистов.
             </p>
-            <div className="mt-5 flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
+            <div className="mt-5 flex items-center gap-3 text-[11px] text-[#848281]">
               <span className="font-mono">{APP_VERSION}</span>
-              <span className="w-1 h-1 rounded-full bg-[var(--border)]" />
+              <span className="w-1 h-1 rounded-full" style={{ background: 'var(--border)' }} />
               <span>{companyName}</span>
             </div>
           </div>
 
           <div>
-            <h4 className="font-semibold text-[var(--text)] mb-4 text-xs uppercase tracking-wider">Продукт</h4>
-            <ul className="space-y-3 text-sm text-[var(--text-muted)]">
-              <li><a href="#capabilities" className="hover:text-[var(--text)] transition-colors">Возможности</a></li>
-              <li><a href="#pricing" className="hover:text-[var(--text)] transition-colors">Тарифы</a></li>
-              <li><a href="/agents" className="hover:text-[var(--text)] transition-colors">Дашборд</a></li>
+            <h4 className="font-semibold text-[#343433] mb-4 text-xs uppercase tracking-wider">Продукт</h4>
+            <ul className="space-y-3 text-sm text-[#848281]">
+              <li><a href="#capabilities" className="hover:text-[#343433] transition-colors">Возможности</a></li>
+              <li><a href="#pricing" className="hover:text-[#343433] transition-colors">Тарифы</a></li>
+              <li><a href="/agents" className="hover:text-[#343433] transition-colors">Дашборд</a></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold text-[var(--text)] mb-4 text-xs uppercase tracking-wider">Компания</h4>
-            <ul className="space-y-3 text-sm text-[var(--text-muted)]">
-              <li><Link href="/contacts" className="hover:text-[var(--text)] transition-colors">Контакты</Link></li>
-              <li><Link href="/requisites" className="hover:text-[var(--text)] transition-colors">Реквизиты</Link></li>
-              <li><Link href="/delivery" className="hover:text-[var(--text)] transition-colors">Доставка и оплата</Link></li>
-              <li><Link href="/refund" className="hover:text-[var(--text)] transition-colors">Возврат</Link></li>
+            <h4 className="font-semibold text-[#343433] mb-4 text-xs uppercase tracking-wider">Компания</h4>
+            <ul className="space-y-3 text-sm text-[#848281]">
+              <li><Link href="/contacts" className="hover:text-[#343433] transition-colors">Контакты</Link></li>
+              <li><Link href="/requisites" className="hover:text-[#343433] transition-colors">Реквизиты</Link></li>
+              <li><Link href="/delivery" className="hover:text-[#343433] transition-colors">Доставка и оплата</Link></li>
+              <li><Link href="/refund" className="hover:text-[#343433] transition-colors">Возврат</Link></li>
             </ul>
           </div>
         </div>
@@ -72,11 +72,11 @@ export default function Footer() {
         <div className="arch-line mb-6" />
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-3">
-          <p className="text-[var(--text-muted)] text-xs">© 2026 {companyName}. Все права защищены.</p>
-          <div className="flex gap-5 text-[var(--text-muted)] text-xs">
-            <Link href="/privacy" className="hover:text-[var(--text)] transition-colors">Конфиденциальность</Link>
-            <Link href="/terms" className="hover:text-[var(--text)] transition-colors">Оферта</Link>
-            <Link href="/contacts" className="hover:text-[var(--text)] transition-colors">Контакты</Link>
+          <p className="text-[#848281] text-xs">© 2026 {companyName}. Все права защищены.</p>
+          <div className="flex gap-5 text-[#848281] text-xs">
+            <Link href="/privacy" className="hover:text-[#343433] transition-colors">Конфиденциальность</Link>
+            <Link href="/terms" className="hover:text-[#343433] transition-colors">Оферта</Link>
+            <Link href="/contacts" className="hover:text-[#343433] transition-colors">Контакты</Link>
           </div>
         </div>
       </div>

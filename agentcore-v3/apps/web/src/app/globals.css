@@ -5,8 +5,9 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #FAFAF7;
+  --bg-primary: #fbfaf9;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 * {
@@ -19,7 +20,7 @@ html {
 }
 
 body {
-  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--bg);
   color: var(--text);
   overflow-x: hidden;
@@ -27,7 +28,7 @@ body {
 
 ::selection {
   background-color: var(--brand-light);
-  color: var(--text);
+  color: var(--brand);
 }
 
 ::-webkit-scrollbar {
@@ -39,7 +40,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--border-2);
   border-radius: 3px;
 }
 
@@ -48,15 +49,16 @@ body {
 }
 
 @layer components {
+  /* Primary CTA — Dark Pill */
   .btn-primary {
     background-color: var(--accent);
     color: white;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 15px;
+    border-radius: 32px;
+    font-weight: 500;
+    font-size: 14px;
     padding: 12px 24px;
-    transition: opacity 150ms;
-    letter-spacing: -0.01em;
+    transition: all 0.2s ease;
+    letter-spacing: -0.18px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -65,19 +67,20 @@ body {
     cursor: pointer;
   }
   .btn-primary:hover {
-    opacity: 0.85;
+    background-color: #343433;
   }
 
+  /* Secondary CTA — Light Pill */
   .btn-secondary {
-    background: var(--surface);
-    color: var(--text);
+    background: #f6f4ef;
+    color: var(--accent);
     padding: 12px 24px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 15px;
-    border: 1px solid var(--border);
-    transition: opacity 150ms;
-    letter-spacing: -0.01em;
+    border-radius: 32px;
+    font-weight: 500;
+    font-size: 14px;
+    border: none;
+    transition: all 0.2s ease;
+    letter-spacing: -0.18px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -85,75 +88,116 @@ body {
     cursor: pointer;
   }
   .btn-secondary:hover {
-    opacity: 0.85;
+    background: #eae8e3;
   }
 
+  /* Ghost text link — Ember Orange */
+  .btn-ghost {
+    background: transparent;
+    color: var(--brand);
+    border: none;
+    padding: 4px 0;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: -0.18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+  .btn-ghost:hover {
+    opacity: 0.8;
+  }
+
+  /* Feature Card — White with inset border */
+  .card-feature {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 32px;
+    box-shadow: color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset;
+  }
+
+  /* Card — Warm cream */
+  .card-cream {
+    background: #f8f7f4;
+    border-radius: 12px;
+    padding: 32px;
+  }
+
+  /* Heading styles */
   .heading-1 {
-    font-family: var(--font-inter), 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: clamp(2.5rem, 6vw, 5rem);
-    line-height: 1.1;
-    letter-spacing: -0.01em;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: clamp(2.5rem, 6vw, 4.25rem);
+    line-height: 1.09;
+    letter-spacing: -2.11px;
+    color: var(--accent);
   }
 
   .heading-2 {
-    font-family: var(--font-inter), 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: clamp(1.75rem, 3.5vw, 3rem);
-    line-height: 1.15;
-    letter-spacing: -0.01em;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+    line-height: 1.09;
+    letter-spacing: -1.14px;
+    color: #343433;
   }
 
   .heading-3 {
-    font-family: var(--font-inter), 'Inter', sans-serif;
+    font-family: var(--font-sans);
     font-weight: 600;
-    font-size: clamp(1.15rem, 1.8vw, 1.5rem);
-    line-height: 1.3;
-    letter-spacing: -0.01em;
+    font-size: clamp(1.15rem, 1.8vw, 1.25rem);
+    line-height: 1.2;
+    letter-spacing: -0.25px;
+    color: #343433;
   }
 
   .heading-4 {
-    font-family: var(--font-inter), 'Inter', sans-serif;
+    font-family: var(--font-sans);
     font-weight: 600;
-    font-size: clamp(1rem, 1.3vw, 1.2rem);
-    line-height: 1.35;
-    letter-spacing: -0.01em;
+    font-size: clamp(1rem, 1.3vw, 1.1rem);
+    line-height: 1.38;
+    letter-spacing: -0.22px;
+    color: #343433;
   }
 
   .body-large {
-    font-family: var(--font-inter), 'Inter', sans-serif;
-    font-size: 18px;
-    line-height: 28px;
-    letter-spacing: 0;
-    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.47;
+    letter-spacing: -0.2px;
+    color: var(--text);
   }
 
   .body-small {
-    font-family: var(--font-inter), 'Inter', sans-serif;
-    font-size: 0.875rem;
+    font-family: var(--font-sans);
+    font-size: 14px;
     line-height: 1.55;
-    color: var(--text-muted);
+    letter-spacing: -0.18px;
+    color: var(--text);
   }
 
   .label {
-    font-family: var(--font-inter), 'Inter', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
+    letter-spacing: -0.12px;
+    color: var(--text-secondary);
   }
 
   .caption {
-    font-family: var(--font-inter), 'Inter', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: -0.14px;
+    line-height: 1.58;
+    color: var(--text-secondary);
   }
 
   .font-mono-display {
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
   }
 
@@ -181,5 +225,18 @@ body {
   .arch-line {
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+
+  /* Navigation specific */
+  .nav-link {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.18px;
+    color: #343433;
+    transition: color 0.2s ease;
+  }
+  .nav-link:hover {
+    color: var(--text-secondary);
   }
 }

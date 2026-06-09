@@ -1,47 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-
-const FAQ_ITEMS = [
-  {
-    question: 'Сколько времени занимает запуск цифрового сотрудника?',
-    answer:
-      'Буквально 2 минуты. Выберите сферу бизнеса, и агент готов к работе. Остальные настройки можно сделать позже.',
-  },
-  {
-    question: 'Нужен ли программист для настройки?',
-    answer:
-      'Нет. Всё настраивается без кода через понятный интерфейс. Если вы умеете пользоваться Telegram — вы справитесь.',
-  },
-  {
-    question: 'В какие каналы можно подключить агента?',
-    answer:
-      'WhatsApp, Telegram, Instagram, чат на сайте, Email, Slack, Discord, VK. Один агент работает во всех каналах одновременно.',
-  },
-  {
-    question: 'Может ли агент полностью заменить менеджера?',
-    answer:
-      'На 80% — да. Агент берёт на себя повторяющиеся задачи: ответы на типовые вопросы, сбор заявок, запись. Сложные случаи передаёт живому сотруднику.',
-  },
-  {
-    question: 'Как формируется стоимость?',
-    answer:
-      'Первые 14 дней — бесплатно с $10 кредитов на AI-запросы, без карты. Дальше $29 в месяц за агента. Никаких скрытых платежей, отменить можно в любой момент.',
-  },
-];
+import { FAQ_ITEMS } from '../../data/landingContent';
 
 export default function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  const toggle = (idx: number) => {
-    setOpenIndex(openIndex === idx ? null : idx);
+  const toggle = (i: number) => {
+    setOpenIndex(openIndex === i ? null : i);
   };
 
   return (
-    <section id="faq" className="py-24 bg-[var(--bg)]">
-      <div className="max-w-3xl mx-auto px-6">
+    <section id="faq" className="py-24" style={{ background: 'var(--bg)' }}>
+      <div className="max-w-[1200px] mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -49,10 +22,10 @@ export default function FAQSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-14"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-xs font-semibold text-[var(--text)] tracking-wide uppercase mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-[6px] bg-[#f8f7f4] text-xs font-semibold text-[#343433] tracking-wide uppercase mb-4">
             FAQ
           </span>
-          <h2 className="heading-2 text-[var(--text)] mb-3">
+          <h2 className="heading-2 mb-3">
             Часто задаваемые вопросы
           </h2>
           <p className="body-large max-w-lg mx-auto">
@@ -60,59 +33,42 @@ export default function FAQSection() {
           </p>
         </motion.div>
 
-        <div className="space-y-3">
-          {FAQ_ITEMS.map((item, i) => {
-            const isOpen = openIndex === i;
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05, duration: 0.4 }}
+        <div className="space-y-3 max-w-3xl mx-auto">
+          {FAQ_ITEMS.map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05, duration: 0.4 }}
+            >
+              <div className="rounded-[10px] bg-white transition-colors duration-200 cursor-pointer"
+                style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}
+                onClick={() => toggle(i)}
               >
-                <div
-                  className={`rounded-xl border transition-colors duration-200 cursor-pointer ${
-                    isOpen
-                      ? 'border-[var(--border)] bg-surface'
-                      : 'border-[var(--border)] bg-surface hover:bg-[var(--surface-2)]'
-                  }`}
-                >
-                  <button
-                    onClick={() => toggle(i)}
-                    className="w-full flex items-center justify-between p-5 text-left"
-                    aria-expanded={isOpen}
+                <button className="w-full flex items-center justify-between p-5 text-left">
+                  <span className="text-base font-semibold text-[#343433] pr-4">{item.question}</span>
+                  <motion.span
+                    animate={{ rotate: openIndex === i ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex-shrink-0"
                   >
-                    <span className="text-base font-semibold text-[var(--text)] pr-4">{item.question}</span>
-                    <motion.span
-                      animate={{ rotate: isOpen ? 180 : 0 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-                      className="flex-shrink-0"
-                    >
-                      <ChevronDown className="w-5 h-5 text-[var(--text-muted)]" />
-                    </motion.span>
-                  </button>
-
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        key="content"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ height: { duration: 0.3 }, opacity: { duration: 0.2 } }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-5 pb-5 border-t border-[var(--border)]">
-                          <p className="text-sm leading-relaxed text-[var(--text-muted)] pt-4">{item.answer}</p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            );
-          })}
+                    <ChevronDown className="w-5 h-5 text-[#848281]" />
+                  </motion.span>
+                </button>
+                <motion.div
+                  initial={false}
+                  animate={{ height: openIndex === i ? 'auto' : 0, opacity: openIndex === i ? 1 : 0 }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-5 pb-5 text-[#474645] text-sm leading-relaxed">
+                    {item.answer}
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>

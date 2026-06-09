@@ -9,6 +9,7 @@ import WorkflowSection from './sections/WorkflowSection';
 import VideoSection from './sections/VideoSection';
 import IntegrationSection from './sections/IntegrationSection';
 import ResultsSection from './sections/ResultsSection';
+import AboutTeamSection from './sections/AboutTeamSection';
 import PricingSection from './sections/PricingSection';
 import FAQSection from './sections/FAQSection';
 import TestimonialsSection from './sections/TestimonialsSection';
@@ -18,7 +19,7 @@ import Footer from './sections/Footer';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <Navigation />
 
       <main>
@@ -30,6 +31,7 @@ export default function HomePage() {
         <VideoSection />
         <IntegrationSection />
         <ResultsSection />
+        <AboutTeamSection />
         <PricingSection />
         <FAQSection />
         <TestimonialsSection />

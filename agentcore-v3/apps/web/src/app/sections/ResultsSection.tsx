@@ -36,8 +36,8 @@ const RESULTS = [
 
 export default function ResultsSection() {
   return (
-    <section className="py-24 bg-[var(--accent)] text-white">
-      <div className="max-w-6xl mx-auto px-6">
+    <section className="py-24 text-white" style={{ background: '#121212' }}>
+      <div className="max-w-[1200px] mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -45,7 +45,7 @@ export default function ResultsSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-14"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-white/20 border border-white/30 text-xs font-semibold text-white tracking-wide uppercase mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-[6px] bg-white/10 border border-white/20 text-xs font-semibold text-white tracking-wide uppercase mb-4">
             Результаты клиентов
           </span>
           <h2 className="heading-2 text-white mb-4">
@@ -64,9 +64,9 @@ export default function ResultsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.4 }}
-              className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
+              className="bg-white/10 rounded-[10px] p-6 border border-white/20"
             >
-              <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center mb-4">
+              <div className="w-10 h-10 rounded-[10px] bg-white/20 flex items-center justify-center mb-4">
                 <result.icon className="w-5 h-5 text-white" />
               </div>
               <div className="text-3xl font-bold text-white mb-1">{result.value}</div>

@@ -44,11 +44,11 @@ export default function TestimonialsSection() {
   return (
     <section
       id="testimonials"
-      className="py-24 bg-[var(--surface)]"
+      className="py-24 bg-white"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="max-w-[1200px] mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -56,13 +56,13 @@ export default function TestimonialsSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-14"
         >
-          <span className="label text-[var(--brand)] mb-3 block">
+          <span className="label mb-3 block" style={{ color: '#ff3e00' }}>
             Нам доверяют
           </span>
-          <h2 className="heading-2 text-[var(--text)]">
+          <h2 className="heading-2">
             Что говорят клиенты
           </h2>
-          <p className="text-sm text-[var(--text-muted)] mt-2">
+          <p className="text-sm text-[#848281] mt-2">
             Примеры работы агентов в реальных сценариях
           </p>
         </motion.div>
@@ -80,8 +80,9 @@ export default function TestimonialsSection() {
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className="absolute inset-0"
               >
-                <div className="bg-surface rounded-xl p-6 md:p-8 border border-[var(--border)]">
-                  <Quote className="w-8 h-8 text-[var(--brand)]/30 mb-4" />
+                <div className="bg-white rounded-[10px] p-6 md:p-8"
+                  style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
+                  <Quote className="w-8 h-8 text-[#ff3e00]/30 mb-4" />
 
                   <div className="flex gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
@@ -89,26 +90,26 @@ export default function TestimonialsSection() {
                         key={i}
                         className={`w-4 h-4 ${
                           i < TESTIMONIALS[activeIndex].rating
-                            ? 'fill-[var(--warning)] text-[var(--warning)]'
-                            : 'text-[var(--border)]'
+                            ? 'fill-[#ffbb26] text-[#ffbb26]'
+                            : 'text-[#f2f0ed]'
                         }`}
                       />
                     ))}
                   </div>
 
-                  <p className="text-[var(--text)] leading-relaxed text-base md:text-lg mb-6">
+                  <p className="text-[#474645] leading-relaxed text-base md:text-lg mb-6">
                     {TESTIMONIALS[activeIndex].quote}
                   </p>
 
-                  <div className="flex items-center gap-3 border-t border-[var(--border)] pt-4">
-                    <div className="w-10 h-10 rounded-full bg-[var(--brand)] flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                  <div className="flex items-center gap-3 border-t border-[#f2f0ed] pt-4">
+                    <div className="w-10 h-10 rounded-full bg-[#ff3e00] flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                       {TESTIMONIALS[activeIndex].author[0]}
                     </div>
                     <div>
-                      <div className="font-semibold text-sm text-[var(--text)]">
+                      <div className="font-semibold text-sm text-[#343433]">
                         {TESTIMONIALS[activeIndex].author}
                       </div>
-                      <div className="text-xs text-[var(--text-muted)]">{TESTIMONIALS[activeIndex].role}</div>
+                      <div className="text-xs text-[#848281]">{TESTIMONIALS[activeIndex].role}</div>
                     </div>
                   </div>
                 </div>
@@ -124,8 +125,8 @@ export default function TestimonialsSection() {
               onClick={() => goToSlide(i)}
               className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
                 i === activeIndex
-                  ? 'bg-[var(--accent)] w-6'
-                  : 'bg-[var(--border)] hover:bg-[var(--text-muted)]'
+                  ? 'bg-[#121212] w-6'
+                  : 'bg-[#f2f0ed] hover:bg-[#848281]'
               }`}
               aria-label={`Перейти к отзыву ${i + 1}`}
             />

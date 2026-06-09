@@ -38,8 +38,8 @@ const CAPABILITIES = [
 
 export default function CapabilitiesSection() {
   return (
-    <section id="capabilities" className="py-24 bg-[var(--bg)]">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="capabilities" className="py-24" style={{ background: 'var(--bg)' }}>
+      <div className="max-w-[1200px] mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -47,10 +47,10 @@ export default function CapabilitiesSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-xs font-semibold text-[var(--text)] tracking-wide uppercase mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-[6px] bg-[#f8f7f4] text-xs font-semibold text-[#343433] tracking-wide uppercase mb-4">
             Возможности
           </span>
-          <h2 className="heading-2 text-[var(--text)] mb-4 max-w-2xl mx-auto">
+          <h2 className="heading-2 mb-4 max-w-2xl mx-auto">
             Что умеет ваш цифровой сотрудник
           </h2>
           <p className="body-large max-w-xl mx-auto">
@@ -66,12 +66,13 @@ export default function CapabilitiesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05, duration: 0.4 }}
-              className="p-6 rounded-xl bg-surface border border-[var(--border)]"
+              className="p-6 rounded-[10px] bg-white"
+              style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}
             >
-              <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] flex items-center justify-center mb-5">
-                <cap.icon className="w-6 h-6 text-[var(--brand)]" />
+              <div className="w-12 h-12 rounded-[10px] bg-[#f8f7f4] flex items-center justify-center mb-5">
+                <cap.icon className="w-6 h-6 text-[#ff3e00]" />
               </div>
-              <h3 className="heading-4 text-[var(--text)] mb-2">{cap.title}</h3>
+              <h3 className="heading-4 mb-2">{cap.title}</h3>
               <p className="body-small">{cap.description}</p>
             </motion.div>
           ))}

@@ -33,8 +33,8 @@ export default function Logo({ className = '', animated = false, size = 32, show
       >
         <rect 
           x="4" y="4" width="14" height="14" rx="3" 
-          fill={isRevealed ? '#1A1A1A' : 'none'}
-          stroke="#1A1A1A" 
+          fill={isRevealed ? '#121212' : 'none'}
+          stroke="#121212" 
           strokeWidth="2"
           strokeDasharray="200"
           strokeDashoffset={isRevealed ? 0 : 200}
@@ -42,8 +42,8 @@ export default function Logo({ className = '', animated = false, size = 32, show
         />
         <rect 
           x="22" y="4" width="14" height="14" rx="3" 
-          fill={isRevealed ? '#6E56CF' : 'none'}
-          stroke="#6E56CF" 
+          fill={isRevealed ? '#ff3e00' : 'none'}
+          stroke="#ff3e00" 
           strokeWidth="2"
           strokeDasharray="200"
           strokeDashoffset={isRevealed ? 0 : 200}
@@ -51,8 +51,8 @@ export default function Logo({ className = '', animated = false, size = 32, show
         />
         <rect 
           x="4" y="22" width="14" height="14" rx="3" 
-          fill={isRevealed ? '#6E56CF' : 'none'}
-          stroke="#6E56CF" 
+          fill={isRevealed ? '#ff3e00' : 'none'}
+          stroke="#ff3e00" 
           strokeWidth="2"
           strokeDasharray="200"
           strokeDashoffset={isRevealed ? 0 : 200}
@@ -60,8 +60,8 @@ export default function Logo({ className = '', animated = false, size = 32, show
         />
         <circle 
           cx="29" cy="29" r="6" 
-          fill={isRevealed ? '#1A1A1A' : 'none'}
-          stroke="#1A1A1A" 
+          fill={isRevealed ? '#121212' : 'none'}
+          stroke="#121212" 
           strokeWidth="2"
           strokeDasharray="200"
           strokeDashoffset={isRevealed ? 0 : 200}
@@ -69,7 +69,7 @@ export default function Logo({ className = '', animated = false, size = 32, show
         />
         <line 
           x1="18" y1="11" x2="22" y2="11" 
-          stroke="#E8E5DF" 
+          stroke="#f2f0ed" 
           strokeWidth="1"
           strokeDasharray="10"
           strokeDashoffset={isRevealed ? 0 : 10}
@@ -77,7 +77,7 @@ export default function Logo({ className = '', animated = false, size = 32, show
         />
         <line 
           x1="11" y1="18" x2="11" y2="22" 
-          stroke="#E8E5DF" 
+          stroke="#f2f0ed" 
           strokeWidth="1"
           strokeDasharray="10"
           strokeDashoffset={isRevealed ? 0 : 10}
@@ -85,7 +85,7 @@ export default function Logo({ className = '', animated = false, size = 32, show
         />
       </svg>
       {showText && (
-        <span className="font-mono-display font-bold text-[var(--text)] text-lg tracking-tight">
+        <span className="font-mono font-bold text-[#343433] text-lg tracking-tight">
           AgentCore
         </span>
       )}
@@ -103,10 +103,10 @@ export function LogoSymbol({ size = 32, className = '' }: { size?: number; class
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <rect x="4" y="4" width="14" height="14" rx="3" fill="#1A1A1A" />
-      <rect x="22" y="4" width="14" height="14" rx="3" fill="#6E56CF" />
-      <rect x="4" y="22" width="14" height="14" rx="3" fill="#6E56CF" />
-      <circle cx="29" cy="29" r="6" fill="#1A1A1A" />
+      <rect x="4" y="4" width="14" height="14" rx="3" fill="#121212" />
+      <rect x="22" y="4" width="14" height="14" rx="3" fill="#ff3e00" />
+      <rect x="4" y="22" width="14" height="14" rx="3" fill="#ff3e00" />
+      <circle cx="29" cy="29" r="6" fill="#121212" />
     </svg>
   );
 }

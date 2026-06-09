@@ -6,14 +6,14 @@ import { DEMO_CHAT } from '../../data/landingContent';
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden pt-20 lg:pt-28 pb-12 lg:pb-16 bg-[var(--bg)]">
-      <div className="relative z-10 max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+    <section className="relative min-h-screen flex items-center overflow-hidden pt-20 lg:pt-28 pb-12 lg:pb-16" style={{ background: 'var(--bg)' }}>
+      <div className="relative z-10 max-w-[1200px] mx-auto px-6 w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
         <div className="text-center lg:text-left">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="heading-1 text-[var(--text)] mb-6 max-w-xl mx-auto lg:mx-0 leading-[1.05]"
+            className="heading-1 mb-6 max-w-xl mx-auto lg:mx-0"
           >
             Ваш бизнес работает
             <br />
@@ -47,11 +47,11 @@ export default function HeroSection() {
             </a>
             <a
               href="/login"
-              className="inline-flex items-center gap-2 px-8 py-3 text-[var(--text)] font-medium hover:text-[var(--brand)] transition-colors"
+              className="btn-ghost text-[15px]"
             >
               или создать самому — бесплатно
             </a>
-            <span className="text-xs text-[var(--text-muted)] font-medium">
+            <span className="caption font-medium">
               15 минут в Zoom, покажем каждый шаг
             </span>
           </motion.div>
@@ -62,63 +62,66 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-sm mx-auto bg-surface rounded-xl border border-[var(--border)] overflow-hidden"
+            className="max-w-sm mx-auto bg-white rounded-[10px] overflow-hidden"
+            style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}
           >
-            <div className="px-5 py-3.5 flex items-center gap-3 border-b border-[var(--border)]">
-              <div className="w-8 h-8 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-sm">💬</div>
+            <div className="px-5 py-3.5 flex items-center gap-3 border-b" style={{ borderColor: 'var(--border)' }}>
+              <div className="w-8 h-8 rounded-[40px] flex items-center justify-center text-sm" style={{ background: 'var(--surface-2)' }}>
+                💬
+              </div>
               <div className="flex-1">
-                <p className="text-[var(--text)] text-sm font-semibold leading-tight">
+                <p className="text-[#343433] text-sm font-semibold leading-tight">
                   Чат с клиентом
                 </p>
-                <p className="text-[var(--text-muted)] text-xs flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
+                <p className="text-[#848281] text-xs flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--success)' }} />
                   онлайн
                 </p>
               </div>
             </div>
 
-            <div className="p-4 space-y-3 bg-[var(--bg)]">
+            <div className="p-4 space-y-3" style={{ background: 'var(--bg)' }}>
               <div className="flex justify-end">
-                <div className="max-w-[80%] bg-surface rounded-xl rounded-br-md px-4 py-2.5 border border-[var(--border)]">
-                  <p className="text-[13px] text-[var(--text)] leading-relaxed">
+                <div className="max-w-[80%] bg-white rounded-xl rounded-br-md px-4 py-2.5" style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
+                  <p className="text-[13px] text-[#343433] leading-relaxed">
                     {DEMO_CHAT.user}
                   </p>
-                  <span className="block text-[10px] text-[var(--text-muted)] mt-1 text-right">
+                  <span className="block text-[10px] text-[#848281] mt-1 text-right">
                     {DEMO_CHAT.userTime}
                   </span>
                 </div>
               </div>
 
               <div className="flex justify-start">
-                <div className="max-w-[85%] bg-[var(--brand-light)] rounded-xl rounded-bl-md px-4 py-2.5 border border-[var(--border)]">
-                  <p className="text-[13px] text-[var(--text)] leading-relaxed">
+                <div className="max-w-[85%] rounded-xl rounded-bl-md px-4 py-2.5" style={{ background: 'var(--brand-light)', boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
+                  <p className="text-[13px] text-[#343433] leading-relaxed">
                     {DEMO_CHAT.agent}
                   </p>
                   <div className="flex items-center justify-end gap-1 mt-1">
-                    <CheckCheck className="w-3 h-3 text-[var(--brand)]" />
-                    <span className="text-[10px] text-[var(--text-muted)]">{DEMO_CHAT.agentTime}</span>
+                    <CheckCheck className="w-3 h-3" style={{ color: 'var(--brand)' }} />
+                    <span className="text-[10px] text-[#848281]">{DEMO_CHAT.agentTime}</span>
                   </div>
                 </div>
               </div>
 
               <div className="flex justify-start">
-                <div className="flex items-center gap-1.5 px-4 py-2.5 bg-surface rounded-xl rounded-bl-md border border-[var(--border)]">
-                  <span className="text-[var(--text-muted)] text-sm tracking-wider">...</span>
-                  <span className="text-[11px] text-[var(--text-muted)]">
+                <div className="flex items-center gap-1.5 px-4 py-2.5 bg-white rounded-xl rounded-bl-md" style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
+                  <span className="text-[#848281] text-sm tracking-wider">...</span>
+                  <span className="text-[11px] text-[#848281]">
                     печатает
                   </span>
                 </div>
               </div>
 
               <div className="pt-1">
-                <div className="flex items-center gap-2 bg-surface border border-[var(--border)] rounded-xl px-4 py-3">
+                <div className="flex items-center gap-2 bg-white border rounded-xl px-4 py-3" style={{ borderColor: 'var(--border)' }}>
                   <input
                     type="text"
                     placeholder="Написать сообщение..."
-                    className="flex-1 text-[13px] bg-transparent outline-none text-[var(--text)] placeholder:text-[var(--text-muted)]"
+                    className="flex-1 text-[13px] bg-transparent outline-none text-[#343433] placeholder:text-[#a7a7a7]"
                     readOnly
                   />
-                  <div className="w-8 h-8 rounded-xl bg-[var(--accent)] flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'var(--accent)' }}>
                     <Send className="w-3.5 h-3.5 text-white" />
                   </div>
                 </div>

@@ -32,7 +32,7 @@ const LAYERS = [
 
 export default function ArchitectureSection() {
   return (
-    <section className="py-24 bg-[var(--surface)]">
+    <section className="py-24 bg-white">
       <div className="max-w-3xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -41,8 +41,8 @@ export default function ArchitectureSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-14"
         >
-          <span className="label text-[var(--brand)] mb-3 block">Архитектура</span>
-          <h2 className="heading-2 text-[var(--text)] mb-3">
+          <span className="label mb-3 block" style={{ color: '#ff3e00' }}>Архитектура</span>
+          <h2 className="heading-2 mb-3">
             Как устроена система
           </h2>
           <p className="body-large max-w-lg mx-auto">
@@ -58,21 +58,22 @@ export default function ArchitectureSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08, duration: 0.4 }}
-              className={`rounded-xl border p-5 ${
+              className={`rounded-[10px] p-5 ${
                 i === LAYERS.length - 1
-                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
-                  : 'bg-surface border-[var(--border)]'
+                  ? 'bg-[#121212] text-white'
+                  : 'bg-white'
               }`}
+              style={i === LAYERS.length - 1 ? {} : { boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                  i === LAYERS.length - 1 ? 'bg-surface/10' : 'bg-[var(--surface-2)]'
+                <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center ${
+                  i === LAYERS.length - 1 ? 'bg-white/10' : 'bg-[#f8f7f4]'
                 }`}>
-                  <layer.icon className={`w-4 h-4 ${i === LAYERS.length - 1 ? 'text-white' : 'text-[var(--brand)]'}`} />
+                  <layer.icon className={`w-4 h-4 ${i === LAYERS.length - 1 ? 'text-white' : 'text-[#ff3e00]'}`} />
                 </div>
                 <div>
-                  <div className={`font-semibold text-sm ${i === LAYERS.length - 1 ? 'text-white' : 'text-[var(--text)]'}`}>{layer.title}</div>
-                  <div className={`text-xs ${i === LAYERS.length - 1 ? 'text-white/60' : 'text-[var(--text-muted)]'}`}>{layer.subtitle}</div>
+                  <div className={`font-semibold text-sm ${i === LAYERS.length - 1 ? 'text-white' : 'text-[#343433]'}`}>{layer.title}</div>
+                  <div className={`text-xs ${i === LAYERS.length - 1 ? 'text-white/60' : 'text-[#848281]'}`}>{layer.subtitle}</div>
                 </div>
               </div>
 
@@ -81,10 +82,10 @@ export default function ArchitectureSection() {
                   {layer.tags.map((tag) => (
                     <span
                       key={tag}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-semibold ${
+                      className={`px-2.5 py-1 rounded-[6px] text-[11px] font-semibold ${
                         i === LAYERS.length - 1
-                          ? 'bg-surface/10 text-white/80'
-                          : 'bg-[var(--surface-2)] text-[var(--text)]'
+                          ? 'bg-white/10 text-white/80'
+                          : 'bg-[#f8f7f4] text-[#343433]'
                       }`}
                     >
                       {tag}

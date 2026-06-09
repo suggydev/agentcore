@@ -5,8 +5,8 @@ import { Calendar, Video, Clock, ArrowRight } from 'lucide-react';
 
 export default function DemoCTASection() {
   return (
-    <section className="py-20 bg-[var(--surface)]">
-      <div className="max-w-4xl mx-auto px-6">
+    <section className="py-20 bg-white">
+      <div className="max-w-[1200px] mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -14,10 +14,10 @@ export default function DemoCTASection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <span className="label text-[var(--brand)] mb-3 block">
+          <span className="label mb-3 block" style={{ color: '#ff3e00' }}>
             Быстрый старт
           </span>
-          <h2 className="heading-2 text-[var(--text)] mb-4">
+          <h2 className="heading-2 mb-4">
             Увидите, как это работает, за 15 минут
           </h2>
           <p className="body-large max-w-lg mx-auto">
@@ -30,34 +30,38 @@ export default function DemoCTASection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-[var(--bg)] rounded-2xl border border-[var(--border)] p-8 md:p-10"
+          className="bg-[#f8f7f4] rounded-[10px] p-8 md:p-10"
+          style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}
         >
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-[var(--brand-light)] flex items-center justify-center">
-                <Video className="w-5 h-5 text-[var(--brand)]" />
+              <div className="w-12 h-12 rounded-[10px] bg-white flex items-center justify-center"
+                style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
+                <Video className="w-5 h-5 text-[#ff3e00]" />
               </div>
               <div>
-                <div className="font-semibold text-sm text-[var(--text)]">Демонстрация экрана</div>
-                <div className="text-xs text-[var(--text-muted)] mt-1">Покажем каждый шаг в реальном времени</div>
+                <div className="font-semibold text-sm text-[#343433]">Демонстрация экрана</div>
+                <div className="text-xs text-[#848281] mt-1">Покажем каждый шаг в реальном времени</div>
               </div>
             </div>
             <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-[var(--brand-light)] flex items-center justify-center">
-                <Clock className="w-5 h-5 text-[var(--brand)]" />
+              <div className="w-12 h-12 rounded-[10px] bg-white flex items-center justify-center"
+                style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
+                <Clock className="w-5 h-5 text-[#ff3e00]" />
               </div>
               <div>
-                <div className="font-semibold text-sm text-[var(--text)]">15 минут</div>
-                <div className="text-xs text-[var(--text-muted)] mt-1">От регистрации до работающего агента</div>
+                <div className="font-semibold text-sm text-[#343433]">15 минут</div>
+                <div className="text-xs text-[#848281] mt-1">От регистрации до работающего агента</div>
               </div>
             </div>
             <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-[var(--brand-light)] flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-[var(--brand)]" />
+              <div className="w-12 h-12 rounded-[10px] bg-white flex items-center justify-center"
+                style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
+                <Calendar className="w-5 h-5 text-[#ff3e00]" />
               </div>
               <div>
-                <div className="font-semibold text-sm text-[var(--text)]">Бесплатно</div>
-                <div className="text-xs text-[var(--text-muted)] mt-1">Без обязательств и платежей</div>
+                <div className="font-semibold text-sm text-[#343433]">Бесплатно</div>
+                <div className="text-xs text-[#848281] mt-1">Без обязательств и платежей</div>
               </div>
             </div>
           </div>
@@ -72,7 +76,7 @@ export default function DemoCTASection() {
               Записаться на демонстрацию
               <ArrowRight className="w-4 h-4" />
             </a>
-            <span className="text-xs text-[var(--text-muted)] font-medium">
+            <span className="text-xs text-[#848281] font-medium">
               Обычно проводим в тот же день
             </span>
           </div>
