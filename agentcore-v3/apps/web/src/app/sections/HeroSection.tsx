@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Send, CheckCheck } from 'lucide-react';
+import { Send, CheckCheck, Video, ArrowRight } from 'lucide-react';
 import { DEMO_CHAT } from '../../data/landingContent';
 
 export default function HeroSection() {
@@ -33,16 +33,26 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col items-center lg:items-start gap-2"
+            className="flex flex-col items-center lg:items-start gap-3"
           >
             <a
-              href="/login"
-              className="btn-primary px-8 py-4 text-base"
+              href="https://t.me/agentcore_support"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary px-8 py-4 text-base inline-flex items-center gap-2"
             >
-              Создать бесплатно
+              <Video className="w-4 h-4" />
+              Записаться на демонстрацию
+              <ArrowRight className="w-4 h-4" />
+            </a>
+            <a
+              href="/login"
+              className="inline-flex items-center gap-2 px-8 py-3 text-[var(--text)] font-medium hover:text-[var(--brand)] transition-colors"
+            >
+              или создать самому — бесплатно
             </a>
             <span className="text-xs text-[var(--text-muted)] font-medium">
-              14 дней бесплатно, без карты
+              15 минут в Zoom, покажем каждый шаг
             </span>
           </motion.div>
         </div>

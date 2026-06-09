@@ -1,0 +1,498 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  SUPERADMIN
+  ADMIN
+  SUPPORT
+  ANALYST
+  GUEST
+}
+
+enum ContactStatus {
+  lead
+  contact
+  customer
+  archived
+}
+
+enum KnowledgeDocType {
+  text
+  url
+  file
+}
+
+enum BillingType {
+  agent_activation
+  agent_monthly
+  topup
+  refund
+  ai_usage
+}
+
+enum BillingStatus {
+  pending
+  completed
+  failed
+}
+
+enum AgentStatus {
+  draft
+  designing
+  in_development
+  ready
+  active
+  archived
+}
+
+model Workspace {
+  id                  String    @id @default(cuid())
+  name                String
+  settings            Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  users               User[]
+  agents              Agent[]
+  conversations       Conversation[]
+  crmContacts         CRMContact[]
+  knowledgeDocs       KnowledgeDocument[]
+  billingTransactions BillingTransaction[]
+  agentSubscriptions  AgentSubscription[]
+  teamInvitations    TeamInvitation[]
+  notifications      Notification[]
+  creditConsumptions  CreditConsumptionLog[]
+  tickets             Ticket[]
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String
+  email         String     @unique
+  password      String
+  role            UserRole   @default(OWNER)
+  tokenVersion    Int        @default(0)
+  settings        Json?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  workspaceId     String?
+  workspace       Workspace? @relation(fields: [workspaceId], references: [id])
+  loginLogs       UserLoginLog[]
+  activityLogs    UserActivityLog[]
+  apiRequests     ApiRequestLog[]
+  errorLogs       ErrorLog[]
+  tickets         Ticket[]
+  sentInvitations TeamInvitation[]
+  notifications   Notification[]
+
+  @@index([workspaceId])
+}
+
+model Agent {
+  id                     String        @id @default(cuid())
+  name                   String
+  description            String?
+  model                  String        @default("accounts/fireworks/models/glm-5p1")
+  systemPrompt           String        @default("You are a helpful AI assistant.")
+  temperature            Float         @default(0.7)
+  maxTokens              Int           @default(2000)
+  isActive               Boolean       @default(true)
+  channel                String?       // primary channel: telegram, whatsapp, vk, instagram, email, etc
+  settings               Json?         // brainMap, tone, etc
+  
+  // New per-agent billing fields
+  status                 AgentStatus   @default(draft)
+  isPaid                 Boolean       @default(false)
+  paidAt                 DateTime?
+  activationPrice        Float         @default(4499)
+  monthlyPrice           Float         @default(2499)
+  developmentStartedAt   DateTime?
+  developmentCompletedAt DateTime?
+  promisedReadyAt        DateTime?
+  isLocal                Boolean       @default(true) // Works on site only until paid
+  
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  workspaceId            String
+  workspace              Workspace     @relation(fields: [workspaceId], references: [id])
+  conversations          Conversation[]
+  integrations           Integration[]
+  subscriptions          AgentSubscription[]
+  creditConsumptions     CreditConsumptionLog[]
+  billingTransactions    BillingTransaction[]
+  modelUsageLogs         ModelUsageLog[]
+  knowledgeDocs          KnowledgeDocument[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, isActive])
+  @@index([workspaceId, status])
+  @@index([workspaceId, isPaid])
+}
+
+model Conversation {
+  id          String    @id @default(cuid())
+  title       String
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  agentId     String?
+  agent       Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  messages       Message[]
+  modelUsageLogs ModelUsageLog[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, updatedAt])
+  @@index([workspaceId, title])
+  @@index([workspaceId, agentId])
+  @@index([agentId])
+}
+
+model Message {
+  id              String       @id @default(cuid())
+  content         String
+  role            String
+  model           String?
+  order           Int          @default(0)
+  createdAt       DateTime     @default(now())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([conversationId, order])
+  @@index([conversationId, role])
+  @@index([conversationId, createdAt])
+  @@index([createdAt])
+}
+
+model CRMContact {
+  id          String        @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  status      ContactStatus @default(lead)
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  workspaceId String
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId])
+  @@index([status])
+}
+
+model Integration {
+  id              String   @id @default(cuid())
+  agentId         String
+  agent           Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  provider        String
+  mode            String?   // bot|user for telegram, cloud|web for whatsapp, group|user for vk, etc.
+  credentials     String
+  status          String   @default("active")
+  webhookUrl      String?
+  webhookSecret   String?
+  lastHealthCheck DateTime?
+  lastError       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  logs IntegrationLog[]
+
+  @@unique([agentId, provider])
+  @@index([agentId])
+  @@index([provider])
+  @@index([agentId, status])
+}
+
+model IntegrationLog {
+  id             String   @id @default(cuid())
+  integrationId  String
+  integration    Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  direction      String
+  eventType      String
+  payload        String?
+  status         String
+  createdAt      DateTime @default(now())
+
+  @@index([integrationId])
+  @@index([integrationId, createdAt])
+  @@index([direction])
+}
+
+model KnowledgeDocument {
+  id          String            @id @default(cuid())
+  title       String
+  content     String
+  type        KnowledgeDocType  @default(text)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  workspaceId String
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id])
+  agentId     String?           // null = global workspace knowledge, set = per-agent
+  agent       Agent?            @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([agentId])
+  @@index([workspaceId, agentId])
+}
+
+model BillingTransaction {
+  id                 String        @id @default(cuid())
+  type               BillingType
+  amount             Float
+  description        String?
+  status             BillingStatus @default(completed)
+  providerPaymentId  String?
+  agentId            String?       // For agent activation or monthly payments
+  agent              Agent?        @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  createdAt          DateTime      @default(now())
+  workspaceId        String
+  workspace          Workspace     @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId])
+  @@index([workspaceId, createdAt])
+  @@index([type])
+  @@index([status])
+  @@index([agentId])
+}
+
+model AgentSubscription {
+  id            String    @id @default(cuid())
+  agentId       String
+  agent         Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id])
+  status        String    @default("active") // active, paused, cancelled, expired
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([agentId])
+  @@index([workspaceId])
+  @@index([status])
+  @@index([currentPeriodEnd])
+}
+
+model CreditConsumptionLog {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  agentId       String?
+  agent         Agent?   @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  amount        Float
+  reason        String?  // ai_request, webhook, etc.
+  model         String?
+  tokensIn      Int?
+  tokensOut     Int?
+  createdAt     DateTime @default(now())
+
+  @@index([workspaceId])
+  @@index([agentId])
+  @@index([createdAt])
+}
+
+// ============================
+// ADMIN PANEL MODELS
+// ============================
+
+model UserLoginLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ip          String?
+  userAgent   String?
+  country     String?
+  city        String?
+  device      String?
+  success     Boolean
+  errorReason String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([success])
+  @@index([userId, createdAt])
+}
+
+model UserActivityLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String   // create_agent, update_agent, delete_agent, connect_integration, etc.
+  entityType String?  // agent, integration, workspace, etc.
+  entityId   String?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([entityType])
+  @@index([userId, createdAt])
+}
+
+model ApiRequestLog {
+  id        String   @id @default(cuid())
+  method    String
+  path      String
+  status    Int
+  duration  Int      // ms
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ip        String?
+  userAgent String?
+  bodySize  Int?     // bytes
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path])
+  @@index([status])
+  @@index([userId])
+}
+
+model SystemMetric {
+  id        String   @id @default(cuid())
+  cpuUsage  Float?
+  ramUsage  Float?
+  dbConnections Int?
+  diskUsage Float?
+  uptime    Int?     // seconds
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model ErrorLog {
+  id        String   @id @default(cuid())
+  requestId String?
+  error     String
+  stack     String?
+  endpoint  String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([endpoint])
+  @@index([requestId])
+  @@index([userId])
+}
+
+model ModelUsageLog {
+  id             String        @id @default(cuid())
+  model          String
+  tokensIn       Int?
+  tokensOut      Int?
+  cost           Float?        // estimated cost in rubles
+  latency        Int?          // ms
+  agentId        String?
+  agent          Agent?        @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
+
+  @@index([model])
+  @@index([createdAt])
+  @@index([agentId])
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  userId    String?
+  referrer  String?
+  duration  Int?     // ms
+  createdAt DateTime @default(now())
+
+  @@index([path])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model Alert {
+  id          String   @id @default(cuid())
+  type        String   // error, warning, info, success
+  title       String
+  message     String
+  entityType  String?  // integration, user, system, billing
+  entityId    String?
+  resolved    Boolean  @default(false)
+  resolvedAt  DateTime?
+  resolvedBy  String?
+  createdAt   DateTime @default(now())
+
+  @@index([type])
+  @@index([resolved])
+  @@index([createdAt])
+  @@index([entityType])
+}
+
+model Ticket {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  title       String
+  description String
+  status      String   @default("open") // open, in_progress, resolved, closed
+  priority    String   @default("medium") // low, medium, high, urgent
+  category    String   @default("general") // general, technical, billing, integration
+  assignedTo  String?  // admin user ID
+  resolution  String?  // admin response
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  resolvedAt  DateTime?
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model TeamInvitation {
+  id          String    @id @default(cuid())
+  workspaceId String
+  email       String
+  role        String    @default("MANAGER") // OWNER, ADMIN, MANAGER, VIEWER
+  token       String    @unique
+  status      String    @default("pending") // pending, accepted, declined, expired
+  invitedBy   String    // user ID who sent invite
+  inviter     User      @relation(fields: [invitedBy], references: [id])
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime  @default(dbgenerated("NOW() + INTERVAL '7 days'"))
+  acceptedAt  DateTime?
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([email])
+  @@index([token])
+  @@index([status])
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  workspaceId String
+  title       String
+  message     String
+  type        String    @default("info") // info, success, warning, error
+  read        Boolean   @default(false)
+  link        String?   // optional URL to navigate
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([read])
+  @@index([userId, read])
+  @@index([createdAt])
+}

@@ -1,0 +1,10 @@
+node_modules
+.git
+.env
+.env.*
+*.tar
+*.tar.gz
+apps/web/.next
+apps/web/node_modules
+apps/api/node_modules
+deploy-*

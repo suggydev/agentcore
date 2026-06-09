@@ -1,0 +1,43 @@
+FROM node:20-alpine AS base
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+
+FROM base AS deps
+COPY apps/api/package.json apps/api/package-lock.json ./
+RUN npm ci --production
+
+FROM base AS builder
+COPY apps/api/package.json apps/api/package-lock.json ./
+RUN npm ci
+COPY apps/api/ .
+COPY packages/prisma/ packages/prisma/
+RUN npx prisma generate --schema=packages/prisma/schema.prisma
+
+FROM base AS runner
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/server.js ./server.js
+COPY --from=builder /app/config ./config
+COPY --from=builder /app/routes ./routes
+COPY --from=builder /app/services ./services
+COPY --from=builder /app/middleware ./middleware
+COPY --from=builder /app/utils ./utils
+COPY --from=builder /app/prisma-client.js ./prisma-client.js
+
+ENV NODE_ENV=production
+ENV PORT=4000
+
+EXPOSE 4000
+
+USER nodejs
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --spider -q http://localhost:4000/api/health || exit 1
+
+CMD ["node", "server.js"]
