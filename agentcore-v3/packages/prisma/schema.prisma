@@ -17,6 +17,9 @@ enum Plan {
 
 enum UserRole {
   OWNER
+  SUPERADMIN
+  ADMIN
+  USER
 }
 
 enum ContactStatus {
