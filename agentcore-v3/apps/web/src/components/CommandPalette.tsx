@@ -136,27 +136,29 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
  transition={{ duration: 0.15 }}
  onClick={onClose}
  />
- <motion.div
- className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
- initial={{ opacity: 0, scale: 0.96 }}
- animate={{ opacity: 1, scale: 1 }}
- exit={{ opacity: 0, scale: 0.96 }}
- transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
- >
- <div
- className="w-full max-w-lg rounded-2xl bg-surface/95 backdrop-blur-2xl shadow-2xl border border-[var(--border)] overflow-hidden"
- onClick={(e) => e.stopPropagation()}
- >
- <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)]">
- <Search size={16} className="text-[var(--text-muted)] flex-shrink-0" />
- <input
- ref={inputRef}
- type="text"
- placeholder="Введите команду или поиск..."
- value={query}
- onChange={(e) => setQuery(e.target.value)}
- className="flex-1 bg-transparent text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none"
- />
+  <motion.div
+  className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
+  initial={{ opacity: 0, scale: 0.96 }}
+  animate={{ opacity: 1, scale: 1 }}
+  exit={{ opacity: 0, scale: 0.96 }}
+  transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+  data-testid="command-palette"
+  >
+  <div
+  className="w-full max-w-lg rounded-2xl bg-surface/95 backdrop-blur-2xl shadow-2xl border border-[var(--border)] overflow-hidden"
+  onClick={(e) => e.stopPropagation()}
+  >
+  <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)]">
+  <Search size={16} className="text-[var(--text-muted)] flex-shrink-0" />
+  <input
+  ref={inputRef}
+  type="text"
+  placeholder="Введите команду или поиск..."
+  value={query}
+  onChange={(e) => setQuery(e.target.value)}
+  data-testid="command-input"
+  className="flex-1 bg-transparent text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none"
+  />
  <kbd className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[var(--surface-2)] border border-[var(--border)] text-[10px] font-medium text-[var(--text-muted)] flex-shrink-0">
  esc
  </kbd>

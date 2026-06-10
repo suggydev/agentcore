@@ -19,6 +19,7 @@ import {
  Clock,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/design/components/Toast';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -52,6 +53,7 @@ interface PlanInfo {
 }
 
 export default function SettingsPage() {
+ const { addToast } = useToast();
  const [activeTab, setActiveTab] = useState<TabId>('profile');
  const [profile, setProfile] = useState<ProfileData>({ name: '', email: '' });
  const [balanceData, setBalanceData] = useState<BalanceData | null>(null);
@@ -118,15 +120,18 @@ export default function SettingsPage() {
  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
  body: JSON.stringify(profile),
  });
-  if (res.ok) {
-  setProfileSaved(true);
-  } else {
-  console.error('[SettingsPage] saveProfile failed:', res.status);
-  }
-  } catch (err) {
-  console.error('[SettingsPage] saveProfile:', err);
-  }
- }, [profile]);
+   if (res.ok) {
+   setProfileSaved(true);
+   addToast({ variant: 'success', message: 'Профиль сохранен' });
+   } else {
+   console.error('[SettingsPage] saveProfile failed:', res.status);
+   addToast({ variant: 'error', message: 'Не удалось сохранить профиль' });
+   }
+   } catch (err) {
+   console.error('[SettingsPage] saveProfile:', err);
+   addToast({ variant: 'error', message: 'Ошибка сохранения профиля' });
+   }
+  }, [profile, addToast]);
 
  const handleTopUp = async () => {
  const amount = parseFloat(topUpAmount);
@@ -182,21 +187,24 @@ export default function SettingsPage() {
   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
   body: JSON.stringify({ oldPassword, newPassword }),
   });
-  if (res.ok) {
-  setPasswordSaved(true);
-  setOldPassword('');
-  setNewPassword('');
-  setConfirmPassword('');
-  } else {
-  const data = await res.json().catch(() => ({}));
-  setPasswordError(data.error || data.message || 'Не удалось сменить пароль');
-  }
-  } catch {
-  setPasswordError('Ошибка соединения');
-  } finally {
-  setPasswordSaving(false);
-  }
-  };
+   if (res.ok) {
+   setPasswordSaved(true);
+   setOldPassword('');
+   setNewPassword('');
+   setConfirmPassword('');
+   addToast({ variant: 'success', message: 'Пароль изменен' });
+   } else {
+   const data = await res.json().catch(() => ({}));
+   setPasswordError(data.error || data.message || 'Не удалось сменить пароль');
+   addToast({ variant: 'error', message: data.error || 'Не удалось сменить пароль' });
+   }
+   } catch {
+   setPasswordError('Ошибка соединения');
+   addToast({ variant: 'error', message: 'Ошибка соединения' });
+   } finally {
+   setPasswordSaving(false);
+   }
+   };
 
  const container = {
  hidden: { opacity: 0 },
@@ -217,7 +225,7 @@ export default function SettingsPage() {
  }
 
  return (
- <div className="p-6 lg:p-10 max-w-5xl mx-auto">
+  <div className="p-6 lg:p-10 max-w-5xl mx-auto" data-testid="settings-page">
  <motion.div variants={container} initial="hidden" animate="show" className="mb-8">
  <motion.div variants={item}>
  <p className="text-[11px] font-semibold uppercase tracking-label text-[var(--brand)] mb-2">Настройки</p>
@@ -226,24 +234,25 @@ export default function SettingsPage() {
  </motion.div>
  </motion.div>
 
- <motion.div variants={item} initial="hidden" animate="show" className="flex gap-1 mb-8 bg-surface rounded-xl border border-[var(--border)] p-1 shadow-sm overflow-x-auto" role="tablist" aria-label="Разделы настроек">
+  <motion.div variants={item} initial="hidden" animate="show" className="flex gap-1 mb-8 bg-surface rounded-xl border border-[var(--border)] p-1 shadow-sm overflow-x-auto" role="tablist" aria-label="Разделы настроек" data-testid="settings-tabs">
  {TABS.map((tab) => {
  const Icon = tab.icon;
  const active = activeTab === tab.id;
  return (
- <button
- key={tab.id}
- type="button"
- onClick={() => setActiveTab(tab.id)}
- className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
- active
- ? 'bg-[var(--accent)] text-white shadow-sm'
- : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--accent-soft)]'
- }`}
- role="tab"
- aria-selected={active}
- aria-controls={`tabpanel-${tab.id}`}
- >
+  <button
+  key={tab.id}
+  type="button"
+  onClick={() => setActiveTab(tab.id)}
+  data-testid={`tab-${tab.id}`}
+  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
+  active
+  ? 'bg-[var(--accent)] text-white shadow-sm'
+  : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--accent-soft)]'
+  }`}
+  role="tab"
+  aria-selected={active}
+  aria-controls={`tabpanel-${tab.id}`}
+  >
  <Icon size={16} />
  {tab.label}
  </button>
@@ -252,96 +261,54 @@ export default function SettingsPage() {
  </motion.div>
 
  <div role="tabpanel" id={`tabpanel-${activeTab}`}>
- {activeTab === 'profile' && (
- <motion.div variants={container} initial="hidden" animate="show" className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
- <div className="flex items-center justify-between gap-4 mb-6 pb-5 border-b border-[var(--border)]">
- <div className="flex items-center gap-3">
- <div className="w-9 h-9 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
- <User className="w-[18px] h-[18px] text-[var(--brand)]" />
- </div>
- <div>
- <h3 className="font-semibold text-[var(--text)]">Профиль</h3>
- <p className="text-xs text-[var(--text-muted)] mt-0.5">Имя и email</p>
- </div>
- </div>
- <button
- onClick={saveProfile}
- disabled={profileSaving || profileSaved}
- className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
- profileSaved
- ? 'bg-[var(--success-soft)] text-[var(--success)] border border-[var(--success-soft)] cursor-default'
- : 'bg-[var(--accent)] text-white hover:bg-[var(--accent)] shadow-sm '
- }`}
- >
+  {activeTab === 'profile' && (
+  <motion.div variants={container} initial="hidden" animate="show" className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6 profile-section">
+  <div className="flex items-center justify-between gap-4 mb-6 pb-5 border-b border-[var(--border)]">
+  <div className="flex items-center gap-3">
+  <div className="w-9 h-9 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
+  <User className="w-[18px] h-[18px] text-[var(--brand)]" />
+  </div>
+  <div>
+  <h3 className="font-semibold text-[var(--text)]">Профиль</h3>
+  <p className="text-xs text-[var(--text-muted)] mt-0.5">Имя и email</p>
+  </div>
+  </div>
+  <button
+  onClick={saveProfile}
+  disabled={profileSaving || profileSaved}
+  data-testid="save-profile"
+  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
+  profileSaved
+  ? 'bg-[var(--success-soft)] text-[var(--success)] border border-[var(--success-soft)] cursor-default'
+  : 'bg-[var(--accent)] text-white hover:bg-[var(--accent)] shadow-sm '
+  }`}
+  >
  {profileSaved ? <><CheckCircle2 className="w-4 h-4" />Сохранено</> : <><Save className="w-4 h-4" />Сохранить</>}
  </button>
  </div>
  <div className="max-w-md space-y-4">
  <div>
  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Имя</label>
- <input
- type="text"
- value={profile.name}
- onChange={(e) => { setProfile((p) => ({ ...p, name: e.target.value })); setProfileSaved(false); }}
- placeholder="Ваше имя"
- className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
- />
+  <input
+  type="text"
+  value={profile.name}
+  onChange={(e) => { setProfile((p) => ({ ...p, name: e.target.value })); setProfileSaved(false); }}
+  placeholder="Ваше имя"
+  data-testid="profile-name"
+  className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
+  />
  </div>
  <div>
  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Email</label>
- <input
- type="email"
- value={profile.email}
- onChange={(e) => { setProfile((p) => ({ ...p, email: e.target.value })); setProfileSaved(false); }}
- placeholder="you@example.com"
- className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
- />
+  <input
+  type="email"
+  value={profile.email}
+  onChange={(e) => { setProfile((p) => ({ ...p, email: e.target.value })); setProfileSaved(false); }}
+  placeholder="you@example.com"
+  data-testid="profile-email"
+  className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
+  />
  </div>
-  <div>
-  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Текущий пароль</label>
-  <input
-  type="password"
-  value={oldPassword}
-  onChange={(e) => { setOldPassword(e.target.value); setPasswordSaved(false); setPasswordError(''); }}
-  placeholder="Введите текущий пароль"
-  className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
-  />
-  </div>
-  <div>
-  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Новый пароль</label>
-  <input
-  type="password"
-  value={newPassword}
-  onChange={(e) => { setNewPassword(e.target.value); setPasswordSaved(false); setPasswordError(''); }}
-  placeholder="Минимум 6 символов"
-  className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
-  />
-  </div>
-  <div>
-  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Подтвердите новый пароль</label>
-  <div className="flex gap-3">
-  <input
-  type="password"
-  value={confirmPassword}
-  onChange={(e) => { setConfirmPassword(e.target.value); setPasswordSaved(false); setPasswordError(''); }}
-  placeholder="Повторите новый пароль"
-  className="flex-1 px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
-  />
-  <button
-  onClick={changePassword}
-  disabled={passwordSaving || passwordSaved}
-  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
-  passwordSaved
-  ? 'bg-[var(--success-soft)] text-[var(--success)] border border-[var(--success-soft)]'
-  : 'bg-[var(--accent)] text-white hover:bg-[var(--accent)]'
-  }`}
-  >
-  {passwordSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : passwordSaved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-  {passwordSaved ? 'Сохранено' : 'Сменить'}
-  </button>
-  </div>
-  {passwordError && <p className="mt-1 text-xs text-danger">{passwordError}</p>}
-  </div>
  </div>
  </motion.div>
  )}
@@ -356,7 +323,7 @@ export default function SettingsPage() {
  </div>
  <div>
  <div className="flex items-center gap-2">
-  <h2 className="font-display font-semibold text-lg text-[var(--text)]">{planInfo.plan} План</h2>
+   <h2 className="font-display font-semibold text-lg text-[var(--text)]" data-testid="current-plan">{planInfo.plan} План</h2>
   <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--accent-soft)] text-[var(--brand)] border border-[var(--border)]">Текущий</span>
   </div>
   <p className="text-sm text-[var(--text-muted)]">{planInfo.limits.agents} агентов · {planInfo.limits.messages === 999999 ? '∞' : planInfo.limits.messages} сообщений</p>
@@ -408,9 +375,9 @@ export default function SettingsPage() {
  </div>
  <div className="flex-1 min-w-0">
  <span className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Общий баланс</span>
- <div className="font-mono font-bold text-2xl text-[var(--text)] tracking-tight">
- ${balanceData?.balance?.toFixed(2) ?? '0.00'}
- </div>
+  <div className="font-mono font-bold text-2xl text-[var(--text)] tracking-tight" data-testid="balance-display">
+  ${balanceData?.balance?.toFixed(2) ?? '0.00'}
+  </div>
  </div>
  </div>
  </div>
@@ -455,66 +422,79 @@ export default function SettingsPage() {
  <div className="flex flex-col sm:flex-row gap-3">
  <div className="relative flex-1">
  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm font-medium">$</span>
- <input
- type="number"
- min="1"
- step="1"
- value={topUpAmount}
- onChange={(e) => { setTopUpAmount(e.target.value); setTopUpError(''); }}
- placeholder="10"
- className={`w-full pl-8 pr-4 py-3 rounded-xl border bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all text-[var(--text)] text-sm ${topUpError ? 'border-[var(--danger-soft)]' : 'border-[var(--border)]'}`}
- />
+  <input
+  type="number"
+  min="1"
+  step="1"
+  value={topUpAmount}
+  onChange={(e) => { setTopUpAmount(e.target.value); setTopUpError(''); }}
+  placeholder="10"
+  data-testid="top-up-amount"
+  className={`w-full pl-8 pr-4 py-3 rounded-xl border bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all text-[var(--text)] text-sm ${topUpError ? 'border-[var(--danger-soft)]' : 'border-[var(--border)]'}`}
+  />
  </div>
- <button
- onClick={handleTopUp}
- disabled={topUpLoading}
- className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--accent)] text-white text-sm font-semibold hover:bg-[var(--accent)] transition-all duration-200 shadow-sm disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1"
- >
+  <button
+  onClick={handleTopUp}
+  disabled={topUpLoading}
+  data-testid="top-up-button"
+  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--accent)] text-white text-sm font-semibold hover:bg-[var(--accent)] transition-all duration-200 shadow-sm disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1"
+  >
  {topUpLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4" />Пополнить</>}
  </button>
  </div>
  <div className="flex flex-wrap gap-2 mt-3">
- {[5, 10, 25, 50, 100].map((amt) => (
- <button
- key={amt}
- type="button"
- onClick={() => { setTopUpAmount(String(amt)); setTopUpError(''); }}
- className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 border ${
- topUpAmount === String(amt)
- ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-sm scale-105'
- : 'bg-surface text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:text-[var(--brand)]'
- }`}
- >
- ${amt}
- </button>
- ))}
+  {[5, 10, 25, 50, 100].map((amt) => (
+  <button
+  key={amt}
+  type="button"
+  onClick={() => { setTopUpAmount(String(amt)); setTopUpError(''); }}
+  data-testid={`top-up-${amt}`}
+  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 border ${
+  topUpAmount === String(amt)
+  ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-sm scale-105'
+  : 'bg-surface text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:text-[var(--brand)]'
+  }`}
+  >
+  ${amt}
+  </button>
+  ))}
  </div>
  </div>
 
- <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
- <h2 className="font-display font-semibold text-lg text-[var(--text)] mb-4">История платежей</h2>
- <div className="flex flex-col items-center justify-center py-12 text-center">
- <div className="w-16 h-16 rounded-2xl bg-[var(--accent-soft)] flex items-center justify-center mb-4 ring-1 ring-[var(--border)]/60">
- <Clock className="w-7 h-7 text-[var(--text-muted)]" />
- </div>
- <p className="text-[var(--text-muted)] font-medium mb-1">Нет транзакций</p>
- <p className="text-[var(--text-muted)] text-sm max-w-xs">Здесь будет отображаться история платежей и пополнений.</p>
- </div>
- </div>
+  <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
+  <h2 className="font-display font-semibold text-lg text-[var(--text)] mb-4 flex items-center gap-2">
+  <Clock className="w-5 h-5 text-[var(--brand)]" />
+  История платежей
+  </h2>
+  <button
+  data-testid="view-transactions"
+  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--accent-soft)]/50 hover:text-[var(--text)] transition-all duration-200"
+  >
+  <Clock className="w-4 h-4" />
+  Показать все транзакции
+  </button>
+  <div className="flex flex-col items-center justify-center py-12 text-center">
+  <div className="w-16 h-16 rounded-2xl bg-[var(--accent-soft)] flex items-center justify-center mb-4 ring-1 ring-[var(--border)]/60">
+  <Clock className="w-7 h-7 text-[var(--text-muted)]" />
+  </div>
+  <p className="text-[var(--text-muted)] font-medium mb-1">Нет транзакций</p>
+  <p className="text-[var(--text-muted)] text-sm max-w-xs">Здесь будет отображаться история платежей и пополнений.</p>
+  </div>
+  </div>
  </motion.div>
  )}
 
- {activeTab === 'team' && (
- <motion.div variants={container} initial="hidden" animate="show" className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6">
- <div className="flex items-center gap-3 mb-4">
- <div className="w-9 h-9 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
- <Users className="w-[18px] h-[18px] text-[var(--brand)]" />
- </div>
- <div>
- <h3 className="font-semibold text-[var(--text)]">Команда</h3>
- <p className="text-xs text-[var(--text-muted)] mt-0.5">Управление участниками workspace</p>
- </div>
- </div>
+  {activeTab === 'team' && (
+  <motion.div variants={container} initial="hidden" animate="show" className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6 workspace-section">
+  <div className="flex items-center gap-3 mb-4">
+  <div className="w-9 h-9 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
+  <Users className="w-[18px] h-[18px] text-[var(--brand)]" />
+  </div>
+  <div>
+  <h3 className="font-semibold text-[var(--text)]">Команда</h3>
+  <p className="text-xs text-[var(--text-muted)] mt-0.5">Управление участниками workspace</p>
+  </div>
+  </div>
  <div className="flex flex-col items-center justify-center py-12 text-center">
  <div className="w-16 h-16 rounded-2xl bg-[var(--accent-soft)] flex items-center justify-center mb-4 ring-1 ring-[var(--border)]/60">
  <Users className="w-7 h-7 text-[var(--text-muted)]" />
@@ -545,17 +525,80 @@ export default function SettingsPage() {
  </div>
  <span className="text-xs px-2.5 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text-muted)] font-medium">Скоро</span>
  </div>
- <div className="flex items-center justify-between py-3">
- <div>
- <p className="text-sm font-semibold text-[var(--text)]">Активные сессии</p>
- <p className="text-xs text-[var(--text-muted)] mt-0.5">Управление устройствами с доступом</p>
- </div>
- <span className="text-xs px-2.5 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text-muted)] font-medium">Скоро</span>
- </div>
- </div>
- </div>
- </motion.div>
- )}
+  <div className="flex items-center justify-between py-3">
+  <div>
+  <p className="text-sm font-semibold text-[var(--text)]">Активные сессии</p>
+  <p className="text-xs text-[var(--text-muted)] mt-0.5">Управление устройствами с доступом</p>
+  </div>
+  <span className="text-xs px-2.5 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text-muted)] font-medium">Скоро</span>
+  </div>
+  </div>
+  </div>
+
+  <div className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-6 mt-6">
+  <div className="flex items-center gap-3 mb-4">
+  <div className="w-9 h-9 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
+  <Shield className="w-[18px] h-[18px] text-[var(--brand)]" />
+  </div>
+  <div>
+  <h3 className="font-semibold text-[var(--text)]">Сменить пароль</h3>
+  <p className="text-xs text-[var(--text-muted)] mt-0.5">Обновление пароля аккаунта</p>
+  </div>
+  </div>
+  <div className="max-w-md space-y-4">
+  <div>
+  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Текущий пароль</label>
+  <input
+  type="password"
+  value={oldPassword}
+  onChange={(e) => { setOldPassword(e.target.value); setPasswordSaved(false); setPasswordError(''); }}
+  placeholder="Введите текущий пароль"
+  data-testid="old-password"
+  className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
+  />
+  </div>
+  <div>
+  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Новый пароль</label>
+  <input
+  type="password"
+  value={newPassword}
+  onChange={(e) => { setNewPassword(e.target.value); setPasswordSaved(false); setPasswordError(''); }}
+  placeholder="Минимум 6 символов"
+  data-testid="new-password"
+  className="w-full px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
+  />
+  </div>
+  <div>
+  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Подтвердите новый пароль</label>
+  <div className="flex gap-3">
+  <input
+  type="password"
+  value={confirmPassword}
+  onChange={(e) => { setConfirmPassword(e.target.value); setPasswordSaved(false); setPasswordError(''); }}
+  placeholder="Повторите новый пароль"
+  data-testid="confirm-password"
+  className="flex-1 px-3.5 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200"
+  />
+  <button
+  onClick={changePassword}
+  disabled={passwordSaving || passwordSaved}
+  data-testid="change-password-button"
+  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
+  passwordSaved
+  ? 'bg-[var(--success-soft)] text-[var(--success)] border border-[var(--success-soft)]'
+  : 'bg-[var(--accent)] text-white hover:bg-[var(--accent)]'
+  }`}
+  >
+  {passwordSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : passwordSaved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+  {passwordSaved ? 'Сохранено' : 'Сменить'}
+  </button>
+  </div>
+  {passwordError && <p className="mt-1 text-xs text-danger">{passwordError}</p>}
+  </div>
+  </div>
+  </div>
+  </motion.div>
+  )}
  </div>
 
  <div className="h-8" />

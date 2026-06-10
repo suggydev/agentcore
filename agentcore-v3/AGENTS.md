@@ -91,7 +91,17 @@ agentcore-v3/
 - **Платежи**: YooKassa
 - **Деплой**: Ubuntu 24.04 + Nginx + PM2 + Let's Encrypt
 
-## 7. Контакты
+## 7. E2E Testing
+
+- **Command**: `cd apps/web && npx playwright test --project=chromium`
+- **Config**: `apps/web/playwright.config.ts` (workers: 5, auth state: `playwright/.auth/user.json`)
+- **Current Status**: 130 passed, 66 skipped, 0 failed (June 10, 2026)
+- **Skipped**: 66 backend-only tests (API integration, security, performance, webhooks, etc.)
+- **Key**: `workers: 5` prevents timeouts (10 workers caused 14 failures due to overload)
+- **Test user**: `test-global-e2e@agentcore.work` (trial plan, 1 workspace)
+- **Auth**: Shared via `tests/e2e/global-setup.ts` with 1-hour expiry
+
+## 8. Контакты
 
 - GitHub: https://github.com/ayvabrat/agentcore.git
 - Сервер: 31.76.102.116 (root)

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { ToastProvider } from '@/design/components/Toast';
 
 const racama = localFont({
   src: "../../public/fonts/Racama.otf",
@@ -25,7 +26,9 @@ export default function RootLayout({
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       </head>
       <body className="antialiased min-h-screen" style={{ background: 'var(--bg)', color: 'var(--text)' }} suppressHydrationWarning>
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

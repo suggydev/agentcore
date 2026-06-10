@@ -1,0 +1,37 @@
+{
+  "cookies": [
+    {
+      "name": "token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbXE2enNwMW4wMDBvZWdpOGhxNWxiandkIiwid29ya3NwYWNlSWQiOiJjbXE2enNwMWswMDBtZWdpOHZ5aTF1Y3ExIiwicm9sZSI6Ik9XTkVSIiwidG9rZW5WZXJzaW9uIjowLCJpYXQiOjE3ODEwNzg4MDIsImV4cCI6MTc4MTY4MzYwMn0.LCX9DCWCtvrByUO8vRnVeCkZq6sgYt8_yQ0idhAyYSY",
+      "domain": "agentcore.work",
+      "path": "/",
+      "expires": 1781683601.599785,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://agentcore.work",
+      "localStorage": [
+        {
+          "name": "token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbXE2enNwMW4wMDBvZWdpOGhxNWxiandkIiwid29ya3NwYWNlSWQiOiJjbXE2enNwMWswMDBtZWdpOHZ5aTF1Y3ExIiwicm9sZSI6Ik9XTkVSIiwidG9rZW5WZXJzaW9uIjowLCJpYXQiOjE3ODEwNzg4MDIsImV4cCI6MTc4MTY4MzYwMn0.LCX9DCWCtvrByUO8vRnVeCkZq6sgYt8_yQ0idhAyYSY"
+        },
+        {
+          "name": "agentcore-agent-store",
+          "value": "{\"state\":{\"onboarding\":{\"workspace\":{\"companyName\":\"\",\"companySize\":\"\",\"industry\":\"\",\"geography\":\"\",\"channels\":[],\"websiteUrl\":\"\",\"crm\":\"\"},\"persona\":{\"name\":\"\",\"greeting\":\"\",\"tone\":\"friendly\",\"responseSpeed\":\"natural\",\"useEmoji\":true,\"useHumor\":false,\"showEmotions\":true,\"forbiddenWords\":\"\",\"aggressionHandling\":\"empathy\",\"admitNotKnowing\":true,\"adaptToUserStyle\":true,\"rememberContext\":true,\"notPushy\":true},\"knowledge\":{\"websiteUrl\":\"\",\"documents\":[],\"faqText\":\"\",\"notionUrl\":\"\",\"googleDriveUrl\":\"\"},\"goal\":null,\"completed\":false,\"trialStartedAt\":null,\"trialDays\":7},\"onboardingTourCompleted\":false,\"workspaceSettings\":{}},\"version\":0}"
+        },
+        {
+          "name": "user",
+          "value": "{\"id\":\"cmq6zsp1n000oegi8hq5lbjwd\",\"name\":\"Updated Name\",\"email\":\"test-global-e2e@agentcore.work\"}"
+        },
+        {
+          "name": "workspaceId",
+          "value": "cmq6zsp1k000megi8vyi1ucq1"
+        }
+      ]
+    }
+  ]
+}

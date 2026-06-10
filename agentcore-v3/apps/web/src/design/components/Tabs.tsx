@@ -51,7 +51,7 @@ export function Tabs({ tabs, activeTab, onChange, className = '' }: TabsProps) {
       {tabs.map((tab, index) => {
         const isActive = tab.id === activeTab;
         return (
-          <button
+            <button
             key={tab.id}
             ref={(el) => {
               tabRefs.current[index] = el;
@@ -63,6 +63,7 @@ export function Tabs({ tabs, activeTab, onChange, className = '' }: TabsProps) {
             tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(tab.id)}
             onKeyDown={(e) => handleKeyDown(e, index)}
+            data-testid={`tab-${tab.id}`}
             className={`relative flex items-center gap-2 px-4 py-2.5 text-[14px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-inset ${
               isActive
                 ? 'text-[var(--brand)]'
