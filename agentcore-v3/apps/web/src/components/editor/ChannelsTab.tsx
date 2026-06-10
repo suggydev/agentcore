@@ -67,8 +67,11 @@ export default function ChannelsTab({ agentId, token }: ChannelsTabProps) {
       if (res.ok) {
         const data = await res.json();
         setConnections(Array.isArray(data) ? data : data.connections ?? []);
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
-    } catch {
+    } catch (err) {
+      console.error('[ChannelsTab]', err);
       addToast({ variant: 'error', message: t('toast.error') });
     }
     setLoading(false);
@@ -111,8 +114,11 @@ export default function ChannelsTab({ agentId, token }: ChannelsTabProps) {
       if (res.ok) {
         setConnections((prev) => prev.filter((c) => c.id !== connectionId));
         addToast({ variant: 'success', message: t('toast.success') });
+      } else {
+        addToast({ variant: 'error', message: t('toast.error') });
       }
-    } catch {
+    } catch (err) {
+      console.error('[ChannelsTab] handleDisconnect:', err);
       addToast({ variant: 'error', message: t('toast.error') });
     }
   }, [token, addToast]);
@@ -143,7 +149,7 @@ export default function ChannelsTab({ agentId, token }: ChannelsTabProps) {
   }
 
   return (
-    <div className="p-5 flex flex-col gap-6">
+    <div className="p-5 flex flex-col gap-6" data-testid="channels-list">
       <h2 className="text-[20px] font-semibold text-[var(--text)]">{t('channels.title')}</h2>
 
       {CATEGORY_ORDER.map((cat) => {
@@ -169,13 +175,14 @@ export default function ChannelsTab({ agentId, token }: ChannelsTabProps) {
                     <div className="flex-1 min-w-0">
                       <p className="text-[14px] font-medium text-[var(--text)]">{provider.name}</p>
                       {conn ? (
-                        <StatusBadge variant="active" label={t('channels.connected')} />
+                        <StatusBadge variant="active" label={t('channels.connected')} data-testid="channel-status" />
                       ) : (
                         <Button
                           variant="pill"
                           size="sm"
                           onClick={() => { setConnectModal(provider); setConnectStep(0); }}
                           aria-label={`${t('channels.connect')} ${provider.name}`}
+                          data-testid={provider.id === 'telegram' ? 'connect-telegram' : undefined}
                         >
                           {t('channels.connect')}
                         </Button>
@@ -186,7 +193,7 @@ export default function ChannelsTab({ agentId, token }: ChannelsTabProps) {
                         <Button variant="ghost" size="sm" onClick={() => { setConnectModal(provider); setConnectStep(2); }} aria-label={t('channels.configure')}>
                           {t('channels.configure')}
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDisconnect(conn.id)} aria-label={t('channels.disconnect')}>
+                        <Button variant="ghost" size="sm" onClick={() => handleDisconnect(conn.id)} aria-label={t('channels.disconnect')} data-testid="disconnect-channel">
                           {t('channels.disconnect')}
                         </Button>
                       </div>
@@ -203,7 +210,7 @@ export default function ChannelsTab({ agentId, token }: ChannelsTabProps) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[14px] font-medium text-[var(--text-muted)]">{provider.name}</p>
-                      <StatusBadge variant="draft" label={t('channels.comingSoon')} />
+                      <StatusBadge variant="draft" label={t('channels.comingSoon')} data-testid="channel-status" />
                     </div>
                   </Card>
                 );
@@ -220,7 +227,7 @@ export default function ChannelsTab({ agentId, token }: ChannelsTabProps) {
         size="md"
       >
         {connectModal && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4" data-testid="connect-modal">
             {connectStep === 0 && (
               <>
                 <p className="text-[14px] text-[var(--text)]">{connectModal.description}</p>
@@ -275,7 +282,7 @@ export default function ChannelsTab({ agentId, token }: ChannelsTabProps) {
             )}
             {connectStep === 2 && (
               <>
-                <Button variant="secondary" onClick={handleTest} aria-label={t('channels.test')}>
+                <Button variant="secondary" onClick={handleTest} aria-label={t('channels.test')} data-testid="test-channel">
                   {t('channels.connectModal.testMessage')}
                 </Button>
                 {testResult === 'success' && (

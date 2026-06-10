@@ -52,6 +52,7 @@ export default function ChatPage() {
  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
  const [sidebarFilter, setSidebarFilter] = useState('');
  const [initialLoadDone, setInitialLoadDone] = useState(false);
+ const [pageError, setPageError] = useState('');
  const modelDropdownRef = useRef<HTMLDivElement>(null);
  const messagesEndRef = useRef<HTMLDivElement>(null);
  const abortRef = useRef<AbortController | null>(null);
@@ -98,14 +99,19 @@ export default function ChatPage() {
  }
  }, [modelDropdownOpen]);
 
- const fetchModels = async (signal?: AbortSignal) => {
- try {
- const res = await fetch(`${API_BASE}/api/v1/models`, { signal });
- const data = await res.json();
- const allModels = Array.isArray(data) ? data : (data?.data || []);
- setModels(allModels.filter((m: { supports_chat?: boolean; id?: string }) => m.supports_chat === true && !m.id?.includes('flux')));
- } catch {}
- };
+  const fetchModels = async (signal?: AbortSignal) => {
+  try {
+  const res = await fetch(`${API_BASE}/api/v1/models`, { signal });
+  if (!res.ok) throw new Error(`GET /api/v1/models failed: ${res.status} ${res.statusText}`);
+  const data = await res.json();
+  const allModels = Array.isArray(data) ? data : (data?.data || []);
+  setModels(allModels.filter((m: { supports_chat?: boolean; id?: string }) => m.supports_chat === true && !m.id?.includes('flux')));
+  } catch (err) {
+  if (signal?.aborted) return;
+  console.error('[ChatPage] fetchModels:', err);
+  setPageError('Не удалось загрузить список AI-моделей. Проверьте подключение к серверу.');
+  }
+  };
 
  const loadConversations = async (t: string, signal?: AbortSignal) => {
  try {
@@ -113,12 +119,18 @@ export default function ChatPage() {
  headers: { Authorization: `Bearer ${t}` },
  signal,
  });
- if (res.ok) {
- const data = await res.json();
- const convs = Array.isArray(data) ? data : (data.data || data.conversations || []);
- setConversations(convs);
- }
- } catch {}
+  if (res.ok) {
+  const data = await res.json();
+  const convs = Array.isArray(data) ? data : (data.data || data.conversations || []);
+  setConversations(convs);
+  } else {
+  console.error('[ChatPage] loadConversations failed:', res.status);
+  }
+  } catch (err) {
+  if (signal?.aborted) return;
+  console.error('[ChatPage] loadConversations:', err);
+  setPageError('Не удалось загрузить диалоги. Проверьте подключение к серверу.');
+  }
  };
 
  const createConversation = async (): Promise<Conversation | null> => {
@@ -142,9 +154,10 @@ export default function ChatPage() {
  return conv;
  }
  return null;
- } catch {
- return null;
- }
+  } catch (err) {
+  console.error('[ChatPage] createConversation:', err);
+  return null;
+  }
  };
 
  const loadMessages = async (convId: string, t?: string, signal?: AbortSignal) => {
@@ -155,13 +168,18 @@ export default function ChatPage() {
  headers: { Authorization: `Bearer ${token}` },
  signal,
  });
- if (res.ok) {
- const data = await res.json();
- setCurrentConv(data);
- setMessages(data.messages || []);
- setSidebarOpen(false);
- }
- } catch {}
+  if (res.ok) {
+  const data = await res.json();
+  setCurrentConv(data);
+  setMessages(data.messages || []);
+  setSidebarOpen(false);
+  } else {
+  console.error('[ChatPage] loadMessages failed:', res.status);
+  }
+  } catch (err) {
+  if (signal?.aborted) return;
+  console.error('[ChatPage] loadMessages:', err);
+  }
  };
 
  const sendMessage = async (messageContent?: string, targetConvId?: string) => {
@@ -174,9 +192,9 @@ export default function ChatPage() {
  setInput('');
  setLoading(true);
 
- const tempId = Date.now().toString();
- const userMsg: Message = {
- id: tempId,
+  const tempId = `user-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const userMsg: Message = {
+  id: tempId,
  content,
  role: 'user',
  createdAt: new Date().toISOString()
@@ -194,29 +212,31 @@ export default function ChatPage() {
  });
 
  const data = await res.json();
- if (res.ok && data.aiMessage && !data.error) {
- setMessages(prev => {
- const filtered = prev.filter(m => m.id !== tempId);
- return [...filtered, data.userMessage, data.aiMessage];
- });
- if (messages.length === 0) {
- setConversations(prev => prev.map(c => 
- c.id === convId ? { ...c, title: content.slice(0, 50) } : c
- ));
- }
- } else {
- setMessages(prev => [...prev, {
- id: Date.now().toString(),
- content: typeof data.error === 'string' ? data.error : data.aiMessage?.content || 'Не удалось получить ответ. Попробуйте ещё раз.',
+  if (res.ok && data.aiMessage && !data.error) {
+  setMessages(prev => {
+  const filtered = prev.filter(m => m.id !== tempId);
+  return [...filtered, data.userMessage, data.aiMessage];
+  });
+  setConversations(prev => {
+  const target = prev.find(c => c.id === convId);
+  if (target && (!target.title || target.title === 'New Chat')) {
+    return prev.map(c => c.id === convId ? { ...c, title: content.slice(0, 50) } : c);
+  }
+  return prev;
+  });
+  } else {
+  setMessages(prev => [...prev, {
+  id: `err-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  content: typeof data.error === 'string' ? data.error : data.aiMessage?.content || 'Не удалось получить ответ. Попробуйте ещё раз.',
  role: 'assistant',
  model: 'error',
  createdAt: new Date().toISOString()
  }]);
  }
  } catch {
- setMessages(prev => [...prev, {
- id: Date.now().toString(),
- content: 'Ошибка сети. Проверьте подключение к интернету.',
+  setMessages(prev => [...prev, {
+  id: `err-net-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  content: 'Ошибка сети. Проверьте подключение к интернету.',
  role: 'assistant',
  model: 'error',
  createdAt: new Date().toISOString()
@@ -229,17 +249,26 @@ export default function ChatPage() {
  const deleteConversation = async (id: string) => {
  const token = getToken();
  if (!token) return;
- try {
- await fetch(`${API_BASE}/api/conversations/${id}`, {
- method: 'DELETE',
- headers: { Authorization: `Bearer ${token}` }
- });
- setConversations(prev => prev.filter(c => c.id !== id));
- if (currentConv?.id === id) {
- setCurrentConv(null);
- setMessages([]);
- }
- } catch {}
+  try {
+  setPageError('');
+  const res = await fetch(`${API_BASE}/api/conversations/${id}`, {
+  method: 'DELETE',
+  headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) {
+    console.error('[ChatPage] deleteConversation failed:', res.status);
+    setPageError(`Не удалось удалить диалог: сервер вернул ${res.status}`);
+    return;
+  }
+  setConversations(prev => prev.filter(c => c.id !== id));
+  if (currentConv?.id === id) {
+  setCurrentConv(null);
+  setMessages([]);
+  }
+  } catch (err) {
+  console.error('[ChatPage] deleteConversation:', err);
+  setPageError('Не удалось удалить диалог. Проверьте подключение к интернету.');
+  }
  };
 
  const getModelIcon = (modelId?: string) => {
@@ -258,7 +287,7 @@ export default function ChatPage() {
  };
 
  return (
- <div className="h-screen flex bg-[var(--bg)] overflow-hidden">
+  <div className="h-screen flex bg-[var(--bg)] overflow-hidden" data-testid="chat-page">
  <AnimatePresence>
  {sidebarOpen && (
  <motion.div 
@@ -290,10 +319,11 @@ export default function ChatPage() {
  </div>
 
  <div className="p-4">
- <button 
- onClick={createConversation}
- className="w-full btn-primary flex items-center justify-center gap-2 text-sm"
- >
+  <button
+  onClick={createConversation}
+  className="w-full btn-primary flex items-center justify-center gap-2 text-sm"
+  data-testid="new-chat"
+  >
  <Plus className="w-4 h-4" /> Новый чат
  </button>
  </div>
@@ -301,13 +331,14 @@ export default function ChatPage() {
  <div className="px-3 pb-2">
  <div className="relative">
  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
- <input
- type="text"
- placeholder="Поиск диалогов..."
- value={sidebarFilter}
- onChange={e => setSidebarFilter(e.target.value)}
- className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--accent-soft)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus:border-transparent text-[var(--brand)] placeholder:text-[var(--text-muted)] transition-all"
- />
+  <input
+  type="text"
+  placeholder="Поиск диалогов..."
+  value={sidebarFilter}
+  onChange={e => setSidebarFilter(e.target.value)}
+  data-testid="search-conversations"
+  className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--accent-soft)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus:border-transparent text-[var(--brand)] placeholder:text-[var(--text-muted)] transition-all"
+  />
  </div>
  </div>
 
@@ -333,7 +364,7 @@ export default function ChatPage() {
  </div>
  <button 
  onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
- className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-red-400 hover:text-danger transition-all"
+ className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-[var(--danger-soft)] text-[var(--danger)] hover:text-danger transition-all"
  >
  <Trash2 className="w-3.5 h-3.5" />
  </button>
@@ -373,6 +404,9 @@ export default function ChatPage() {
  </motion.aside>
 
  <main className="flex-1 flex flex-col min-w-0">
+  {pageError && (
+  <div className="px-4 py-2 bg-red-50 border-b border-red-100 text-red-600 text-xs text-center">{pageError}</div>
+  )}
  <header className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-surface/80 backdrop-blur-sm">
  <button 
  onClick={() => setSidebarOpen(true)}
@@ -403,7 +437,7 @@ export default function ChatPage() {
  </div>
 
  {currentConv && (
- <div className="relative" ref={modelDropdownRef}>
+  <div className="relative" ref={modelDropdownRef} data-testid="model-selector">
  <button
  onClick={() => setModelDropdownOpen(prev => !prev)}
  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-surface text-xs font-medium text-[var(--brand)] hover:bg-[var(--accent-soft)] transition-all"
@@ -511,7 +545,7 @@ export default function ChatPage() {
  msg.role === 'user' 
  ? 'bg-gradient-to-br from-[var(--brand)] to-[var(--brand)]/60' 
  : msg.model === 'error'
- ? 'bg-red-100 text-danger'
+ ? 'bg-[var(--danger-soft)] text-danger'
  : 'bg-gradient-to-br from-[var(--brand)]/30 to-[var(--border)]'
  }`}>
  {msg.role === 'user' 
@@ -560,20 +594,23 @@ export default function ChatPage() {
  {currentConv && (
  <div className="p-4 bg-surface/80 backdrop-blur-sm border-t border-[var(--border)]">
  <div className="max-w-4xl mx-auto flex gap-3">
- <input
- type="text"
- value={input}
- onChange={e => setInput(e.target.value)}
- onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
- placeholder="Спросите что угодно — код, изображения, анализ..."
- disabled={loading}
- className="flex-1 px-5 py-3.5 rounded-xl border border-[var(--border)] bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus:border-transparent text-[var(--text)] placeholder:text-[var(--text-muted)] disabled:opacity-50 transition-all"
- />
- <button
- onClick={() => sendMessage()}
- disabled={loading || !input.trim()}
- className="w-12 h-12 rounded-xl btn-primary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
- >
+  <input
+  type="text"
+  value={input}
+  onChange={e => setInput(e.target.value)}
+  onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+  placeholder="Спросите что угодно — код, изображения, анализ..."
+  disabled={loading}
+  data-testid="chat-input"
+  className="flex-1 px-5 py-3.5 rounded-xl border border-[var(--border)] bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus:border-transparent text-[var(--text)] placeholder:text-[var(--text-muted)] disabled:opacity-50 transition-all"
+  />
+  <button
+  onClick={() => sendMessage()}
+  disabled={loading || !input.trim()}
+  data-testid="send-button"
+  aria-label="Отправить"
+  className="w-12 h-12 rounded-xl btn-primary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+  >
  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
  </button>
  </div>

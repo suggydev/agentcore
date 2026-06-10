@@ -24,12 +24,12 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const NODE_TYPES_MAP = [
  { type: 'greeting', label: 'Приветствие', icon: MessageCircle, color: 'bg-[var(--accent-soft)] border-[var(--brand)]/30', iconColor: 'text-[var(--brand)]', subtitle: 'Приветствие' },
  { type: 'qualification', label: 'Квалификация', icon: Filter, color: 'bg-[var(--accent-soft)] border-[var(--border)]', iconColor: 'text-[var(--brand)]', subtitle: 'Фильтр и квалификация' },
- { type: 'leadCapture', label: 'Сбор лидов', icon: UserPlus, color: 'bg-blue-50 border-blue-200', iconColor: 'text-blue-600', subtitle: 'Сбор данных' },
+  { type: 'leadCapture', label: 'Сбор лидов', icon: UserPlus, color: 'bg-[var(--brand-light)] border-[var(--brand-soft)]', iconColor: 'text-[var(--brand)]', subtitle: 'Сбор данных' },
  { type: 'faq', label: 'FAQ', icon: HelpCircle, color: 'bg-[var(--bg)] border-[var(--border)]', iconColor: 'text-[var(--text)]', subtitle: 'Ответы на вопросы' },
- { type: 'escalation', label: 'Эскалация', icon: AlertTriangle, color: 'bg-amber-50 border-amber-200', iconColor: 'text-amber-600', subtitle: 'Передать человеку' },
- { type: 'integration', label: 'Интеграция', icon: Blocks, color: 'bg-blue-50 border-blue-200', iconColor: 'text-blue-600', subtitle: 'API / webhook' },
- { type: 'memory', label: 'Память', icon: Database, color: 'bg-success-soft border-green-200', iconColor: 'text-success', subtitle: 'Хранение контекста' },
- { type: 'handoff', label: 'Передача', icon: Users, color: 'bg-orange-50 border-orange-200', iconColor: 'text-orange-600', subtitle: 'Перехват человеком' },
+  { type: 'escalation', label: 'Эскалация', icon: AlertTriangle, color: 'bg-[var(--warning-soft)] border-[var(--warning-soft)]', iconColor: 'text-[var(--warning)]', subtitle: 'Передать человеку' },
+  { type: 'integration', label: 'Интеграция', icon: Blocks, color: 'bg-[var(--brand-light)] border-[var(--brand-soft)]', iconColor: 'text-[var(--brand)]', subtitle: 'API / webhook' },
+  { type: 'memory', label: 'Память', icon: Database, color: 'bg-success-soft border-[var(--success-soft)]', iconColor: 'text-success', subtitle: 'Хранение контекста' },
+  { type: 'handoff', label: 'Передача', icon: Users, color: 'bg-[var(--warning-soft)] border-[var(--warning-soft)]', iconColor: 'text-[var(--warning)]', subtitle: 'Перехват человеком' },
 ];
 
 function CustomNode({ data, selected }: NodeProps) {
@@ -71,6 +71,7 @@ export default function BrainMapPage() {
  const [nodes, setNodes, onNodesChange] = useNodesState(WELCOME_NODES);
  const [edges, setEdges, onEdgesChange] = useEdgesState(WELCOME_EDGES);
  const [saving, setSaving] = useState(false);
+ const [saveError, setSaveError] = useState('');
  const [panel, setPanel] = useState<PanelData | null>(null);
  const nodesRef = useRef(nodes);
  const edgesRef = useRef(edges);
@@ -85,10 +86,10 @@ export default function BrainMapPage() {
  const t = localStorage.getItem('token');
  if (!t) { window.location.href = '/login'; return; }
  setToken(t);
- fetch(`${API_BASE}/api/agents`, { headers: { Authorization: `Bearer ${t}` } })
- .then(r => r.ok ? r.json() : [])
- .then(setAgents)
- .catch(() => {});
+  fetch(`${API_BASE}/api/agents`, { headers: { Authorization: `Bearer ${t}` } })
+  .then(r => r.ok ? r.json() : [])
+  .then(data => setAgents(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []))
+ .catch(err => { console.error('[BrainMapPage] Failed to load agents:', err); setSaveError('Не удалось загрузить список агентов.'); });
  }, []);
 
  useEffect(() => {
@@ -184,7 +185,10 @@ export default function BrainMapPage() {
  settings: { brainMap: { nodes, edges } },
  }),
  });
- } catch {}
+ } catch (err) {
+  console.error('[BrainMapPage] saveFlow error:', err);
+  setSaveError('Не удалось сохранить карту мозга. Проверьте подключение и попробуйте снова.');
+ }
  setSaving(false);
  };
 
@@ -199,7 +203,7 @@ export default function BrainMapPage() {
 
  return (
  <>
- <div className="h-screen flex flex-col">
+  <div className="h-screen flex flex-col" data-testid="brain-map-page">
  {/* Toolbar */}
  <div className="flex items-center gap-3 px-5 py-3 bg-surface border-b border-[var(--border)] z-10">
  <ArrowLeft className="w-4 h-4 text-[var(--text-muted)]" />
@@ -214,10 +218,11 @@ export default function BrainMapPage() {
  {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
  </select>
  <div className="relative">
- <button onClick={() => setShowAddMenu(!showAddMenu)}
- className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent-soft)] text-[var(--brand)] text-xs font-medium hover:bg-[var(--accent-soft)] transition-colors">
- <Plus className="w-3.5 h-3.5" /> Добавить узел
- </button>
+  <button onClick={() => setShowAddMenu(!showAddMenu)}
+  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent-soft)] text-[var(--brand)] text-xs font-medium hover:bg-[var(--accent-soft)] transition-colors"
+  data-testid="add-node">
+  <Plus className="w-3.5 h-3.5" /> Добавить узел
+  </button>
  <AnimatePresence>
  {showAddMenu && (
  <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -254,8 +259,12 @@ export default function BrainMapPage() {
  className="p-1.5 rounded-lg hover:bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
  <Maximize2 className="w-4 h-4" />
  </button>
- <button onClick={saveFlow} disabled={!selectedAgent || saving}
- className="btn-primary text-xs py-1.5 px-4 gap-1.5 disabled:opacity-50">
+ {saveError && (
+  <span className="text-xs text-red-500 mr-2">{saveError}</span>
+  )}
+<button onClick={saveFlow} disabled={!selectedAgent || saving}
+  className="btn-primary text-xs py-1.5 px-4 gap-1.5 disabled:opacity-50"
+  data-testid="save-brain-map">
  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
  Сохранить
  </button>
@@ -402,7 +411,7 @@ export default function BrainMapPage() {
  </button>
  <div className="border-t border-[var(--border)] pt-3">
  <button onClick={() => { pushUndo(); setNodes(nds => nds.filter(n => n.id !== panel.nodeId)); setPanel(null); }}
- className="w-full py-2.5 rounded-xl border border-danger-soft text-danger text-sm font-medium hover:bg-danger-soft hover:border-red-300 transition-all duration-200">
+ className="w-full py-2.5 rounded-xl border border-danger-soft text-danger text-sm font-medium hover:bg-danger-soft hover:border-[var(--danger-soft)] transition-all duration-200">
  Удалить узел
  </button>
  </div>

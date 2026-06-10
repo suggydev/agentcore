@@ -1,0 +1,515 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e6]
+          - generic [ref=e11]: AgentCore
+        - generic [ref=e12]:
+          - link "Возможности" [ref=e13] [cursor=pointer]:
+            - /url: "#capabilities"
+          - link "Сценарии" [ref=e14] [cursor=pointer]:
+            - /url: "#use-cases"
+          - link "Тарифы" [ref=e15] [cursor=pointer]:
+            - /url: "#pricing"
+          - link "Попробовать бесплатно" [ref=e16] [cursor=pointer]:
+            - /url: /login
+    - main [ref=e17]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "Ваш бизнес работает даже когда вы спите" [level=1] [ref=e21]:
+            - text: Ваш бизнес работает
+            - text: даже когда вы спите
+          - paragraph [ref=e22]: Цифровой сотрудник отвечает клиентам в Telegram, WhatsApp и на сайте — 24/7. Создайте за 2 минуты.
+          - generic [ref=e23]:
+            - link "Записаться на демонстрацию" [ref=e24] [cursor=pointer]:
+              - /url: https://t.me/agentcore_support
+              - img [ref=e25]
+              - text: Записаться на демонстрацию
+              - img [ref=e28]
+            - link "или создать самому — бесплатно" [ref=e30] [cursor=pointer]:
+              - /url: /login
+            - generic [ref=e31]: 15 минут в Zoom, покажем каждый шаг
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - generic [ref=e40]: 🤖
+            - generic [ref=e41]: AgentCore
+            - generic [ref=e42]: онлайн
+          - generic [ref=e43]:
+            - generic [ref=e45]: Здравствуйте! Сколько стоит букет из 25 роз?
+            - generic [ref=e47]: Здравствуйте! Букет из 25 роз — 12 000 ₸ с доставкой по городу. Желаете оформить заказ? 🌹
+            - generic [ref=e49]:
+              - generic [ref=e50]: ...
+              - generic [ref=e51]: печатает
+          - generic [ref=e52]:
+            - generic [ref=e53]: Написать сообщение...
+            - img [ref=e55]
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - generic [ref=e62]: Как это работает
+          - heading "Цифровой сотрудник, который реально помогает" [level=2] [ref=e63]:
+            - text: Цифровой сотрудник,
+            - text: который реально помогает
+          - paragraph [ref=e64]: Не просто чат-бот, а полноценный цифровой сотрудник. Он понимает ваш бизнес, общается с клиентами и приносит продажи.
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - img [ref=e68]
+              - generic [ref=e70]: Отвечает за 8 секунд в WhatsApp, Telegram, Instagram
+            - generic [ref=e71]:
+              - img [ref=e73]
+              - generic [ref=e75]: Работает 24/7 без выходных и больничных
+            - generic [ref=e76]:
+              - img [ref=e78]
+              - generic [ref=e80]: Сам учится на ваших документах и FAQ
+            - generic [ref=e81]:
+              - img [ref=e83]
+              - generic [ref=e85]: Подключается к CRM, календарю, платёжным системам
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - img [ref=e90]
+            - generic [ref=e92]:
+              - generic [ref=e93]: Клиент пишет
+              - generic [ref=e94]: Web, WhatsApp, Telegram, Instagram
+          - generic [ref=e95]:
+            - img [ref=e96]
+            - generic [ref=e106]:
+              - generic [ref=e107]: Агент понимает
+              - generic [ref=e108]: Вопрос, жалоба, заказ — сам разберётся
+          - generic [ref=e109]:
+            - img [ref=e110]
+            - generic [ref=e112]:
+              - generic [ref=e113]: Агент отвечает
+              - generic [ref=e114]: Консультация, запись, продажа
+          - generic [ref=e115]:
+            - img [ref=e116]
+            - generic [ref=e118]:
+              - generic [ref=e119]: Вы видите результат
+              - generic [ref=e120]: Заявки в CRM, запись в календаре, оплата
+      - generic [ref=e122]:
+        - generic [ref=e123]:
+          - generic [ref=e124]: Возможности
+          - heading "Что умеет ваш цифровой сотрудник" [level=2] [ref=e125]
+          - paragraph [ref=e126]: Простые и понятные функции, которые работают на вас каждый день.
+        - generic [ref=e127]:
+          - generic [ref=e128]:
+            - img [ref=e130]
+            - heading "Отвечает 24/7" [level=3] [ref=e132]
+            - paragraph [ref=e133]: Ваш цифровой сотрудник на связи всегда — ночью, в выходные, в праздники. Клиенты не ждут.
+          - generic [ref=e134]:
+            - img [ref=e136]
+            - heading "Понимает клиентов" [level=3] [ref=e138]
+            - paragraph [ref=e139]: "Разбирается что нужно клиенту: вопрос, жалоба или заказ. Сам решает, что делать."
+          - generic [ref=e140]:
+            - img [ref=e142]
+            - heading "Работает везде" [level=3] [ref=e145]
+            - paragraph [ref=e146]: WhatsApp, Telegram, Instagram, чат на сайте, Email — один сотрудник для всех каналов.
+          - generic [ref=e147]:
+            - img [ref=e149]
+            - heading "Собирает заявки" [level=3] [ref=e152]
+            - paragraph [ref=e153]: Имя, телефон, email — всё попадает в CRM автоматически. Заявка не потеряется.
+          - generic [ref=e154]:
+            - img [ref=e156]
+            - heading "Помнит клиентов" [level=3] [ref=e166]
+            - paragraph [ref=e167]: Помнит кто обращался раньше, что заказывал, какие были вопросы. Как настоящий менеджер.
+          - generic [ref=e168]:
+            - img [ref=e170]
+            - heading "Запускается за 2 минуты" [level=3] [ref=e175]
+            - paragraph [ref=e176]: Без программистов, без настроек серверов. Просто выберите шаблон и запустите.
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - generic [ref=e180]: Готовые сценарии
+          - heading "Цифровой сотрудник для любого бизнеса" [level=2] [ref=e181]
+          - paragraph [ref=e182]: Примеры сценариев использования агентов
+        - generic [ref=e183]:
+          - generic [ref=e184]:
+            - generic [ref=e185]: 💐
+            - heading "Цветочный магазин" [level=3] [ref=e186]
+            - paragraph [ref=e187]: Консультирует по букетам, принимает заказы, рассказывает про доставку
+            - generic [ref=e188]:
+              - generic [ref=e189]: Сколько стоит букет из 25 роз?
+              - generic [ref=e190]: 12 000 ₸ с доставкой! Какой цвет предпочитаете? 🌹
+          - generic [ref=e191]:
+            - generic [ref=e192]: 💅
+            - heading "Салон красоты" [level=3] [ref=e193]
+            - paragraph [ref=e194]: Записывает на процедуры, рассказывает про услуги, напоминает о записи
+            - generic [ref=e195]:
+              - generic [ref=e196]: Можно записаться на стрижку завтра?
+              - generic [ref=e197]: Да! Есть окна в 14:00 и 17:00. Вам удобно?
+          - generic [ref=e198]:
+            - generic [ref=e199]: 🔧
+            - heading "Автосервис" [level=3] [ref=e200]
+            - paragraph [ref=e201]: Записывает на ТО, консультирует по услугам, сообщает о готовности
+            - generic [ref=e202]:
+              - generic [ref=e203]: Когда можно приехать на замену масла?
+              - generic [ref=e204]: Завтра с 9 до 18. Записать вас на удобное время?
+          - generic [ref=e205]:
+            - generic [ref=e206]: 🛍️
+            - heading "Интернет-магазин" [level=3] [ref=e207]
+            - paragraph [ref=e208]: Помогает с выбором, отслеживает заказы, оформляет возвраты
+            - generic [ref=e209]:
+              - generic [ref=e210]: "Где мой заказ #54321?"
+              - generic [ref=e211]: Ваш заказ передан в доставку, ожидайте завтра до 18:00
+          - generic [ref=e212]:
+            - generic [ref=e213]: 🏥
+            - heading "Медицинская клиника" [level=3] [ref=e214]
+            - paragraph [ref=e215]: Записывает к врачу, информирует об услугах, напоминает о приёме
+            - generic [ref=e216]:
+              - generic [ref=e217]: Нужен терапевт, болит горло
+              - generic [ref=e218]: Записываю. Приходите завтра в 11:00 к Петровой А.С. Подтвердить?
+          - generic [ref=e219]:
+            - generic [ref=e220]: 🏠
+            - heading "Риэлторское агентство" [level=3] [ref=e221]
+            - paragraph [ref=e222]: Подбирает объекты, записывает на просмотры, консультирует по ипотеке
+            - generic [ref=e223]:
+              - generic [ref=e224]: Квартиры в центре до 15 млн есть?
+              - generic [ref=e225]: Да, 3 варианта в районе Арбата. Показать фотографии?
+      - generic [ref=e227]:
+        - generic [ref=e228]:
+          - generic [ref=e229]: Как это работает
+          - heading "Три шага к автоматизации" [level=2] [ref=e230]
+          - paragraph [ref=e231]: Чёткий путь от идеи к работающему агенту.
+        - generic [ref=e232]:
+          - generic [ref=e233]:
+            - generic [ref=e234]: "01"
+            - generic [ref=e235]:
+              - heading "Создайте агента" [level=3] [ref=e236]
+              - paragraph [ref=e237]: Выберите шаблон для вашего бизнеса или создайте с нуля. Укажите, как агент должен общаться с клиентами.
+          - generic [ref=e238]:
+            - generic [ref=e239]: "02"
+            - generic [ref=e240]:
+              - heading "Подключите каналы" [level=3] [ref=e241]
+              - paragraph [ref=e242]: WhatsApp, Telegram, Instagram, чат на сайте — агент работает во всех каналах одновременно.
+          - generic [ref=e243]:
+            - generic [ref=e244]: "03"
+            - generic [ref=e245]:
+              - heading "Собирайте заявки" [level=3] [ref=e246]
+              - paragraph [ref=e247]: Агент отвечает на вопросы, записывает клиентов, собирает заказы — всё автоматически попадает в CRM.
+      - generic [ref=e249]:
+        - generic [ref=e250]:
+          - generic [ref=e251]: Как это работает
+          - heading "Создать агента проще, чем завести соцсеть" [level=2] [ref=e252]
+          - paragraph [ref=e253]: Посмотрите, как за 2 минуты создаётся цифровой сотрудник и начинает отвечать клиентам.
+        - generic [ref=e254]:
+          - generic [ref=e255] [cursor=pointer]:
+            - img [ref=e257]
+            - generic [ref=e259]:
+              - generic [ref=e260]: Посмотреть демонстрацию
+              - generic [ref=e261]: 2:30 минуты
+          - paragraph [ref=e262]: Скоро здесь будет видео. Пока можно записаться на живую демонстрацию.
+        - generic [ref=e263]:
+          - generic [ref=e264]:
+            - img [ref=e266]
+            - heading "Создаёте в браузере" [level=3] [ref=e268]
+            - paragraph [ref=e269]: Заполняете форму, выбираете тип бизнеса — агент готов через 2 минуты
+          - generic [ref=e270]:
+            - img [ref=e272]
+            - heading "Подключаете мессенджеры" [level=3] [ref=e274]
+            - paragraph [ref=e275]: Просто указываете номер телефона или токен бота — всё настраивается автоматически
+          - generic [ref=e276]:
+            - img [ref=e278]
+            - heading "Агент работает 24/7" [level=3] [ref=e281]
+            - paragraph [ref=e282]: Отвечает клиентам, собирает заявки, передаёт в CRM — пока вы спите или заняты
+      - generic [ref=e284]:
+        - generic [ref=e285]:
+          - generic [ref=e286]: Интеграции
+          - heading "Подключите за пару минут" [level=2] [ref=e287]
+          - paragraph [ref=e288]: Не нужен программист. Не нужно читать документацию. Просто следуйте шагам.
+        - generic [ref=e289]:
+          - generic [ref=e290]:
+            - generic [ref=e291]:
+              - generic [ref=e292]: 💬
+              - generic [ref=e293]:
+                - heading "Telegram" [level=3] [ref=e294]
+                - generic [ref=e295]: 2 минуты
+            - generic [ref=e296]:
+              - generic [ref=e297]:
+                - img [ref=e299]
+                - generic [ref=e301]: Создаёте бота в @BotFather
+              - generic [ref=e302]:
+                - img [ref=e304]
+                - generic [ref=e306]: Копируете API-токен
+              - generic [ref=e307]:
+                - img [ref=e309]
+                - generic [ref=e311]: Вставляете в AgentCore — готово
+          - generic [ref=e312]:
+            - generic [ref=e313]:
+              - generic [ref=e314]: 📱
+              - generic [ref=e315]:
+                - heading "WhatsApp" [level=3] [ref=e316]
+                - generic [ref=e317]: 5 минут
+            - generic [ref=e318]:
+              - generic [ref=e319]:
+                - img [ref=e321]
+                - generic [ref=e323]: Получаете API-ключ в WhatsApp Business
+              - generic [ref=e324]:
+                - img [ref=e326]
+                - generic [ref=e328]: Указываете номер телефона
+              - generic [ref=e329]:
+                - img [ref=e331]
+                - generic [ref=e333]: Агент начинает отвечать клиентам
+          - generic [ref=e334]:
+            - generic [ref=e335]:
+              - generic [ref=e336]: 🌐
+              - generic [ref=e337]:
+                - heading "Чат на сайте" [level=3] [ref=e338]
+                - generic [ref=e339]: 1 минута
+            - generic [ref=e340]:
+              - generic [ref=e341]:
+                - img [ref=e343]
+                - generic [ref=e345]: Копируете готовый скрипт
+              - generic [ref=e346]:
+                - img [ref=e348]
+                - generic [ref=e350]: Вставляете на сайт
+              - generic [ref=e351]:
+                - img [ref=e353]
+                - generic [ref=e355]: Клиенты пишут прямо на сайте
+        - generic [ref=e356]:
+          - paragraph [ref=e357]: "Также доступны: Instagram, VK, Avito, Viber, Email, SMS"
+          - link "Записаться на демонстрацию подключения" [ref=e358] [cursor=pointer]:
+            - /url: https://t.me/agentcore_support
+            - text: Записаться на демонстрацию подключения
+            - img [ref=e359]
+      - generic [ref=e362]:
+        - generic [ref=e363]:
+          - generic [ref=e364]: Результаты клиентов
+          - heading "Конкретные цифры, не обещания" [level=2] [ref=e365]
+          - paragraph [ref=e366]: Вот что изменилось в бизнесах, которые уже используют AgentCore.
+        - generic [ref=e367]:
+          - generic [ref=e368]:
+            - img [ref=e370]
+            - generic [ref=e373]: 35%
+            - generic [ref=e374]: рост конверсии
+            - paragraph [ref=e375]: Клиенты получают ответ за 8 секунд вместо 2 часов
+            - generic [ref=e376]: Интернет-магазин Asem.kz
+          - generic [ref=e377]:
+            - img [ref=e379]
+            - generic [ref=e382]: 15 ч
+            - generic [ref=e383]: экономия в неделю
+            - paragraph [ref=e384]: Администратор освободил время от рутинных ответов
+            - generic [ref=e385]: Сеть салонов Glam Studio
+          - generic [ref=e386]:
+            - img [ref=e388]
+            - generic [ref=e393]: 40%
+            - generic [ref=e394]: броней без администратора
+            - paragraph [ref=e395]: Гости бронируют номера полностью через чат
+            - generic [ref=e396]: Отель Rixos Almaty
+          - generic [ref=e397]:
+            - img [ref=e399]
+            - generic [ref=e401]: 80%
+            - generic [ref=e402]: вопросов автоматически
+            - paragraph [ref=e403]: Сократили штат операторов с 3 до 1 человека
+            - generic [ref=e404]: Магазин AutoExpert.kz
+      - generic [ref=e406]:
+        - generic [ref=e407]:
+          - generic [ref=e408]: О команде
+          - heading "Нам 14 лет. И это наша сила." [level=2] [ref=e409]
+          - paragraph [ref=e410]: Мы не прячем возраст — мы делаем его частью истории. Потому что быть молодым в tech — это не минус, а преимущество.
+        - generic [ref=e411]:
+          - generic [ref=e412]:
+            - img [ref=e414]
+            - heading "Рождены в цифре" [level=3] [ref=e416]
+            - paragraph [ref=e417]: Нам 14 лет, и мы выросли с Telegram, TikTok и нейросетями. Технологии — это наш родной язык.
+          - generic [ref=e418]:
+            - img [ref=e420]
+            - heading "Работаем быстрее" [level=3] [ref=e424]
+            - paragraph [ref=e425]: Не нужно объяснять, что такое AI. Мы сами тестируем новые модели, пока другие ещё читают про них статьи.
+          - generic [ref=e426]:
+            - img [ref=e428]
+            - heading "Делаем честно" [level=3] [ref=e430]
+            - paragraph [ref=e431]: Нам не нужно скрывать возраст — мы гордимся тем, что уже создаем продукты, которые помогают реальному бизнесу.
+          - generic [ref=e432]:
+            - img [ref=e434]
+            - heading "Двигаемся смело" [level=3] [ref=e439]
+            - paragraph [ref=e440]: Несмотря на сомнения и «невозможно», мы делаем то, во что верим. И это работает.
+        - generic [ref=e442]:
+          - generic [ref=e444]: "14"
+          - generic [ref=e445]:
+            - heading "Почему вы доверяете нам?" [level=3] [ref=e446]
+            - paragraph [ref=e447]: Мы новое поколение, и нам 14 лет. Мы гораздо быстрее и легче разбираемся в этих технологиях, чем люди, которым 30+. Мы росли с этими инструментами, а не учимся их использовать.
+            - paragraph [ref=e448]: Да, нам не 30. Но мы уже помогли десяткам компаний автоматизировать ответы клиентам, сократить расходы и увеличить продажи. У нас есть навыки и компетенции — и результат, который можно проверить.
+            - paragraph [ref=e449]: "Согласитесь: это нормально. Поэтому мы этим и занимаемся."
+      - generic [ref=e451]:
+        - generic [ref=e452]:
+          - generic [ref=e453]: Стоимость
+          - heading "14 дней бесплатно, потом $29 в месяц" [level=2] [ref=e454]
+          - paragraph [ref=e455]: $10 кредитов на AI в пробном периоде. Никаких скрытых платежей. Отменить можно в любой момент.
+        - generic [ref=e456]:
+          - generic [ref=e458]:
+            - generic [ref=e460]:
+              - img [ref=e461]
+              - text: Популярный
+            - heading "Pro" [level=3] [ref=e463]
+            - paragraph [ref=e464]: Для малого бизнеса и частных предпринимателей
+            - generic [ref=e465]: $29/месяц
+            - list [ref=e467]:
+              - listitem [ref=e468]:
+                - img [ref=e470]
+                - generic [ref=e472]: Цифровой сотрудник (работает 24/7)
+              - listitem [ref=e473]:
+                - img [ref=e475]
+                - generic [ref=e477]: Все каналы (WhatsApp, Instagram, Telegram, Web)
+              - listitem [ref=e478]:
+                - img [ref=e480]
+                - generic [ref=e482]: Все интеграции (CRM, календарь, платежи)
+              - listitem [ref=e483]:
+                - img [ref=e485]
+                - generic [ref=e487]: История диалогов и аналитика
+              - listitem [ref=e488]:
+                - img [ref=e490]
+                - generic [ref=e492]: Обучение на ваших документах
+              - listitem [ref=e493]:
+                - img [ref=e495]
+                - generic [ref=e497]: Поддержка в рабочее время
+            - link "Попробовать бесплатно" [ref=e498] [cursor=pointer]:
+              - /url: /login
+          - generic [ref=e501]:
+            - generic [ref=e502]:
+              - heading "Старт" [level=3] [ref=e503]
+              - paragraph [ref=e504]: Бесплатно 14 дней — $10 кредитов на AI, полный доступ, без карты
+            - link "Попробовать" [ref=e505] [cursor=pointer]:
+              - /url: /login
+      - generic [ref=e507]:
+        - generic [ref=e508]:
+          - generic [ref=e509]: FAQ
+          - heading "Часто задаваемые вопросы" [level=2] [ref=e510]
+          - paragraph [ref=e511]: Всё, что нужно знать перед стартом
+        - generic [ref=e512]:
+          - generic [ref=e514] [cursor=pointer]:
+            - button "Сколько времени занимает запуск цифрового сотрудника?" [ref=e515]:
+              - generic [ref=e516]: Сколько времени занимает запуск цифрового сотрудника?
+              - img [ref=e518]
+            - generic [ref=e521]: Буквально 2 минуты. Выберите сферу бизнеса, и агент готов к работе. Остальные настройки можно сделать позже.
+          - generic [ref=e523] [cursor=pointer]:
+            - button "Нужен ли программист для настройки?" [ref=e524]:
+              - generic [ref=e525]: Нужен ли программист для настройки?
+              - img [ref=e527]
+            - generic [ref=e529]: Нет. Всё настраивается без кода через понятный интерфейс. Если вы умеете пользоваться Telegram — вы справитесь.
+          - generic [ref=e531] [cursor=pointer]:
+            - button "В какие каналы можно подключить агента?" [ref=e532]:
+              - generic [ref=e533]: В какие каналы можно подключить агента?
+              - img [ref=e535]
+            - generic [ref=e537]: WhatsApp, Telegram, Instagram, чат на сайте, Email, Slack, Discord, VK. Один агент работает во всех каналах одновременно.
+          - generic [ref=e539] [cursor=pointer]:
+            - button "Может ли агент полностью заменить менеджера?" [ref=e540]:
+              - generic [ref=e541]: Может ли агент полностью заменить менеджера?
+              - img [ref=e543]
+            - generic [ref=e545]: "На 80% — да. Агент берёт на себя повторяющиеся задачи: ответы на типовые вопросы, сбор заявок, запись. Сложные случаи передаёт живому сотруднику."
+          - generic [ref=e547] [cursor=pointer]:
+            - button "Как формируется стоимость?" [ref=e548]:
+              - generic [ref=e549]: Как формируется стоимость?
+              - img [ref=e551]
+            - generic [ref=e553]: Первые 14 дней — бесплатно с $10 кредитов на AI-запросы, без карты. Дальше $29 в месяц за агента. Никаких скрытых платежей, отменить можно в любой момент.
+      - generic [ref=e555]:
+        - generic [ref=e556]:
+          - generic [ref=e557]: Нам доверяют
+          - heading "Что говорят клиенты" [level=2] [ref=e558]
+          - paragraph [ref=e559]: Примеры работы агентов в реальных сценариях
+        - generic [ref=e563]:
+          - img [ref=e564]
+          - generic [ref=e567]:
+            - img [ref=e568]
+            - img [ref=e570]
+            - img [ref=e572]
+            - img [ref=e574]
+            - img [ref=e576]
+          - paragraph [ref=e578]: AgentCore обрабатывает 200+ заявок в месяц в нашем интернет-магазине. Клиенты получают ответ за 8 секунд, конверсия выросла на 35%. Раньше мы теряли заявки по ночам — теперь каждая получает мгновенный ответ.
+          - generic [ref=e579]:
+            - generic [ref=e580]: А
+            - generic [ref=e581]:
+              - generic [ref=e582]: Асхат К.
+              - generic [ref=e583]: Директор интернет-магазина Asem.kz
+        - generic [ref=e584]:
+          - button "Перейти к отзыву 1" [ref=e585] [cursor=pointer]
+          - button "Перейти к отзыву 2" [ref=e586] [cursor=pointer]
+          - button "Перейти к отзыву 3" [ref=e587] [cursor=pointer]
+          - button "Перейти к отзыву 4" [ref=e588] [cursor=pointer]
+          - button "Перейти к отзыву 5" [ref=e589] [cursor=pointer]
+          - button "Перейти к отзыву 6" [ref=e590] [cursor=pointer]
+      - generic [ref=e592]:
+        - generic [ref=e593]:
+          - generic [ref=e594]: Быстрый старт
+          - heading "Увидите, как это работает, за 15 минут" [level=2] [ref=e595]
+          - paragraph [ref=e596]: Покажем в Zoom, как создать агента и подключить к Telegram/WhatsApp. Зададите любые вопросы.
+        - generic [ref=e597]:
+          - generic [ref=e598]:
+            - generic [ref=e599]:
+              - img [ref=e601]
+              - generic [ref=e604]:
+                - generic [ref=e605]: Демонстрация экрана
+                - generic [ref=e606]: Покажем каждый шаг в реальном времени
+            - generic [ref=e607]:
+              - img [ref=e609]
+              - generic [ref=e612]:
+                - generic [ref=e613]: 15 минут
+                - generic [ref=e614]: От регистрации до работающего агента
+            - generic [ref=e615]:
+              - img [ref=e617]
+              - generic [ref=e619]:
+                - generic [ref=e620]: Бесплатно
+                - generic [ref=e621]: Без обязательств и платежей
+          - generic [ref=e622]:
+            - link "Записаться на демонстрацию" [ref=e623] [cursor=pointer]:
+              - /url: https://t.me/agentcore_support
+              - text: Записаться на демонстрацию
+              - img [ref=e624]
+            - generic [ref=e626]: Обычно проводим в тот же день
+      - generic [ref=e628]:
+        - heading "Начните сегодня" [level=2] [ref=e629]
+        - paragraph [ref=e630]: Увидите, как это работает, за 15 минут в Zoom. Или создайте агента сами — бесплатно.
+        - generic [ref=e631]:
+          - link "Записаться на демонстрацию" [ref=e632] [cursor=pointer]:
+            - /url: https://t.me/agentcore_support
+            - img [ref=e633]
+            - text: Записаться на демонстрацию
+            - img [ref=e636]
+          - link "Создать агента самому" [ref=e638] [cursor=pointer]:
+            - /url: /login
+    - contentinfo [ref=e639]:
+      - generic [ref=e640]:
+        - generic [ref=e641]:
+          - generic [ref=e642]:
+            - generic [ref=e643]:
+              - img [ref=e644]
+              - generic [ref=e649]: AgentCore
+            - paragraph [ref=e650]: Цифровые сотрудники для вашего бизнеса. Отвечают клиентам 24/7, собирают заявки, помогают продавать. Без программистов.
+            - generic [ref=e651]:
+              - generic [ref=e652]: v3.0.0
+              - generic [ref=e654]: ТОО «AgentCore»
+          - generic [ref=e655]:
+            - heading "Продукт" [level=4] [ref=e656]
+            - list [ref=e657]:
+              - listitem [ref=e658]:
+                - link "Возможности" [ref=e659] [cursor=pointer]:
+                  - /url: "#capabilities"
+              - listitem [ref=e660]:
+                - link "Тарифы" [ref=e661] [cursor=pointer]:
+                  - /url: "#pricing"
+              - listitem [ref=e662]:
+                - link "Дашборд" [ref=e663] [cursor=pointer]:
+                  - /url: /agents
+          - generic [ref=e664]:
+            - heading "Компания" [level=4] [ref=e665]
+            - list [ref=e666]:
+              - listitem [ref=e667]:
+                - link "Контакты" [ref=e668] [cursor=pointer]:
+                  - /url: /contacts
+              - listitem [ref=e669]:
+                - link "Реквизиты" [ref=e670] [cursor=pointer]:
+                  - /url: /requisites
+              - listitem [ref=e671]:
+                - link "Доставка и оплата" [ref=e672] [cursor=pointer]:
+                  - /url: /delivery
+              - listitem [ref=e673]:
+                - link "Возврат" [ref=e674] [cursor=pointer]:
+                  - /url: /refund
+        - generic [ref=e676]:
+          - paragraph [ref=e677]: © 2026 ТОО «AgentCore». Все права защищены.
+          - generic [ref=e678]:
+            - link "Конфиденциальность" [ref=e679] [cursor=pointer]:
+              - /url: /privacy
+            - link "Оферта" [ref=e680] [cursor=pointer]:
+              - /url: /terms
+            - link "Контакты" [ref=e681] [cursor=pointer]:
+              - /url: /contacts
+  - generic "Notifications"
+  - alert [ref=e682]

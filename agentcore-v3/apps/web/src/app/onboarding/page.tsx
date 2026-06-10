@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
  TrendingUp,
@@ -87,8 +88,9 @@ const slideUp = {
 };
 
 export default function OnboardingPage() {
- const [step, setStep] = useState(0);
- const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(false);
  const [error, setError] = useState('');
  const [token, setToken] = useState('');
 
@@ -105,10 +107,10 @@ export default function OnboardingPage() {
 
  useEffect(() => {
  const t = localStorage.getItem('token');
- if (!t) {
- window.location.href = '/login';
- return;
- }
+  if (!t) {
+  router.push('/login');
+  return;
+  }
  setToken(t);
  }, []);
 
@@ -147,8 +149,8 @@ export default function OnboardingPage() {
  agentGoal: form.agentGoal,
  };
 
- const res = await fetch(`${API_BASE}/api/workspace/onboarding`, {
- method: 'PUT',
+  const res = await fetch(`${API_BASE}/api/workspace`, {
+  method: 'PUT',
  headers: {
  'Content-Type': 'application/json',
  Authorization: `Bearer ${token}`,
@@ -161,31 +163,33 @@ export default function OnboardingPage() {
  throw new Error(data.error || 'Не удалось сохранить данные');
  }
 
- window.location.href = '/dashboard';
- } catch (err: unknown) {
- setError(err instanceof Error ? err.message : 'Не удалось сохранить данные');
+  router.push('/dashboard');
+  } catch (err: unknown) {
+  setError(err instanceof Error ? err.message : 'Не удалось сохранить данные');
  } finally {
  setLoading(false);
  }
  }, [form, token]);
 
- const handleSkipForNow = async () => {
- setLoading(true);
- try {
- await fetch(`${API_BASE}/api/workspace/onboarding`, {
- method: 'PUT',
- headers: {
- 'Content-Type': 'application/json',
- Authorization: `Bearer ${token}`,
- },
- body: JSON.stringify({ skipped: true }),
- });
- } catch {}
- window.location.href = '/dashboard';
- };
+  const handleSkipForNow = async () => {
+  if (!token) return;
+  setLoading(true);
+  try {
+  await fetch(`${API_BASE}/api/workspace`, {
+  method: 'PUT',
+  headers: {
+  'Content-Type': 'application/json',
+  Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({ skipped: true }),
+  });
+  } catch (err) { console.error('[OnboardingPage] handleSkipForNow:', err); setError(err instanceof Error ? err.message : 'Не удалось пропустить онбординг. Попробуйте снова.'); }
+  finally { setLoading(false); }
+  router.push('/dashboard');
+  };
 
  return (
- <div className="min-h-screen bg-[var(--bg)] relative flex flex-col items-center justify-center px-4 py-12">
+  <div className="min-h-screen bg-[var(--bg)] relative flex flex-col items-center justify-center px-4 py-12" suppressHydrationWarning data-testid="onboarding-page">
  <div className="absolute inset-0 grid-lines opacity-40" />
 
  <motion.div
@@ -228,11 +232,12 @@ export default function OnboardingPage() {
  </div>
 
  {error && (
- <motion.div
- initial={{ opacity: 0, y: -6 }}
- animate={{ opacity: 1, y: 0 }}
- className="mx-8 mt-3 p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm text-center"
- >
+  <motion.div
+  initial={{ opacity: 0, y: -6 }}
+  animate={{ opacity: 1, y: 0 }}
+  className="mx-8 mt-3 p-3 rounded-xl bg-danger-soft border border-[var(--danger-soft)] text-danger text-sm text-center"
+  data-testid="validation-error"
+  >
  {error}
  </motion.div>
  )}
@@ -271,31 +276,34 @@ export default function OnboardingPage() {
  </div>
 
  <div className="flex items-center gap-4">
- <button
- type="button"
- onClick={handleSkipForNow}
- disabled={loading}
- className="text-sm text-[var(--text-muted)] hover:text-[var(--text)] transition-colors font-medium"
- >
+  <button
+  type="button"
+  onClick={handleSkipForNow}
+  disabled={loading}
+  data-testid="skip-onboarding"
+  className="text-sm text-[var(--text-muted)] hover:text-[var(--text)] transition-colors font-medium"
+  >
  Пропустить
  </button>
 
  {step === 0 ? (
- <button
- type="button"
- disabled={!canContinueStep1}
- onClick={() => setStep(1)}
- className="btn-primary text-sm px-6 py-2.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:hover:bg-[var(--accent)]"
- >
+  <button
+  type="button"
+  disabled={!canContinueStep1}
+  onClick={() => setStep(1)}
+  data-testid="onboarding-next-1"
+  className="btn-primary text-sm px-6 py-2.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:hover:bg-[var(--accent)]"
+  >
  Далее <ChevronRight className="w-4 h-4" />
  </button>
  ) : (
- <button
- type="button"
- disabled={!form.agentGoal || loading}
- onClick={handleSubmit}
- className="btn-primary text-sm px-6 py-2.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:hover:bg-[var(--accent)]"
- >
+  <button
+  type="button"
+  disabled={!form.agentGoal || loading}
+  onClick={handleSubmit}
+  data-testid="onboarding-submit"
+  className="btn-primary text-sm px-6 py-2.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:hover:bg-[var(--accent)]"
+  >
  {loading ? (
  <>
  <Loader2 className="w-4 h-4 animate-spin" />
@@ -359,32 +367,35 @@ function Step1({
  <label className="block text-xs font-semibold uppercase tracking-label text-[var(--brand)] mb-2">
  Название компании
  </label>
- <input
- type="text"
- value={form.companyName}
- onChange={e => update('companyName', e.target.value)}
- placeholder="ООО «Ромашка»"
- className="w-full bg-transparent text-[var(--text)] text-sm placeholder:text-[var(--text-muted)] outline-none"
- />
+  <input
+  type="text"
+  value={form.companyName}
+  onChange={e => update('companyName', e.target.value)}
+  placeholder="ООО «Ромашка»"
+  data-testid="company-name"
+  className="w-full bg-transparent text-[var(--text)] text-sm placeholder:text-[var(--text-muted)] outline-none"
+  />
  </div>
 
  {/* Company Size */}
- <SelectField
- label="Размер команды"
- value={form.companySize}
- onChange={v => update('companySize', v)}
- options={COMPANY_SIZES}
- placeholder="Выберите размер"
- />
+  <SelectField
+  label="Размер команды"
+  value={form.companySize}
+  onChange={v => update('companySize', v)}
+  options={COMPANY_SIZES}
+  placeholder="Выберите размер"
+  dataTestId="company-size"
+  />
 
  {/* Industry */}
- <SelectField
- label="Индустрия"
- value={form.industry}
- onChange={v => update('industry', v)}
- options={INDUSTRIES}
- placeholder="Выберите индустрию"
- />
+  <SelectField
+  label="Индустрия"
+  value={form.industry}
+  onChange={v => update('industry', v)}
+  options={INDUSTRIES}
+  placeholder="Выберите индустрию"
+  dataTestId="industry"
+  />
 
  {/* Geography */}
  <SelectField
@@ -404,16 +415,17 @@ function Step1({
  {CHANNELS.map(ch => {
  const selected = form.channels.includes(ch);
  return (
- <button
- key={ch}
- type="button"
- onClick={() => toggleChannel(ch)}
- className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
- selected
- ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-md scale-105'
- : 'bg-surface text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:bg-[var(--accent-soft)] hover:text-[var(--brand)]'
- }`}
- >
+  <button
+  key={ch}
+  type="button"
+  onClick={() => toggleChannel(ch)}
+  data-testid={`channel-${ch.toLowerCase().replace(/\s+/g, '-')}`}
+  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
+  selected
+  ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-md scale-105'
+  : 'bg-surface text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:bg-[var(--accent-soft)] hover:text-[var(--brand)]'
+  }`}
+  >
  {selected && <Check className="w-3 h-3" />}
  {ch}
  </button>
@@ -474,18 +486,19 @@ function Step2({
  const selected = form.agentGoal === goal.id;
  const Icon = goal.icon;
  return (
- <motion.button
- key={goal.id}
- type="button"
- whileHover={selected ? { scale: 1.01 } : { y: -3, scale: 1.02 }}
- whileTap={{ scale: 0.98 }}
- onClick={() => update('agentGoal', goal.id)}
- className={`flex items-start gap-4 p-4 rounded-xl border text-left transition-all duration-300 ${
- selected
- ? 'bg-[var(--accent-soft)] border-[var(--brand)]/40 shadow-lg ring-1 ring-[var(--brand)]/30'
- : 'bg-[var(--bg)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:shadow-lg hover:bg-surface'
- }`}
- >
+  <motion.button
+  key={goal.id}
+  type="button"
+  whileHover={selected ? { scale: 1.01 } : { y: -3, scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
+  onClick={() => update('agentGoal', goal.id)}
+  data-testid={`goal-${goal.id}`}
+  className={`flex items-start gap-4 p-4 rounded-xl border text-left transition-all duration-300 ${
+  selected
+  ? 'bg-[var(--accent-soft)] border-[var(--brand)]/40 shadow-lg ring-1 ring-[var(--brand)]/30'
+  : 'bg-[var(--bg)] border-[var(--border)] hover:border-[var(--brand)]/40 hover:shadow-lg hover:bg-surface'
+  }`}
+  >
  <div
  className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-300 ${
  selected ? 'bg-[var(--brand)]' : 'bg-[var(--accent-soft)]'
@@ -525,7 +538,7 @@ function Step2({
  initial={{ opacity: 0, y: 12 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
- className="p-5 rounded-xl border border-[var(--border)] bg-gradient-to-br from-[var(--accent-soft)]/80 to-white shadow-md"
+ className="p-5 rounded-xl border border-[var(--border)] bg-gradient-to-br from-[var(--accent-soft)]/80 to-[var(--surface)] shadow-md"
  >
  <p className="text-xs font-semibold uppercase tracking-label text-[var(--brand)] mb-4">
  Создать первого агента
@@ -558,17 +571,19 @@ function Step2({
 /* ---------------- Shared: Select Field ---------------- */
 
 function SelectField({
- label,
- value,
- onChange,
- options,
- placeholder,
+  label,
+  value,
+  onChange,
+  options,
+  placeholder,
+  dataTestId,
 }: {
- label: string;
- value: string;
- onChange: (v: string) => void;
- options: string[];
- placeholder: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder: string;
+  dataTestId?: string;
 }) {
  return (
  <div className="relative p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] transition-all focus-within:ring-2 focus-within:ring-[var(--brand)] focus-within:border-[var(--brand)] focus-within:bg-surface">
@@ -576,23 +591,25 @@ function SelectField({
  {label}
  </label>
  <div className="relative">
- <select
- value={value}
- onChange={e => onChange(e.target.value)}
- className="w-full bg-transparent text-[var(--text)] text-sm outline-none cursor-pointer appearance-none pr-8"
- >
- <option value="" disabled>
- {placeholder}
- </option>
- {options.map(opt => (
- <option key={opt} value={opt}>
- {opt}
- </option>
- ))}
- </select>
+   <select
+   value={value}
+   onChange={e => onChange(e.target.value)}
+   data-testid={dataTestId}
+   className="w-full bg-transparent text-[var(--text)] text-sm outline-none cursor-pointer appearance-none pr-8"
+   suppressHydrationWarning
+   >
+  <option value="">
+  {placeholder}
+  </option>
+  {options.map(opt => (
+  <option key={opt} value={opt}>
+  {opt}
+  </option>
+  ))}
+  </select>
  <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
  <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
- <path d="M1 1.5L6 6.5L11 1.5" stroke="#9BA0B0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+ <path d="M1 1.5L6 6.5L11 1.5" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
  </svg>
  </div>
  {value && (

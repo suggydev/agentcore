@@ -101,7 +101,7 @@ export function Modal({
           transition={{ duration: 0.15 }}
           onClick={handleBackdropClick}
         >
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-[var(--text)]/20 backdrop-blur-sm" data-testid="modal-overlay" />
           <motion.div
             ref={dialogRef}
             className={`relative w-full ${sizeClasses[size]} bg-[var(--surface)] rounded-[var(--radius-card)] shadow-[0_8px_30px_rgba(0,0,0,0.08)] p-6 outline-none`}

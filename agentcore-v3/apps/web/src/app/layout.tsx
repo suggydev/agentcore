@@ -1,20 +1,13 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { ToastProvider } from '@/design/components/Toast';
 
 const racama = localFont({
   src: "../../public/fonts/Racama.otf",
   variable: "--font-racama",
   display: "swap",
   weight: "400",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-mono",
-  display: "swap",
-  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -28,12 +21,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className={`${racama.variable} ${jetbrainsMono.variable}`}>
+    <html lang="ru" className={`${racama.variable}`}>
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       </head>
-      <body className="antialiased min-h-screen bg-[var(--bg)] text-[var(--text)]" suppressHydrationWarning>
-        {children}
+      <body className="antialiased min-h-screen" style={{ background: 'var(--bg)', color: 'var(--text)' }} suppressHydrationWarning>
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

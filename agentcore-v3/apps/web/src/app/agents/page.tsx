@@ -110,13 +110,13 @@ export default function AgentsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
+    <div className="max-w-5xl mx-auto px-6 py-10" data-testid="agents-page">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-[28px] font-semibold text-text tracking-[-0.01em]">{t('agents.title')}</h1>
+          <h1 className="text-[28px] font-semibold text-text tracking-[-0.01em]" data-testid="agents-title">{t('agents.title')}</h1>
           <p className="text-[14px] text-text-muted mt-1">{t('agents.subtitle')}</p>
         </div>
-        <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')}>
+        <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')} data-testid="create-agent-button">
           <Plus size={16} />
           {t('agents.create')}
         </Button>
@@ -125,7 +125,7 @@ export default function AgentsPage() {
       <div className="flex items-center gap-3 mb-6">
         <div className="flex-1">
           <Input
-            placeholder={t('agents.search')}
+            placeholder={t('agents.search')} data-testid="search-agents"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label={t('agents.search')}
@@ -153,7 +153,7 @@ export default function AgentsPage() {
         <div className="flex flex-col items-center justify-center py-16">
           <Brain size={48} className="text-text-muted mb-4" />
           <p className="text-[16px] font-medium text-text mb-2">{t('agents.createFirst')}</p>
-          <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')}>
+          <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')} data-testid="create-agent-button">
             <Plus size={16} />
             {t('agents.create')}
           </Button>
@@ -232,3 +232,4 @@ export default function AgentsPage() {
     </div>
   );
 }
+

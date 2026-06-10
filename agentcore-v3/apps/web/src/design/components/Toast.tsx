@@ -51,6 +51,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       className={`flex items-start gap-3 p-4 rounded-[var(--radius-card)] border ${config.bgClass} ${config.borderClass} bg-[var(--surface)] shadow-[0_8px_30px_rgba(0,0,0,0.08)] min-w-[320px] max-w-[420px]`}
       role="alert"
       aria-live="assertive"
+      data-testid={`toast-${toast.variant}`}
     >
       <Icon size={18} className={config.textClass} />
       <div className="flex-1 min-w-0">

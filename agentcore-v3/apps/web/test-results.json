@@ -1,0 +1,585 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\playwright.config.ts",
+    "rootDir": "C:/Users/mtsbo/OneDrive/Документы/AgentCore/agentcore-v3/apps/web/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/mtsbo/OneDrive/Документы/AgentCore/agentcore-v3/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/mtsbo/OneDrive/Документы/AgentCore/agentcore-v3/apps/web/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/mtsbo/OneDrive/Документы/AgentCore/agentcore-v3/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "C:/Users/mtsbo/OneDrive/Документы/AgentCore/agentcore-v3/apps/web/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "01-auth.spec.ts",
+      "file": "01-auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication Tests",
+          "file": "01-auth.spec.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should register new user successfully",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 22325,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:54:16",
+                        "location": {
+                          "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                          "column": 16,
+                          "line": 54
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 52 |\u001b[39m     \n \u001b[90m 53 |\u001b[39m     \u001b[90m// Ждём редиректа\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 54 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/\\/(onboarding|dashboard|agents)/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 55 |\u001b[39m     \n \u001b[90m 56 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Регистрация работает'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 57 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                            "column": 16,
+                            "line": 54
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  52 |     \n  53 |     // Ждём редиректа\n> 54 |     await page.waitForURL(/\\/(onboarding|dashboard|agents)/, { timeout: 15000 });\n     |                ^\n  55 |     \n  56 |     console.log('✅ Регистрация работает');\n  57 |   });\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:54:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-09T17:49:30.575Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-9aa77-ister-new-user-successfully-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-9aa77-ister-new-user-successfully-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-9aa77-ister-new-user-successfully-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                        "column": 16,
+                        "line": 54
+                      }
+                    },
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 24138,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:54:16",
+                        "location": {
+                          "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                          "column": 16,
+                          "line": 54
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 52 |\u001b[39m     \n \u001b[90m 53 |\u001b[39m     \u001b[90m// Ждём редиректа\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 54 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/\\/(onboarding|dashboard|agents)/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 55 |\u001b[39m     \n \u001b[90m 56 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Регистрация работает'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 57 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                            "column": 16,
+                            "line": 54
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  52 |     \n  53 |     // Ждём редиректа\n> 54 |     await page.waitForURL(/\\/(onboarding|dashboard|agents)/, { timeout: 15000 });\n     |                ^\n  55 |     \n  56 |     console.log('✅ Регистрация работает');\n  57 |   });\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:54:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-06-09T17:49:53.707Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-9aa77-ister-new-user-successfully-chromium-retry1\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-9aa77-ister-new-user-successfully-chromium-retry1\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-9aa77-ister-new-user-successfully-chromium-retry1\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-9aa77-ister-new-user-successfully-chromium-retry1\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                        "column": 16,
+                        "line": 54
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-3676267cff0eb4103e88",
+              "file": "01-auth.spec.ts",
+              "line": 14,
+              "column": 7
+            },
+            {
+              "title": "should login with valid credentials",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 16744,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:67:16",
+                        "location": {
+                          "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                          "column": 16,
+                          "line": 67
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Войти\")'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 66 |\u001b[39m     \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 67 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/\\/(dashboard|agents)/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 68 |\u001b[39m     \n \u001b[90m 69 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Вход работает'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 70 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                            "column": 16,
+                            "line": 67
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  65 |     await page.click('button:has-text(\"Войти\")');\n  66 |     \n> 67 |     await page.waitForURL(/\\/(dashboard|agents)/, { timeout: 15000 });\n     |                ^\n  68 |     \n  69 |     console.log('✅ Вход работает');\n  70 |   });\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:67:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-09T17:50:19.594Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-c6643-ogin-with-valid-credentials-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-c6643-ogin-with-valid-credentials-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-c6643-ogin-with-valid-credentials-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                        "column": 16,
+                        "line": 67
+                      }
+                    },
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 17084,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:67:16",
+                        "location": {
+                          "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                          "column": 16,
+                          "line": 67
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Войти\")'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 66 |\u001b[39m     \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 67 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/\\/(dashboard|agents)/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 68 |\u001b[39m     \n \u001b[90m 69 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Вход работает'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 70 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                            "column": 16,
+                            "line": 67
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  65 |     await page.click('button:has-text(\"Войти\")');\n  66 |     \n> 67 |     await page.waitForURL(/\\/(dashboard|agents)/, { timeout: 15000 });\n     |                ^\n  68 |     \n  69 |     console.log('✅ Вход работает');\n  70 |   });\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:67:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-06-09T17:50:37.197Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-c6643-ogin-with-valid-credentials-chromium-retry1\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-c6643-ogin-with-valid-credentials-chromium-retry1\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-c6643-ogin-with-valid-credentials-chromium-retry1\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tes-c6643-ogin-with-valid-credentials-chromium-retry1\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                        "column": 16,
+                        "line": 67
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-3dd4b40a7c7e7333d6c2",
+              "file": "01-auth.spec.ts",
+              "line": 59,
+              "column": 7
+            },
+            {
+              "title": "should show error for invalid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4592,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ Ошибка входа отображается\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-09T17:50:55.556Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-97cd347b88f1a3559bff",
+              "file": "01-auth.spec.ts",
+              "line": 72,
+              "column": 7
+            },
+            {
+              "title": "should logout successfully",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 18123,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:90:16",
+                        "location": {
+                          "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                          "column": 16,
+                          "line": 90
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"password\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[33mTEST_PASSWORD\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Войти\")'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 90 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/\\/(dashboard|agents)/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 91 |\u001b[39m     \n \u001b[90m 92 |\u001b[39m     \u001b[90m// Ищем меню пользователя или logout\u001b[39m\n \u001b[90m 93 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Выйти\"), [aria-label=\"logout\"], .user-menu, .avatar, .profile'\u001b[39m)\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m {})\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                            "column": 16,
+                            "line": 90
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  88 |     await page.fill('input[type=\"password\"]', TEST_PASSWORD);\n  89 |     await page.click('button:has-text(\"Войти\")');\n> 90 |     await page.waitForURL(/\\/(dashboard|agents)/, { timeout: 15000 });\n     |                ^\n  91 |     \n  92 |     // Ищем меню пользователя или logout\n  93 |     await page.click('button:has-text(\"Выйти\"), [aria-label=\"logout\"], .user-menu, .avatar, .profile').catch(() => {});\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:90:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-09T17:51:00.359Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tests-should-logout-successfully-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tests-should-logout-successfully-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tests-should-logout-successfully-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                        "column": 16,
+                        "line": 90
+                      }
+                    },
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 19030,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:90:16",
+                        "location": {
+                          "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                          "column": 16,
+                          "line": 90
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"password\"]'\u001b[39m\u001b[33m,\u001b[39m \u001b[33mTEST_PASSWORD\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Войти\")'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 90 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/\\/(dashboard|agents)/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 91 |\u001b[39m     \n \u001b[90m 92 |\u001b[39m     \u001b[90m// Ищем меню пользователя или logout\u001b[39m\n \u001b[90m 93 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"Выйти\"), [aria-label=\"logout\"], .user-menu, .avatar, .profile'\u001b[39m)\u001b[33m.\u001b[39m\u001b[36mcatch\u001b[39m(() \u001b[33m=>\u001b[39m {})\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                            "column": 16,
+                            "line": 90
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  88 |     await page.fill('input[type=\"password\"]', TEST_PASSWORD);\n  89 |     await page.click('button:has-text(\"Войти\")');\n> 90 |     await page.waitForURL(/\\/(dashboard|agents)/, { timeout: 15000 });\n     |                ^\n  91 |     \n  92 |     // Ищем меню пользователя или logout\n  93 |     await page.click('button:has-text(\"Выйти\"), [aria-label=\"logout\"], .user-menu, .avatar, .profile').catch(() => {});\n    at C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts:90:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-06-09T17:51:19.134Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tests-should-logout-successfully-chromium-retry1\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tests-should-logout-successfully-chromium-retry1\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tests-should-logout-successfully-chromium-retry1\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\test-results\\01-auth-Authentication-Tests-should-logout-successfully-chromium-retry1\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\mtsbo\\OneDrive\\Документы\\AgentCore\\agentcore-v3\\apps\\web\\tests\\e2e\\01-auth.spec.ts",
+                        "column": 16,
+                        "line": 90
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-305faa204985b75288fe",
+              "file": "01-auth.spec.ts",
+              "line": 85,
+              "column": 7
+            },
+            {
+              "title": "should validate password strength",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2556,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Password indicators: 3\n"
+                        },
+                        {
+                          "text": "✅ Валидация пароля работает\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-09T17:51:39.530Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-b88f1366b82a7d4c08ab",
+              "file": "01-auth.spec.ts",
+              "line": 98,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-06-09T17:49:30.138Z",
+    "duration": 132378.466,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 3,
+    "flaky": 0
+  }
+}

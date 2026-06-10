@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, Check, Building2, Users, Briefcase, Target, MessageCircle, Search, UserPlus, Share2, Megaphone, Linkedin, Instagram, Zap, Heart, Star, Send } from 'lucide-react';
 import { useAgentStore } from '@/store/agentStore';
@@ -53,7 +54,8 @@ const fadeUp = {
 };
 
 export default function LoginPage() {
- const [isLogin, setIsLogin] = useState(true);
+  const router = useRouter();
+  const [isLogin, setIsLogin] = useState(true);
  const [step, setStep] = useState(0);
 
  const [name, setName] = useState('');
@@ -77,7 +79,8 @@ export default function LoginPage() {
  localStorage.setItem('token', token);
  localStorage.setItem('user', JSON.stringify(user));
  localStorage.setItem('workspaceId', workspaceId);
- document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+  const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secureFlag}`;
  setAuth(token, { id: user.id, name: user.name, email: user.email }, workspaceId);
  };
 
@@ -89,9 +92,9 @@ export default function LoginPage() {
  if (/[A-Z]/.test(pwd)) score++;
  if (/[0-9]/.test(pwd)) score++;
  if (/[^A-Za-z0-9]/.test(pwd)) score++;
- if (score <= 2) return { score: 1, label: 'Слабый', color: 'bg-red-400' };
- if (score <= 3) return { score: 2, label: 'Средний', color: 'bg-amber-400' };
- return { score: 3, label: 'Надёжный', color: 'bg-emerald-400' };
+if (score <= 2) return { score: 1, label: 'Слабый', color: 'bg-[var(--danger)]' };
+  if (score <= 3) return { score: 2, label: 'Средний', color: 'bg-[var(--warning)]' };
+  return { score: 3, label: 'Надёжный', color: 'bg-[var(--success)]' };
  };
 
  const stepError = stepErrors[step] || '';
@@ -149,9 +152,9 @@ export default function LoginPage() {
  const data = await res.json();
  if (!res.ok) throw new Error(data.error || 'Ошибка регистрации');
 
- persistAuth(data.accessToken, data.user, data.workspaceId);
- window.location.href = '/onboarding';
- } catch (err: unknown) {
+  persistAuth(data.accessToken, data.user, data.workspaceId);
+  router.push('/onboarding');
+  } catch (err: unknown) {
  setError(err instanceof Error ? err.message : 'Ошибка регистрации');
  setStep(0);
  } finally {
@@ -179,12 +182,12 @@ export default function LoginPage() {
  });
  if (meRes.ok) {
  const me = await meRes.json();
- if (me.workspace?.settings?.onboardingCompleted) {
- window.location.href = '/dashboard';
- return;
- }
- }
- window.location.href = '/onboarding';
+  if (me.workspace?.settings?.onboardingCompleted) {
+  router.push('/dashboard');
+  return;
+  }
+  }
+  router.push('/onboarding');
  } catch (err: unknown) {
  setError(err instanceof Error ? err.message : 'Ошибка входа');
  } finally {
@@ -194,246 +197,261 @@ export default function LoginPage() {
 
  const inputClass = "w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all text-[var(--text)] placeholder:text-[var(--text-muted)] text-sm";
 
- const renderLogin = () => (
- <form onSubmit={handleLogin} className="space-y-4">
- <div>
- <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Email</label>
- <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
- className={inputClass} placeholder="you@company.com" />
- </div>
- <div>
- <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Пароль</label>
- <div className="relative">
- <input type={showPassword ? 'text' : 'password'} value={password}
- onChange={e => setPassword(e.target.value)} required minLength={6}
- className={`${inputClass} pr-12`} placeholder="••••••••" />
- <button type="button" onClick={() => setShowPassword(!showPassword)}
- className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-muted)] transition-colors">
- {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
- </button>
- </div>
- </div>
- {error && (
- <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
- className="p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm text-center">{error}</motion.div>
- )}
- <button type="submit" disabled={loading}
- className="w-full btn-primary text-sm py-3 disabled:opacity-60">
- {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Войти <ArrowRight className="w-4 h-4" /></>}
- </button>
- </form>
- );
+  const renderLogin = () => (
+  <form onSubmit={handleLogin} className="space-y-4" data-testid="login-form">
+  <div>
+  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Email</label>
+  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+  className={inputClass} placeholder="you@company.com" data-testid="login-email" />
+  </div>
+  <div>
+  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Пароль</label>
+  <div className="relative">
+  <input type={showPassword ? 'text' : 'password'} value={password}
+  onChange={e => setPassword(e.target.value)} required minLength={6}
+  className={`${inputClass} pr-12`} placeholder="••••••••" data-testid="login-password" />
+  <button type="button" onClick={() => setShowPassword(!showPassword)}
+  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-muted)] transition-colors"
+  data-testid="toggle-password">
+  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+  </button>
+  </div>
+  </div>
+  {error && (
+  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+  className="p-3 rounded-xl bg-danger-soft border border-[var(--danger-soft)] text-danger text-sm text-center"
+   data-testid="login-error">{error}</motion.div>
+  )}
+  <button type="submit" disabled={loading}
+  className="w-full btn-primary text-sm py-3 disabled:opacity-60"
+  data-testid="login-submit">
+  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Войти <ArrowRight className="w-4 h-4" /></>}
+  </button>
+  </form>
+  );
 
- const renderStep1 = () => (
- <motion.div key="step1" {...slideRight} className="space-y-4">
- <div>
- <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Как вас зовут?</label>
- <input type="text" value={name} onChange={e => setName(e.target.value)}
- className={inputClass} placeholder="Иван Иванов" autoFocus />
- </div>
- <div>
- <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Рабочий email</label>
- <input type="email" value={email} onChange={e => setEmail(e.target.value)}
- className={inputClass} placeholder="you@company.com" />
- </div>
- <div>
- <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Пароль</label>
- <div className="relative">
- <input type={showPassword ? 'text' : 'password'} value={password}
- onChange={e => setPassword(e.target.value)} minLength={6}
- className={`${inputClass} pr-12`} placeholder="Минимум 6 символов" />
- <button type="button" onClick={() => setShowPassword(!showPassword)}
- className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-muted)] transition-colors">
- {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
- </button>
- </div>
- {getPasswordStrength(password).score > 0 && (
- <div className="flex items-center gap-1.5 mt-1.5">
- <div className="flex gap-0.5">
- {[1, 2, 3].map(bar => (
- <div key={bar} className={`w-6 h-1 rounded-full transition-colors ${
- bar <= getPasswordStrength(password).score
- ? getPasswordStrength(password).color
- : 'bg-[var(--border)]'
- }`} />
- ))}
- </div>
- <span className="text-[10px] text-[var(--text-muted)]">{getPasswordStrength(password).label}</span>
- </div>
- )}
- </div>
- {stepError && (
- <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
- className="p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm text-center">{stepError}</motion.div>
- )}
- <button onClick={nextStep}
- className="w-full btn-primary text-sm py-3">
- Далее <ArrowRight className="w-4 h-4" />
- </button>
- </motion.div>
- );
+  const renderStep1 = () => (
+  <motion.div key="step1" {...slideRight} className="space-y-4" data-testid="register-step1">
+  <div>
+  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Как вас зовут?</label>
+  <input type="text" value={name} onChange={e => setName(e.target.value)}
+   className={inputClass} placeholder="Иван Иванов" data-testid="register-name" />
+  </div>
+  <div>
+  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Рабочий email</label>
+  <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+  className={inputClass} placeholder="you@company.com" data-testid="register-email" />
+  </div>
+  <div>
+  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Пароль</label>
+  <div className="relative">
+  <input type={showPassword ? 'text' : 'password'} value={password}
+  onChange={e => setPassword(e.target.value)} minLength={6}
+  className={`${inputClass} pr-12`} placeholder="Минимум 6 символов" data-testid="register-password" />
+  <button type="button" onClick={() => setShowPassword(!showPassword)}
+  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-muted)] transition-colors"
+  data-testid="toggle-password">
+  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+  </button>
+  </div>
+  {getPasswordStrength(password).score > 0 && (
+  <div className="flex items-center gap-1.5 mt-1.5" data-testid="password-strength">
+  <div className="flex gap-0.5">
+  {[1, 2, 3].map(bar => (
+  <div key={bar} className={`w-6 h-1 rounded-full transition-colors ${
+  bar <= getPasswordStrength(password).score
+  ? getPasswordStrength(password).color
+  : 'bg-[var(--border)]'
+  }`} />
+  ))}
+  </div>
+  <span className="text-[10px] text-[var(--text-muted)]">{getPasswordStrength(password).label}</span>
+  </div>
+  )}
+  </div>
+  {stepError && (
+  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+  className="p-3 rounded-xl bg-danger-soft border border-[var(--danger-soft)] text-danger text-sm text-center"
+  data-testid="register-error">{stepError}</motion.div>
+  )}
+  <button onClick={nextStep}
+  className="w-full btn-primary text-sm py-3"
+  data-testid="register-next-1">
+  Далее <ArrowRight className="w-4 h-4" />
+  </button>
+  </motion.div>
+  );
 
- const renderStep2 = () => (
- <motion.div key="step2" {...slideRight} className="space-y-4">
- <div>
- <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Название компании</label>
- <div className="relative">
- <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
- <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)}
- className={`${inputClass} pl-10`} placeholder="Например: ООО «Ромашка»" autoFocus />
- </div>
- </div>
- <div className="grid grid-cols-2 gap-3">
- <div>
- <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Размер команды</label>
- <div className="relative">
- <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
- <select value={companySize} onChange={e => setCompanySize(e.target.value)}
- className={`${inputClass} pl-10 appearance-none cursor-pointer`}>
- <option value="">Выберите</option>
- {COMPANY_SIZES.map(s => <option key={s} value={s}>{s} чел.</option>)}
- </select>
- </div>
- </div>
- <div>
- <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Индустрия</label>
- <div className="relative">
- <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
- <select value={industry} onChange={e => setIndustry(e.target.value)}
- className={`${inputClass} pl-10 appearance-none cursor-pointer`}>
- <option value="">Выберите</option>
- {INDUSTRIES.map(ind => <option key={ind} value={ind}>{ind}</option>)}
- </select>
- </div>
- </div>
- </div>
- <div>
- <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Откуда вы о нас узнали?</label>
- <div className="flex flex-wrap gap-2">
- {SOURCES.map(({ id, icon: Icon, label }) => (
- <button key={id} type="button" onClick={() => setSource(id)}
- className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all border
- ${source === id
- ? 'bg-[var(--brand)] text-white border-[var(--brand)] shadow-sm'
- : 'bg-surface text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)]/50'}`}>
- <Icon className="w-3.5 h-3.5" /> {label}
- </button>
- ))}
- </div>
- </div>
- <div>
- <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Для чего вам AI-агент?</label>
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
- {PURPOSES.map(({ id, icon: Icon, label, desc }) => (
- <button key={id} type="button" onClick={() => setPurpose(id)}
- className={`flex items-start gap-3 p-3 rounded-xl text-left transition-all border
- ${purpose === id
- ? 'bg-[var(--accent-soft)] border-[var(--brand)]/40 ring-1 ring-[var(--brand)]/20'
- : 'bg-surface border-[var(--border)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)]/30'}`}>
- <Icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${purpose === id ? 'text-[var(--brand)]' : 'text-[var(--text-muted)]'}`} />
- <div>
- <div className="text-sm font-semibold text-[var(--text)]">{label}</div>
- <div className="text-xs text-[var(--text-muted)] mt-0.5">{desc}</div>
- </div>
- </button>
- ))}
- </div>
- </div>
- <div className="flex gap-3 pt-1">
- <button onClick={prevStep}
- className="flex items-center gap-1.5 px-5 py-3 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--accent-soft)] transition-all text-sm font-medium">
- <ArrowLeft className="w-4 h-4" /> Назад
- </button>
- <button onClick={nextStep}
- className="flex-1 btn-primary text-sm py-3">
- Далее <ArrowRight className="w-4 h-4" />
- </button>
- </div>
- </motion.div>
- );
+  const renderStep2 = () => (
+  <motion.div key="step2" {...slideRight} className="space-y-4" data-testid="register-step2">
+  <div>
+  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Название компании</label>
+  <div className="relative">
+  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+  <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)}
+   className={`${inputClass} pl-10`} placeholder="Например: ООО «Ромашка»" data-testid="register-company" />
+  </div>
+  </div>
+  <div className="grid grid-cols-2 gap-3">
+  <div>
+  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Размер команды</label>
+  <div className="relative">
+  <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+  <select value={companySize} onChange={e => setCompanySize(e.target.value)}
+  className={`${inputClass} pl-10 appearance-none cursor-pointer`}
+  data-testid="register-company-size">
+  <option value="">Выберите</option>
+  {COMPANY_SIZES.map(s => <option key={s} value={s}>{s} чел.</option>)}
+  </select>
+  </div>
+  </div>
+  <div>
+  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Индустрия</label>
+  <div className="relative">
+  <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+  <select value={industry} onChange={e => setIndustry(e.target.value)}
+  className={`${inputClass} pl-10 appearance-none cursor-pointer`}
+  data-testid="register-industry">
+  <option value="">Выберите</option>
+  {INDUSTRIES.map(ind => <option key={ind} value={ind}>{ind}</option>)}
+  </select>
+  </div>
+  </div>
+  </div>
+  <div>
+  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Откуда вы о нас узнали?</label>
+  <div className="flex flex-wrap gap-2">
+  {SOURCES.map(({ id, icon: Icon, label }) => (
+  <button key={id} type="button" onClick={() => setSource(id)}
+  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all border
+  ${source === id
+  ? 'bg-[var(--brand)] text-white border-[var(--brand)] shadow-sm'
+  : 'bg-surface text-[var(--text)] border-[var(--border)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)]/50'}`}
+  data-testid={`source-${id}`}>
+  <Icon className="w-3.5 h-3.5" /> {label}
+  </button>
+  ))}
+  </div>
+  </div>
+  <div>
+  <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Для чего вам AI-агент?</label>
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+  {PURPOSES.map(({ id, icon: Icon, label, desc }) => (
+  <button key={id} type="button" onClick={() => setPurpose(id)}
+  className={`flex items-start gap-3 p-3 rounded-xl text-left transition-all border
+  ${purpose === id
+  ? 'bg-[var(--accent-soft)] border-[var(--brand)]/40 ring-1 ring-[var(--brand)]/20'
+  : 'bg-surface border-[var(--border)] hover:border-[var(--brand)]/30 hover:bg-[var(--accent-soft)]/30'}`}
+  data-testid={`purpose-${id}`}>
+  <Icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${purpose === id ? 'text-[var(--brand)]' : 'text-[var(--text-muted)]'}`} />
+  <div>
+  <div className="text-sm font-semibold text-[var(--text)]">{label}</div>
+  <div className="text-xs text-[var(--text-muted)] mt-0.5">{desc}</div>
+  </div>
+  </button>
+  ))}
+  </div>
+  </div>
+  <div className="flex gap-3 pt-1">
+  <button onClick={prevStep}
+  className="flex items-center gap-1.5 px-5 py-3 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--accent-soft)] transition-all text-sm font-medium"
+  data-testid="register-back">
+  <ArrowLeft className="w-4 h-4" /> Назад
+  </button>
+  <button onClick={nextStep}
+  className="flex-1 btn-primary text-sm py-3"
+  data-testid="register-next-2">
+  Далее <ArrowRight className="w-4 h-4" />
+  </button>
+  </div>
+  </motion.div>
+  );
 
- const renderStep3 = () => (
- <motion.div key="step3" {...slideRight} className="space-y-5">
- <div className="bg-surface rounded-2xl p-5 border border-[var(--border)] shadow-sm">
- <h3 className="text-sm font-semibold text-[var(--text)] mb-4 flex items-center gap-2">
- <div className="w-6 h-6 rounded-full bg-[var(--accent-soft)] flex items-center justify-center">
- <Check className="w-3.5 h-3.5 text-[var(--brand)]" />
- </div>
- Проверьте данные
- </h3>
- <div className="space-y-2.5 text-sm">
- <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
- <span className="text-[var(--text-muted)]">Имя</span>
- <span className="font-medium text-[var(--text)]">{name}</span>
- </div>
- <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
- <span className="text-[var(--text-muted)]">Email</span>
- <span className="font-medium text-[var(--text)]">{email}</span>
- </div>
- {companyName && (
- <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
- <span className="text-[var(--text-muted)]">Компания</span>
- <span className="font-medium text-[var(--text)]">{companyName}</span>
- </div>
- )}
- {companySize && (
- <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
- <span className="text-[var(--text-muted)]">Команда</span>
- <span className="font-medium text-[var(--text)]">{companySize} чел.</span>
- </div>
- )}
- {industry && (
- <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
- <span className="text-[var(--text-muted)]">Индустрия</span>
- <span className="font-medium text-[var(--text)]">{industry}</span>
- </div>
- )}
- {purpose && (
- <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
- <span className="text-[var(--text-muted)]">Цель</span>
- <span className="font-medium text-[var(--text)]">{PURPOSES.find(p => p.id === purpose)?.label}</span>
- </div>
- )}
- </div>
- </div>
+  const renderStep3 = () => (
+  <motion.div key="step3" {...slideRight} className="space-y-5" data-testid="register-step3">
+  <div className="bg-surface rounded-2xl p-5 border border-[var(--border)] shadow-sm" data-testid="register-review">
+  <h3 className="text-sm font-semibold text-[var(--text)] mb-4 flex items-center gap-2">
+  <div className="w-6 h-6 rounded-full bg-[var(--accent-soft)] flex items-center justify-center">
+  <Check className="w-3.5 h-3.5 text-[var(--brand)]" />
+  </div>
+  Проверьте данные
+  </h3>
+  <div className="space-y-2.5 text-sm">
+  <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
+  <span className="text-[var(--text-muted)]">Имя</span>
+  <span className="font-medium text-[var(--text)]" data-testid="review-name">{name}</span>
+  </div>
+  <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
+  <span className="text-[var(--text-muted)]">Email</span>
+  <span className="font-medium text-[var(--text)]" data-testid="review-email">{email}</span>
+  </div>
+  {companyName && (
+  <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
+  <span className="text-[var(--text-muted)]">Компания</span>
+  <span className="font-medium text-[var(--text)]" data-testid="review-company">{companyName}</span>
+  </div>
+  )}
+  {companySize && (
+  <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
+  <span className="text-[var(--text-muted)]">Команда</span>
+  <span className="font-medium text-[var(--text)]" data-testid="review-team">{companySize} чел.</span>
+  </div>
+  )}
+  {industry && (
+  <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
+  <span className="text-[var(--text-muted)]">Индустрия</span>
+  <span className="font-medium text-[var(--text)]" data-testid="review-industry">{industry}</span>
+  </div>
+  )}
+  {purpose && (
+  <div className="flex justify-between items-center py-1.5 px-3 rounded-lg bg-[var(--accent-soft)]/40">
+  <span className="text-[var(--text-muted)]">Цель</span>
+  <span className="font-medium text-[var(--text)]" data-testid="review-purpose">{PURPOSES.find(p => p.id === purpose)?.label}</span>
+  </div>
+  )}
+  </div>
+  </div>
 
- <div className="bg-success-soft/60 rounded-2xl p-4 border border-green-200/60 flex items-start gap-3">
- <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
- <Check className="w-4 h-4 text-success" />
- </div>
- <div>
- <div className="text-sm font-semibold text-green-800">7 дней бесплатно</div>
- <div className="text-xs text-success mt-0.5 leading-relaxed">
- После регистрации вы получите полный доступ ко всем функциям на 7 дней.
- При оформлении подписки — $10 на баланс для AI-запросов ежемесячно.
- </div>
- </div>
- </div>
+  <div className="bg-success-soft/60 rounded-2xl p-4 border border-[var(--success-soft)] flex items-start gap-3">
+  <div className="w-8 h-8 rounded-full bg-[var(--success-soft)] flex items-center justify-center flex-shrink-0 mt-0.5">
+  <Check className="w-4 h-4 text-success" />
+  </div>
+  <div>
+  <div className="text-sm font-semibold text-[var(--success)]">7 дней бесплатно</div>
+  <div className="text-xs text-success mt-0.5 leading-relaxed">
+  После регистрации вы получите полный доступ ко всем функциям на 7 дней.
+  При оформлении подписки — $10 на баланс для AI-запросов ежемесячно.
+  </div>
+  </div>
+  </div>
 
- {error && (
- <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
- className="p-3 rounded-xl bg-danger-soft border border-red-100 text-danger text-sm">{error}</motion.div>
- )}
+  {error && (
+  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+  className="p-3 rounded-xl bg-danger-soft border border-[var(--danger-soft)] text-danger text-sm"
+  data-testid="register-error">{error}</motion.div>
+  )}
 
- <div className="flex gap-3">
- <button onClick={prevStep}
- className="flex items-center gap-1.5 px-5 py-3 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--accent-soft)] transition-all text-sm font-medium">
- <ArrowLeft className="w-4 h-4" /> Назад
- </button>
- <button onClick={handleRegister} disabled={loading}
- className="flex-1 btn-primary text-sm py-3 disabled:opacity-60">
- {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Создать аккаунт <Check className="w-4 h-4" /></>}
- </button>
- </div>
+  <div className="flex gap-3">
+  <button onClick={prevStep}
+  className="flex items-center gap-1.5 px-5 py-3 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--accent-soft)] transition-all text-sm font-medium"
+  data-testid="register-back">
+  <ArrowLeft className="w-4 h-4" /> Назад
+  </button>
+  <button onClick={handleRegister} disabled={loading}
+  className="flex-1 btn-primary text-sm py-3 disabled:opacity-60"
+  data-testid="register-submit">
+  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Создать аккаунт <Check className="w-4 h-4" /></>}
+  </button>
+  </div>
 
- <p className="text-center text-xs text-[var(--text-muted)] leading-relaxed">
- Создавая аккаунт, вы соглашаетесь с{' '}
- <a href="/privacy" className="text-[var(--brand)] hover:text-[var(--brand)] underline underline-offset-2">Политикой конфиденциальности</a>
- {' '}и{' '}
- <a href="/terms" className="text-[var(--brand)] hover:text-[var(--brand)] underline underline-offset-2">Условиями использования</a>
- </p>
- </motion.div>
- );
+  <p className="text-center text-xs text-[var(--text-muted)] leading-relaxed">
+  Создавая аккаунт, вы соглашаетесь с{' '}
+  <a href="/privacy" className="text-[var(--brand)] hover:text-[var(--brand)] underline underline-offset-2">Политикой конфиденциальности</a>
+  {' '}и{' '}
+  <a href="/terms" className="text-[var(--brand)] hover:text-[var(--brand)] underline underline-offset-2">Условиями использования</a>
+  </p>
+  </motion.div>
+  );
 
  const renderProgress = () => (
  <div className="flex items-center justify-center mb-6">
@@ -442,8 +460,8 @@ export default function LoginPage() {
  <motion.div
  initial={false}
  animate={{
- background: i <= step ? '#5A4D59' : '#E8E4EA',
- color: i <= step ? '#fff' : '#817080',
+        background: i <= step ? 'var(--brand)' : 'var(--surface-2)',
+        color: i <= step ? 'var(--surface)' : 'var(--text-muted)',
  scale: i === step ? 1.15 : 1,
  }}
  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
@@ -473,13 +491,13 @@ export default function LoginPage() {
  <div className="absolute inset-0 pointer-events-none overflow-hidden">
  <motion.div
  className="absolute -top-48 -left-48 w-[700px] h-[700px] rounded-full opacity-40"
- style={{ background: 'radial-gradient(circle, rgba(253,247,254,0.8) 0%, rgba(244,211,249,0.3) 40%, transparent 70%)' }}
+ style={{ background: 'radial-gradient(circle, color-mix(in srgb, var(--surface) 92%, var(--brand)) 0%, color-mix(in srgb, var(--surface) 97%, var(--brand)) 40%, transparent 70%)' }}
  animate={{ x: [0, 30, -15, 0], y: [0, -20, 15, 0], scale: [1, 1.05, 0.97, 1] }}
  transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
  />
  <motion.div
  className="absolute -bottom-48 -right-48 w-[600px] h-[600px] rounded-full opacity-30"
- style={{ background: 'radial-gradient(circle, rgba(168,150,171,0.6) 0%, rgba(129,112,128,0.2) 40%, transparent 70%)' }}
+ style={{ background: 'radial-gradient(circle, color-mix(in srgb, var(--brand) 60%, transparent) 0%, color-mix(in srgb, var(--brand) 20%, transparent) 40%, transparent 70%)' }}
  animate={{ x: [0, -40, 25, 0], y: [0, 30, -20, 0], scale: [1, 0.93, 1.05, 1] }}
  transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
  />
@@ -528,7 +546,7 @@ export default function LoginPage() {
  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
  className="relative z-10 w-full max-w-lg px-6"
  >
- <div className="bg-surface/80 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 overflow-hidden">
+ <div className="bg-surface/80 backdrop-blur-xl rounded-2xl shadow-sm border border-[var(--border)] overflow-hidden">
  {!isLogin && (
  <div className="bg-[var(--accent-soft)] border-b border-[var(--border)]/30 px-6 py-3 flex items-center justify-center gap-2">
  <span className="text-sm font-medium text-[var(--brand)]">7 дней бесплатного доступа при регистрации</span>
@@ -554,30 +572,32 @@ export default function LoginPage() {
  )}
  </AnimatePresence>
 
- <div className="mt-6 flex items-center justify-center">
- <div className="inline-flex bg-[var(--accent-soft)] rounded-xl p-1">
- <button
- onClick={() => { if (!isLogin) { setIsLogin(true); setStep(0); setError(''); setStepErrors({}); } }}
- className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
- isLogin
- ? 'bg-surface text-[var(--text)] shadow-sm'
- : 'text-[var(--text-muted)] hover:text-[var(--text)]'
- }`}
- >
- Вход
- </button>
- <button
- onClick={() => { if (isLogin) { setIsLogin(false); setStep(0); setError(''); setStepErrors({}); } }}
- className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
- !isLogin
- ? 'bg-surface text-[var(--text)] shadow-sm'
- : 'text-[var(--text-muted)] hover:text-[var(--text)]'
- }`}
- >
- Регистрация
- </button>
- </div>
- </div>
+  <div className="mt-6 flex items-center justify-center">
+  <div className="inline-flex bg-[var(--accent-soft)] rounded-xl p-1">
+  <button
+  onClick={() => { if (!isLogin) { setIsLogin(true); setStep(0); setError(''); setStepErrors({}); } }}
+  className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+  isLogin
+  ? 'bg-surface text-[var(--text)] shadow-sm'
+  : 'text-[var(--text-muted)] hover:text-[var(--text)]'
+  }`}
+  data-testid="tab-login"
+  >
+  Вход
+  </button>
+  <button
+  onClick={() => { if (isLogin) { setIsLogin(false); setStep(0); setError(''); setStepErrors({}); } }}
+  className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+  !isLogin
+  ? 'bg-surface text-[var(--text)] shadow-sm'
+  : 'text-[var(--text-muted)] hover:text-[var(--text)]'
+  }`}
+  data-testid="tab-register"
+  >
+  Регистрация
+  </button>
+  </div>
+  </div>
  </div>
  </div>
 
