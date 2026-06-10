@@ -48,7 +48,7 @@ test.describe('Search Tests', () => {
     console.log('✅ Поиск диалогов работает');
   });
 
-  test.skip('should navigate via command palette', async ({ page }) => {
+  test('should navigate via command palette', async ({ page }) => {
     await page.goto('/agents').catch(() => {});
 
     await page.keyboard.press('Control+k').catch(() => {});

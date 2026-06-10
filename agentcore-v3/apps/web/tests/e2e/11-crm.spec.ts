@@ -16,7 +16,7 @@ test.describe('CRM Tests', () => {
     console.log('✅ CRM загружается');
   });
 
-  test.skip('should create contact', async ({ page }) => {
+  test('should create contact', async ({ page }) => {
     await page.goto('/dashboard/customers').catch(() => {});
     
     await page.click('[data-testid="add-contact"]').catch(() => {});
@@ -39,7 +39,7 @@ test.describe('CRM Tests', () => {
     console.log('✅ Поиск контактов работает');
   });
 
-  test.skip('should update contact', async ({ page }) => {
+  test('should update contact', async ({ page }) => {
     await page.goto('/dashboard/customers').catch(() => {});
     await page.waitForSelector('[data-testid="crm-contacts"]', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(1000).catch(() => {});
@@ -63,7 +63,7 @@ test.describe('CRM Tests', () => {
     console.log('✅ Обновление контакта работает');
   });
 
-  test.skip('should delete contact', async ({ page }) => {
+  test('should delete contact', async ({ page }) => {
     await page.goto('/dashboard/customers').catch(() => {});
     await page.waitForSelector('[data-testid="crm-contacts"]', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(1000).catch(() => {});

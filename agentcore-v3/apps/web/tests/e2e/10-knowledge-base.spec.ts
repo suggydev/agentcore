@@ -15,6 +15,10 @@ test.describe('Knowledge Base', () => {
   });
 
   test.skip('should have upload button', async ({ page }) => {
-    console.log('⏭️ Skipped: upload button test');
+    await page.goto('/knowledge');
+    await page.waitForTimeout(500);
+    const uploadButton = page.locator('button').filter({ hasText: /Загрузить|Upload/ }).first();
+    await expect(uploadButton).toBeVisible();
+    console.log('✅ Upload button works');
   });
 });

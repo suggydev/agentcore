@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Knowledge Base Tests', () => {
   
-  test.skip('should upload file', async ({ page }) => {
+  test('should upload file', async ({ page }) => {
     await page.goto('/knowledge').catch(() => {});
     await page.waitForTimeout(500);
     await page.waitForSelector('[data-testid="knowledge-dropzone"]', { timeout: 10000 }).catch(() => {});
@@ -29,7 +29,7 @@ test.describe('Knowledge Base Tests', () => {
     console.log('✅ Загрузка файлов работает');
   });
 
-  test.skip('should parse URL', async ({ page }) => {
+  test('should parse URL', async ({ page }) => {
     await page.goto('/knowledge').catch(() => {});
     await page.waitForTimeout(500);
     

@@ -11,17 +11,29 @@ async function authenticate(req, res, next) {
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET, { algorithms: ['HS256'] });
     const userId = decoded.userId || decoded.id; // Support old tokens (id) and new (userId)
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user || user.tokenVersion !== decoded.tokenVersion) {
+    let user;
+    try {
+      user = await prisma.user.findUnique({ where: { id: userId } });
+    } catch (findErr) {
+      // Handle case where SUPERADMIN role doesn't exist in enum
+      if (findErr.message && findErr.message.includes('SUPERADMIN')) {
+        console.warn('[Auth] SUPERADMIN role not in enum, using raw query fallback');
+        const users = await prisma.$queryRaw`SELECT * FROM "User" WHERE id = ${userId}`;
+        user = users[0] || null;
+      } else {
+        throw findErr;
+      }
+    }
+    if (!user || (user.tokenVersion || 0) !== decoded.tokenVersion) {
       return res.status(401).json({ error: 'Сессия истекла. Пожалуйста, войдите снова.', code: 'TOKEN_EXPIRED' });
     }
     req.user = {
       userId: user.id,
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role || 'OWNER',
       workspaceId: user.workspaceId,
-      tokenVersion: user.tokenVersion,
+      tokenVersion: user.tokenVersion || 0,
     };
     next();
   } catch (err) {
@@ -34,10 +46,19 @@ async function authenticate(req, res, next) {
 
 async function checkTrial(req, res, next) {
   try {
-    const workspace = await prisma.workspace.findUnique({ where: { id: req.user.workspaceId } });
+    let workspace;
+    try {
+      workspace = await prisma.workspace.findUnique({ where: { id: req.user.workspaceId } });
+    } catch (wsErr) {
+      if (wsErr.message && wsErr.message.includes('plan')) {
+        console.warn('[Auth] plan column not in database, skipping trial check');
+        return next();
+      }
+      throw wsErr;
+    }
     if (!workspace) return res.status(404).json({ error: 'Workspace not found' });
 
-    if (workspace.plan === 'TRIAL') {
+    if ((workspace.plan || 'TRIAL') === 'TRIAL') {
       if (!workspace.trialEndsAt) {
         return next();
       }

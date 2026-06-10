@@ -9,7 +9,7 @@ export default async function globalSetup() {
   }
 
   const authFile = path.join(authDir, 'user.json');
-  const email = 'test-global-e2e@agentcore.work';
+  const email = 'test-e2e-new@agentcore.work';
   const password = 'TestPass123!';
   const apiBase = 'https://api.agentcore.work';
 
@@ -54,8 +54,9 @@ export default async function globalSetup() {
 
           // If "Too many attempts", wait and retry
           if (body.error === 'Too many attempts' || response.status() === 429) {
-            console.log(`Rate limited, waiting ${(i + 1) * 2}s before retry...`);
-            await new Promise(r => setTimeout(r, (i + 1) * 2000));
+            const waitTime = (i + 1) * 5000; // Wait 5s, 10s, 15s
+            console.log(`Rate limited, waiting ${waitTime / 1000}s before retry...`);
+            await new Promise(r => setTimeout(r, waitTime));
             lastError = new Error(`Rate limited: ${JSON.stringify(body)}`);
             continue;
           }
@@ -84,6 +85,8 @@ export default async function globalSetup() {
 
   if (loginResult.status === 200 && loginResult.body.accessToken) {
     console.log('✅ Test user already exists, reusing');
+  } else if (loginResult.body.error?.includes('already registered') || loginResult.body.error?.includes('already exists') || loginResult.body.error?.includes('Too many attempts')) {
+    console.log('User already exists or rate limited, proceeding');
   } else {
     console.log('Test user not found, registering...');
     
@@ -101,7 +104,7 @@ export default async function globalSetup() {
 
     if (registerResult.status === 201 || registerResult.status === 200) {
       console.log('✅ Test user registered successfully');
-    } else if (registerResult.body.error?.includes('already exists') || registerResult.body.error?.includes('Already registered')) {
+    } else if (registerResult.body.error?.includes('already exists') || registerResult.body.error?.includes('Already registered') || registerResult.body.error?.includes('Email already registered')) {
       console.log('User already exists (registration conflict), proceeding');
     } else {
       console.error('Registration failed:', registerResult.body);
@@ -118,20 +121,45 @@ export default async function globalSetup() {
   const page = await context.newPage();
 
   try {
+    // Clear cookies before navigating to login
+    await context.clearCookies();
+    
     await page.goto('/login', { waitUntil: 'networkidle', timeout: 30000 });
     
+    console.log('Current URL:', page.url());
+    
+    // Take screenshot for debugging
+    await page.screenshot({ path: 'login-debug.png' }).catch(() => {});
+    
     // Check if already logged in (redirect to dashboard)
-    if (page.url().includes('/dashboard') || page.url().includes('/onboarding')) {
-      console.log('Already logged in (redirected to dashboard)');
+    if (page.url().includes('/dashboard') || page.url().includes('/onboarding') || page.url().includes('/agents')) {
+      console.log('Already logged in (redirected to dashboard/agents)');
     } else {
+      // Wait for login form to be visible
+      await page.waitForSelector('[data-testid="login-email"]', { timeout: 10000 }).catch(() => {});
+      
       // Fill login form
       await page.getByTestId('login-email').fill(email);
       await page.getByTestId('login-password').fill(password);
       await page.getByTestId('login-submit').click();
       
-      // Wait for navigation to dashboard or onboarding
-      await page.waitForURL(/\/(dashboard|onboarding)/, { timeout: 15000 });
-      console.log('✅ Browser login successful');
+      // Wait a bit for the login to process
+      await new Promise(r => setTimeout(r, 3000));
+      
+      console.log('URL after login click:', page.url());
+      
+      // Check for error messages
+      const errorText = await page.locator('[data-testid="login-error"]').textContent().catch(() => null);
+      if (errorText) {
+        console.log('Login error:', errorText);
+      }
+      
+      // Check if we're logged in (redirected to dashboard/agents/onboarding)
+      if (page.url().includes('/agents') || page.url().includes('/dashboard') || page.url().includes('/onboarding')) {
+        console.log('✅ Browser login successful');
+      } else {
+        throw new Error(`Login failed: still on ${page.url()}, error: ${errorText || 'unknown'}`);
+      }
     }
 
     // Save storage state

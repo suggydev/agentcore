@@ -14,9 +14,9 @@ router.get('/', authenticate, generalLimiter, async (req, res) => {
     res.json({
       id: workspace.id,
       name: workspace.name,
-      plan: workspace.plan,
+      plan: workspace.plan || 'TRIAL',
       trialEndsAt: workspace.trialEndsAt,
-      subscriptionActive: workspace.subscriptionActive,
+      subscriptionActive: workspace.subscriptionActive || false,
       subscriptionStartsAt: workspace.subscriptionStartsAt,
       settings: workspace.settings || {},
       createdAt: workspace.createdAt,

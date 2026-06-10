@@ -17,8 +17,8 @@ test.describe('Chat Tests', () => {
     await page.click('button:has-text("Новый чат")').catch(() => {});
     await page.waitForTimeout(2000).catch(() => {});
     
-    await page.fill('input[placeholder*="Спросите"], input[data-testid="chat-input"], textarea', 'Hello, how are you?').catch(() => {});
-    await page.click('button[data-testid="send-button"], button:has-text("Отправить"), button:has-text("Send")').catch(() => {});
+    await page.fill('input[data-testid="chat-input"]', 'Hello, how are you?').catch(() => {});
+    await page.click('button[data-testid="send-button"]').catch(() => {});
     
     await page.waitForTimeout(3000).catch(() => {});
     
@@ -55,7 +55,7 @@ test.describe('Chat Tests', () => {
     console.log('✅ Выбор модели работает');
   });
 
-  test.skip('should use quick prompts', async ({ page }) => {
+  test('should use quick prompts', async ({ page }) => {
     await page.goto('/chat').catch(() => {});
     
     await page.click('button:has-text("Explain"), button:has-text("Debug"), button:has-text("Create"), button:has-text("Design"), button:has-text("Напиши"), button:has-text("Optimize"), .chip, .prompt-chip').catch(() => {});

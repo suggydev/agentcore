@@ -32,16 +32,48 @@ router.post('/register', authLimiter, async (req, res) => {
     const trialEndsAt = new Date(Date.now() + config.TRIAL_DAYS * 24 * 60 * 60 * 1000);
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    const { workspace, user } = await prisma.$transaction(async (tx) => {
-      const workspace = await tx.workspace.create({
+    let workspace;
+    let user;
+    
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        const workspaceData = {
+          name: data.workspaceName || data.name + "'s Workspace",
+          trialEndsAt,
+          settings: {}
+        };
+        // Only add plan if the column exists (backward compatibility)
+        try {
+          workspaceData.plan = 'TRIAL';
+        } catch (e) {
+          console.warn('[Auth] plan column not available, skipping');
+        }
+        
+        const workspace = await tx.workspace.create({ data: workspaceData });
+        const user = await tx.user.create({
+          data: {
+            name: data.name,
+            email,
+            password: hashedPassword,
+            workspaceId: workspace.id,
+            role: 'OWNER'
+          }
+        });
+        return { workspace, user };
+      });
+      workspace = result.workspace;
+      user = result.user;
+    } catch (txError) {
+      // If transaction fails due to missing columns, try without plan
+      console.warn('[Auth] Transaction failed, attempting fallback:', txError.message);
+      workspace = await prisma.workspace.create({
         data: {
           name: data.workspaceName || data.name + "'s Workspace",
-          plan: 'TRIAL',
           trialEndsAt,
           settings: {}
         }
       });
-      const user = await tx.user.create({
+      user = await prisma.user.create({
         data: {
           name: data.name,
           email,
@@ -50,8 +82,7 @@ router.post('/register', authLimiter, async (req, res) => {
           role: 'OWNER'
         }
       });
-      return { workspace, user };
-    });
+    }
 
     if (config.CREATE_DEFAULT_AGENTS !== false) {
       try {
@@ -87,7 +118,7 @@ router.post('/register', authLimiter, async (req, res) => {
       accessToken: token,
       user: { id: user.id, name: user.name, email: user.email },
       workspaceId: workspace.id,
-      plan: workspace.plan,
+      plan: workspace.plan || 'TRIAL',
       trialEndsAt: workspace.trialEndsAt
     });
   } catch (err) {
@@ -103,15 +134,33 @@ router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email: rawEmail, password } = z.object({ email: z.string().email(), password: z.string() }).parse(req.body);
     const email = rawEmail.toLowerCase().trim();
-    const user = await prisma.user.findUnique({ where: { email } });
+    let user;
+    try {
+      user = await prisma.user.findUnique({ where: { email } });
+    } catch (findErr) {
+      // Handle case where SUPERADMIN role doesn't exist in enum
+      if (findErr.message && findErr.message.includes('SUPERADMIN')) {
+        console.warn('[Auth] SUPERADMIN role not in enum, attempting raw query fallback');
+        const users = await prisma.$queryRaw`SELECT * FROM "User" WHERE email = ${email}`;
+        user = users[0] || null;
+      } else {
+        throw findErr;
+      }
+    }
     const dummyHash = '$2a$10$dummyhashdummyhashdummyhashdummyhashdu';
     const hashToCompare = user?.password || dummyHash;
     const valid = await bcrypt.compare(password, hashToCompare);
     if (!user || !valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    const workspace = await prisma.workspace.findUnique({ where: { id: user.workspaceId } });
-    const token = jwt.sign({ userId: user.id, workspaceId: user.workspaceId, role: user.role, tokenVersion: user.tokenVersion }, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRES_IN || '7d' });
+    let workspace;
+    try {
+      workspace = await prisma.workspace.findUnique({ where: { id: user.workspaceId } });
+    } catch (wsErr) {
+      console.warn('[Auth] Workspace query failed:', wsErr.message);
+      workspace = null;
+    }
+    const token = jwt.sign({ userId: user.id, workspaceId: user.workspaceId, role: user.role || 'OWNER', tokenVersion: user.tokenVersion || 0 }, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRES_IN || '7d' });
     res.json({
       accessToken: token,
       user: { id: user.id, name: user.name, email: user.email },

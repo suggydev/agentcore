@@ -20,14 +20,14 @@ router.get('/balance', authenticate, generalLimiter, async (req, res) => {
     ]);
     if (!workspace) return res.status(404).json({ error: 'Workspace not found' });
 
-    const isTrial = workspace.plan === 'TRIAL';
+    const isTrial = (workspace.plan || 'TRIAL') === 'TRIAL';
     const trialActive = isTrial && workspace.trialEndsAt && new Date() <= workspace.trialEndsAt;
     const hasActiveSub = workspace.subscriptionActive === true || trialActive;
     const planCredit = isTrial ? (trialActive ? config.TRIAL_CREDIT_AMOUNT : 0) : config.BUSINESS_CREDIT_AMOUNT;
     const toppedUpBalance = (topUpSum._sum?.amount) || 0;
     const balance = toppedUpBalance + planCredit;
 
-    res.json({ balance, toppedUpBalance, subscriptionCredit: planCredit, subscriptionActive: hasActiveSub, plan: workspace.plan, trialActive });
+    res.json({ balance, toppedUpBalance, subscriptionCredit: planCredit, subscriptionActive: hasActiveSub, plan: workspace.plan || 'TRIAL', trialActive });
   } catch (err) {
     safeError(res, err);
   }
@@ -83,8 +83,8 @@ router.get('/trial-status', authenticate, generalLimiter, async (req, res) => {
     res.json({
       trialEndsAt: trialEndsAt.toISOString(),
       daysLeft,
-      isTrialing: workspace.plan === 'TRIAL',
-      isExpired: workspace.plan === 'TRIAL' && diffMs <= 0
+      isTrialing: (workspace.plan || 'TRIAL') === 'TRIAL',
+      isExpired: (workspace.plan || 'TRIAL') === 'TRIAL' && diffMs <= 0
     });
   } catch (err) {
     safeError(res, err);
@@ -120,12 +120,12 @@ router.get('/suggy-balance', authenticate, generalLimiter, async (req, res) => {
     ]);
     if (!workspace) return res.status(404).json({ error: 'Workspace not found' });
 
-    const isTrial = workspace.plan === 'TRIAL';
+    const isTrial = (workspace.plan || 'TRIAL') === 'TRIAL';
     const trialActive = isTrial && workspace.trialEndsAt && new Date() <= workspace.trialEndsAt;
     const hasActiveSub = workspace.subscriptionActive === true || trialActive;
 
     const planCredit = (() => {
-      switch (workspace.plan) {
+      switch (workspace.plan || 'TRIAL') {
         case 'TRIAL': return trialActive ? config.TRIAL_CREDIT_AMOUNT : 0;
         case 'PRO': return config.PRO_CREDIT_AMOUNT;
         case 'BUSINESS': return config.BUSINESS_CREDIT_AMOUNT;
@@ -142,7 +142,7 @@ router.get('/suggy-balance', authenticate, generalLimiter, async (req, res) => {
       toppedUpBalance,
       subscriptionCredit: planCredit,
       subscriptionActive: hasActiveSub,
-      plan: workspace.plan,
+      plan: workspace.plan || 'TRIAL',
       trialActive
     });
   } catch (err) {

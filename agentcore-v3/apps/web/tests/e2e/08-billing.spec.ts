@@ -42,7 +42,6 @@ test.describe('Billing & Payments Tests', () => {
   });
 
   test('should show enterprise form', async ({ page }) => {
-    test.skip(); // Requires backend functionality
     await page.goto('/dashboard/billing/upgrade').catch(() => {});
     await waitForElement(page, '[data-testid="plan-enterprise"]');
     
@@ -65,7 +64,6 @@ test.describe('Billing & Payments Tests', () => {
   });
 
   test('should show transaction history', async ({ page }) => {
-    test.skip(); // Requires backend functionality
     await page.goto('/settings').catch(() => {});
     await waitForElement(page, '[data-testid="settings-tabs"]');
     await page.click('[data-testid="tab-billing"]').catch(() => {});
@@ -76,8 +74,7 @@ test.describe('Billing & Payments Tests', () => {
     console.log('✅ История транзакций работает');
   });
 
-  test('should show current plan', async ({ page }) => {
-    test.skip(); // Requires backend functionality
+  test.skip('should show current plan', async ({ page }) => {
     await page.goto('/settings').catch(() => {});
     await waitForElement(page, '[data-testid="settings-tabs"]');
     await page.click('[data-testid="tab-subscription"]').catch(() => {});

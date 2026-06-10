@@ -95,11 +95,12 @@ agentcore-v3/
 
 - **Command**: `cd apps/web && npx playwright test --project=chromium`
 - **Config**: `apps/web/playwright.config.ts` (workers: 5, auth state: `playwright/.auth/user.json`)
-- **Current Status**: 130 passed, 66 skipped, 0 failed (June 10, 2026)
-- **Skipped**: 66 backend-only tests (API integration, security, performance, webhooks, etc.)
+- **Current Status**: 145 passed, 51 skipped, 0 failed (June 10, 2026)
+- **Skipped**: 51 backend-only tests (API integration, security, performance, webhooks, etc.)
 - **Key**: `workers: 5` prevents timeouts (10 workers caused 14 failures due to overload)
-- **Test user**: `test-global-e2e@agentcore.work` (trial plan, 1 workspace)
+- **Test user**: `test-e2e-new@agentcore.work` (trial plan, 1 workspace)
 - **Auth**: Shared via `tests/e2e/global-setup.ts` with 1-hour expiry
+- **Rate limit**: Auth limiter allows 100 req/15min for test users (email contains 'test' + 'agentcore.work')
 
 ## 8. Контакты
 

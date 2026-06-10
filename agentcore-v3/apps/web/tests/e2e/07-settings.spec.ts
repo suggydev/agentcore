@@ -14,7 +14,6 @@ const waitForElement = async (page: any, selector: string, timeout = 5000) => {
 test.describe('Settings Tests', () => {
   
   test('should update profile', async ({ page }) => {
-    test.skip(); // Requires backend functionality
     await page.goto('/settings').catch(() => {});
     await waitForElement(page, '[data-testid="settings-tabs"]');
     await waitForElement(page, '[data-testid="profile-name"]');
@@ -28,7 +27,6 @@ test.describe('Settings Tests', () => {
   });
 
   test('should change password', async ({ page }) => {
-    test.skip(); // Requires backend functionality
     await page.goto('/settings').catch(() => {});
     await waitForElement(page, '[data-testid="settings-tabs"]');
     await page.click('[data-testid="tab-security"]').catch(() => {});
@@ -56,7 +54,6 @@ test.describe('Settings Tests', () => {
   });
 
   test('should show billing info', async ({ page }) => {
-    test.skip(); // Requires backend functionality
     await page.goto('/settings').catch(() => {});
     await waitForElement(page, '[data-testid="settings-tabs"]');
     await page.click('[data-testid="tab-billing"]').catch(() => {});
@@ -69,7 +66,6 @@ test.describe('Settings Tests', () => {
   });
 
   test('should show top-up options', async ({ page }) => {
-    test.skip(); // Requires backend functionality
     await page.goto('/settings').catch(() => {});
     await waitForElement(page, '[data-testid="settings-tabs"]');
     await page.click('[data-testid="tab-billing"]').catch(() => {});

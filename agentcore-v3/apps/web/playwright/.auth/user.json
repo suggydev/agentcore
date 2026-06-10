@@ -2,10 +2,10 @@
   "cookies": [
     {
       "name": "token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbXE2enNwMW4wMDBvZWdpOGhxNWxiandkIiwid29ya3NwYWNlSWQiOiJjbXE2enNwMWswMDBtZWdpOHZ5aTF1Y3ExIiwicm9sZSI6Ik9XTkVSIiwidG9rZW5WZXJzaW9uIjowLCJpYXQiOjE3ODEwNzg4MDIsImV4cCI6MTc4MTY4MzYwMn0.LCX9DCWCtvrByUO8vRnVeCkZq6sgYt8_yQ0idhAyYSY",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbXE3dmcwdmMwMDAzcXVtdXpwd3ZhaDllIiwid29ya3NwYWNlSWQiOiJjbXE3dmcwdjkwMDAxcXVtdWZ4OW53ZW9iIiwicm9sZSI6Ik9XTkVSIiwidG9rZW5WZXJzaW9uIjowLCJpYXQiOjE3ODEwODQwMzQsImV4cCI6MTc4MTY4ODgzNH0.Z5JabBrrOsYc3rJN6cBRMl7NUIqHkEy_xl6r1haNqPQ",
       "domain": "agentcore.work",
       "path": "/",
-      "expires": 1781683601.599785,
+      "expires": 1781688833.608767,
       "httpOnly": false,
       "secure": true,
       "sameSite": "Lax"
@@ -17,7 +17,7 @@
       "localStorage": [
         {
           "name": "token",
-          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbXE2enNwMW4wMDBvZWdpOGhxNWxiandkIiwid29ya3NwYWNlSWQiOiJjbXE2enNwMWswMDBtZWdpOHZ5aTF1Y3ExIiwicm9sZSI6Ik9XTkVSIiwidG9rZW5WZXJzaW9uIjowLCJpYXQiOjE3ODEwNzg4MDIsImV4cCI6MTc4MTY4MzYwMn0.LCX9DCWCtvrByUO8vRnVeCkZq6sgYt8_yQ0idhAyYSY"
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbXE3dmcwdmMwMDAzcXVtdXpwd3ZhaDllIiwid29ya3NwYWNlSWQiOiJjbXE3dmcwdjkwMDAxcXVtdWZ4OW53ZW9iIiwicm9sZSI6Ik9XTkVSIiwidG9rZW5WZXJzaW9uIjowLCJpYXQiOjE3ODEwODQwMzQsImV4cCI6MTc4MTY4ODgzNH0.Z5JabBrrOsYc3rJN6cBRMl7NUIqHkEy_xl6r1haNqPQ"
         },
         {
           "name": "agentcore-agent-store",
@@ -25,11 +25,11 @@
         },
         {
           "name": "user",
-          "value": "{\"id\":\"cmq6zsp1n000oegi8hq5lbjwd\",\"name\":\"Updated Name\",\"email\":\"test-global-e2e@agentcore.work\"}"
+          "value": "{\"id\":\"cmq7vg0vc0003qumuzpwvah9e\",\"name\":\"E2E Test User\",\"email\":\"test-e2e-new@agentcore.work\"}"
         },
         {
           "name": "workspaceId",
-          "value": "cmq6zsp1k000megi8vyi1ucq1"
+          "value": "cmq7vg0v90001qumufx9nweob"
         }
       ]
     }
