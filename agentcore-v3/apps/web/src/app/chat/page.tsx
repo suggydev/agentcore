@@ -287,7 +287,7 @@ export default function ChatPage() {
  };
 
  return (
- <div className="h-screen flex bg-[var(--bg)] overflow-hidden">
+  <div className="h-screen flex bg-[var(--bg)] overflow-hidden" data-testid="chat-page">
  <AnimatePresence>
  {sidebarOpen && (
  <motion.div 
@@ -319,10 +319,11 @@ export default function ChatPage() {
  </div>
 
  <div className="p-4">
- <button 
- onClick={createConversation}
- className="w-full btn-primary flex items-center justify-center gap-2 text-sm"
- >
+  <button
+  onClick={createConversation}
+  className="w-full btn-primary flex items-center justify-center gap-2 text-sm"
+  data-testid="new-chat"
+  >
  <Plus className="w-4 h-4" /> Новый чат
  </button>
  </div>
@@ -330,13 +331,14 @@ export default function ChatPage() {
  <div className="px-3 pb-2">
  <div className="relative">
  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
- <input
- type="text"
- placeholder="Поиск диалогов..."
- value={sidebarFilter}
- onChange={e => setSidebarFilter(e.target.value)}
- className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--accent-soft)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus:border-transparent text-[var(--brand)] placeholder:text-[var(--text-muted)] transition-all"
- />
+  <input
+  type="text"
+  placeholder="Поиск диалогов..."
+  value={sidebarFilter}
+  onChange={e => setSidebarFilter(e.target.value)}
+  data-testid="search-conversations"
+  className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--accent-soft)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus:border-transparent text-[var(--brand)] placeholder:text-[var(--text-muted)] transition-all"
+  />
  </div>
  </div>
 
@@ -435,7 +437,7 @@ export default function ChatPage() {
  </div>
 
  {currentConv && (
- <div className="relative" ref={modelDropdownRef}>
+  <div className="relative" ref={modelDropdownRef} data-testid="model-selector">
  <button
  onClick={() => setModelDropdownOpen(prev => !prev)}
  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-surface text-xs font-medium text-[var(--brand)] hover:bg-[var(--accent-soft)] transition-all"
@@ -592,20 +594,23 @@ export default function ChatPage() {
  {currentConv && (
  <div className="p-4 bg-surface/80 backdrop-blur-sm border-t border-[var(--border)]">
  <div className="max-w-4xl mx-auto flex gap-3">
- <input
- type="text"
- value={input}
- onChange={e => setInput(e.target.value)}
- onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
- placeholder="Спросите что угодно — код, изображения, анализ..."
- disabled={loading}
- className="flex-1 px-5 py-3.5 rounded-xl border border-[var(--border)] bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus:border-transparent text-[var(--text)] placeholder:text-[var(--text-muted)] disabled:opacity-50 transition-all"
- />
- <button
- onClick={() => sendMessage()}
- disabled={loading || !input.trim()}
- className="w-12 h-12 rounded-xl btn-primary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
- >
+  <input
+  type="text"
+  value={input}
+  onChange={e => setInput(e.target.value)}
+  onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+  placeholder="Спросите что угодно — код, изображения, анализ..."
+  disabled={loading}
+  data-testid="chat-input"
+  className="flex-1 px-5 py-3.5 rounded-xl border border-[var(--border)] bg-surface focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus:border-transparent text-[var(--text)] placeholder:text-[var(--text-muted)] disabled:opacity-50 transition-all"
+  />
+  <button
+  onClick={() => sendMessage()}
+  disabled={loading || !input.trim()}
+  data-testid="send-button"
+  aria-label="Отправить"
+  className="w-12 h-12 rounded-xl btn-primary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+  >
  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
  </button>
  </div>

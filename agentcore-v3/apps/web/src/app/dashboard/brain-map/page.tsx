@@ -203,7 +203,7 @@ export default function BrainMapPage() {
 
  return (
  <>
- <div className="h-screen flex flex-col">
+  <div className="h-screen flex flex-col" data-testid="brain-map-page">
  {/* Toolbar */}
  <div className="flex items-center gap-3 px-5 py-3 bg-surface border-b border-[var(--border)] z-10">
  <ArrowLeft className="w-4 h-4 text-[var(--text-muted)]" />
@@ -218,10 +218,11 @@ export default function BrainMapPage() {
  {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
  </select>
  <div className="relative">
- <button onClick={() => setShowAddMenu(!showAddMenu)}
- className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent-soft)] text-[var(--brand)] text-xs font-medium hover:bg-[var(--accent-soft)] transition-colors">
- <Plus className="w-3.5 h-3.5" /> Добавить узел
- </button>
+  <button onClick={() => setShowAddMenu(!showAddMenu)}
+  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent-soft)] text-[var(--brand)] text-xs font-medium hover:bg-[var(--accent-soft)] transition-colors"
+  data-testid="add-node">
+  <Plus className="w-3.5 h-3.5" /> Добавить узел
+  </button>
  <AnimatePresence>
  {showAddMenu && (
  <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -262,7 +263,8 @@ export default function BrainMapPage() {
   <span className="text-xs text-red-500 mr-2">{saveError}</span>
   )}
 <button onClick={saveFlow} disabled={!selectedAgent || saving}
- className="btn-primary text-xs py-1.5 px-4 gap-1.5 disabled:opacity-50">
+  className="btn-primary text-xs py-1.5 px-4 gap-1.5 disabled:opacity-50"
+  data-testid="save-brain-map">
  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
  Сохранить
  </button>

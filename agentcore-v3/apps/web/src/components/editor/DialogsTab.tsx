@@ -113,7 +113,7 @@ export default function DialogsTab({ agentId, token }: DialogsTabProps) {
   }
 
   return (
-    <div className="flex h-full min-h-[500px]">
+    <div className="flex h-full min-h-[500px]" data-testid="conversations-list">
       <div className="w-[30%] min-w-[180px] border-r border-[var(--border)] overflow-y-auto">
         <div className="p-3">
           <h3 className="text-[14px] font-medium text-[var(--text)] mb-3">{t('dialogs.title')}</h3>
@@ -124,12 +124,15 @@ export default function DialogsTab({ agentId, token }: DialogsTabProps) {
             <button
               key={conv.id}
               onClick={() => setSelectedId(conv.id)}
+              data-testid="conversation-item"
               className={`w-full text-left p-3 rounded-[var(--radius-button)] mb-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] ${selectedId === conv.id ? 'bg-[var(--accent-soft)]' : 'hover:bg-[var(--surface-2)]'}`}
               aria-label={conv.title}
             >
               <div className="flex items-center justify-between">
                 <span className="text-[13px] font-medium text-[var(--text)] truncate">{conv.title}</span>
-                <StatusBadge variant={STATUS_VARIANTS[conv.status]} label={STATUS_LABELS[conv.status]} />
+                <span data-testid="conversation-status">
+                  <StatusBadge variant={STATUS_VARIANTS[conv.status]} label={STATUS_LABELS[conv.status]} />
+                </span>
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[11px] text-[var(--text-muted)]">{conv.channel}</span>
@@ -185,6 +188,7 @@ export default function DialogsTab({ agentId, token }: DialogsTabProps) {
                   onChange={(e) => setOperatorInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleTakeover(); } }}
                   aria-label={t('dialogs.takeover')}
+                  data-testid="operator-input"
                   className="flex-1"
                 />
                 <Button
@@ -194,6 +198,7 @@ export default function DialogsTab({ agentId, token }: DialogsTabProps) {
                   loading={sending}
                   disabled={!operatorInput.trim()}
                   aria-label={t('dialogs.takeover')}
+                  data-testid="operator-send"
                 >
                   {t('dialogs.takeover')}
                 </Button>

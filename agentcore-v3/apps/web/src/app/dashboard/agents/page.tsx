@@ -180,7 +180,7 @@ export default function AgentsPage() {
  );
 
  return (
- <div className="p-6 lg:p-10 max-w-6xl mx-auto">
+  <div className="p-6 lg:p-10 max-w-6xl mx-auto" data-testid="dashboard-agents">
  {/* Creation Progress Overlay */}
  <AnimatePresence>
  {creating && (
@@ -233,7 +233,7 @@ export default function AgentsPage() {
  <h1 className="text-2xl font-display font-bold text-[var(--text)]">{view === 'list' ? 'AI-агенты' : 'Новый агент'}</h1>
  <p className="text-[var(--text-muted)] text-sm mt-1">{view === 'list' ? 'Ваши цифровые сотрудники' : 'Опишите задачу — AI заполнит всё остальное'}</p>
  </div>
- {view === 'list' && <button onClick={openCreate} className="btn-primary text-sm gap-2"><Plus className="w-4 h-4" /> Создать</button>}
+  {view === 'list' && <button onClick={openCreate} className="btn-primary text-sm gap-2" data-testid="create-agent-btn"><Plus className="w-4 h-4" /> Создать</button>}
  {view === 'create' && <button onClick={() => setView('list')} className="btn-secondary text-sm gap-2"><ArrowLeft className="w-4 h-4" /> К списку</button>}
  </div>
  </motion.div>
@@ -241,7 +241,7 @@ export default function AgentsPage() {
  {view === 'list' && (
  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
  {agents.map(agent => (
- <motion.div key={agent.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-5 group cursor-pointer hover:shadow-md hover:border-[var(--border)] transition-all" onClick={() => router.push(`/agents/${agent.id}`)}>
+  <motion.div key={agent.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-surface rounded-2xl border border-[var(--border)] shadow-sm p-5 group cursor-pointer hover:shadow-md hover:border-[var(--border)] transition-all" onClick={() => router.push(`/agents/${agent.id}`)} data-testid="agent-card">
  <div className="flex items-start justify-between mb-3">
  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--brand)] to-[var(--brand)]/60 flex items-center justify-center"><Brain className="w-5 h-5 text-white" /></div>
  <button onClick={(e: React.MouseEvent) => deleteAgent(agent.id, e)} className="p-1.5 rounded-lg hover:bg-danger-soft text-[var(--text-muted)] hover:text-danger transition-colors opacity-0 group-hover:opacity-100"><Trash2 className="w-3.5 h-3.5" /></button>

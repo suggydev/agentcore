@@ -8,6 +8,7 @@ interface StatusBadgeProps {
   variant: StatusVariant;
   label?: string;
   className?: string;
+  'data-testid'?: string;
 }
 
 const variantConfig: Record<StatusVariant, { dotColor: string; textColor: string; bgClass: string }> = {
@@ -24,7 +25,7 @@ const defaultLabels: Record<StatusVariant, string> = {
   error: t('agents.status.error'),
 };
 
-export function StatusBadge({ variant, label, className = '' }: StatusBadgeProps) {
+export function StatusBadge({ variant, label, className = '', 'data-testid': dataTestId }: StatusBadgeProps) {
   const config = variantConfig[variant];
   const displayLabel = label ?? defaultLabels[variant];
 
@@ -33,6 +34,7 @@ export function StatusBadge({ variant, label, className = '' }: StatusBadgeProps
       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-medium leading-[16px] rounded-[var(--radius-pill)] ${config.bgClass} ${config.textColor} ${className}`}
       role="status"
       aria-label={displayLabel}
+      data-testid={dataTestId}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${config.dotColor}`} />
       {displayLabel}

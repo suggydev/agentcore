@@ -10,6 +10,7 @@ interface CardProps {
   className?: string;
   children: React.ReactNode;
   onClick?: () => void;
+  'data-testid'?: string;
 }
 
 const paddingClasses: Record<CardPadding, string> = {
@@ -23,6 +24,7 @@ export function Card({
   className = '',
   children,
   onClick,
+  'data-testid': dataTestId,
 }: CardProps) {
   const Component = hoverable ? motion.div : 'div';
   const hoverProps = hoverable
@@ -43,6 +45,7 @@ export function Card({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       aria-label={onClick ? 'Interactive card' : undefined}
+      data-testid={dataTestId}
       {...hoverProps}
     >
       {children}

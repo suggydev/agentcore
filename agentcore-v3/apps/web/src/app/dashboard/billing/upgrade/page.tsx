@@ -103,7 +103,7 @@ export default function UpgradePage() {
 
  return (
  <>
- <div className="p-6 lg:p-10 max-w-7xl mx-auto">
+  <div className="p-6 lg:p-10 max-w-7xl mx-auto" data-testid="pricing-plans">
  {redirectingPlan && (
  <motion.div
  initial={{ opacity: 0, y: -20 }}
@@ -131,17 +131,18 @@ export default function UpgradePage() {
  {/* Plan Cards */}
  <motion.div variants={container} initial="hidden" animate="show" className="grid lg:grid-cols-3 gap-6 mb-12">
  {UPGRADE_PLANS.map((plan) => (
- <motion.div
- key={plan.id}
- variants={item}
- whileHover={!plan.btnDisabled ? { y: -4, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } } : {}}
- className={`relative rounded-2xl border-2 ${plan.accentClass} p-6 overflow-hidden group ${plan.popular ? 'scale-[1.02] z-10' : ''}`}
- >
+  <motion.div
+  key={plan.id}
+  variants={item}
+  whileHover={!plan.btnDisabled ? { y: -4, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } } : {}}
+  data-testid="plan-card"
+  className={`relative rounded-2xl border-2 ${plan.accentClass} p-6 overflow-hidden group ${plan.popular ? 'scale-[1.02] z-10' : ''}`}
+  >
  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${plan.topBarGradient}`} />
  {plan.badge && (
- <div className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-[var(--accent)] text-white text-[10px] font-bold uppercase tracking-wider">
- {plan.badge}
- </div>
+  <div className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-[var(--accent)] text-white text-[10px] font-bold uppercase tracking-wider">
+  {plan.badge}
+  </div>
  )}
  <h3 className="font-display font-semibold text-lg text-[var(--text)] mb-1">{plan.name}</h3>
  <div className="flex items-baseline gap-1 mb-3">
@@ -152,6 +153,7 @@ export default function UpgradePage() {
  <button
  onClick={() => handlePlanAction(plan)}
  disabled={plan.btnDisabled}
+ data-testid={`plan-${plan.id}`}
  className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${plan.btnClass}`}
  >
  {loadingPlan === plan.id.toUpperCase() ? (
@@ -199,38 +201,43 @@ export default function UpgradePage() {
  </div>
  ) : (
  <div className="space-y-3">
- <input
- type="text"
- placeholder="Ваше имя"
- value={enterpriseForm.name}
- onChange={(e) => setEnterpriseForm({ ...enterpriseForm, name: e.target.value })}
- className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus-visible:border-[var(--brand)] focus:ring-1 focus-visible:ring-[var(--brand)] transition-colors"
- />
- <input
- type="email"
- placeholder="Email"
- value={enterpriseForm.email}
- onChange={(e) => setEnterpriseForm({ ...enterpriseForm, email: e.target.value })}
- className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus-visible:border-[var(--brand)] focus:ring-1 focus-visible:ring-[var(--brand)] transition-colors"
- />
- <input
- type="text"
- placeholder="Компания"
- value={enterpriseForm.company}
- onChange={(e) => setEnterpriseForm({ ...enterpriseForm, company: e.target.value })}
- className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus-visible:border-[var(--brand)] focus:ring-1 focus-visible:ring-[var(--brand)] transition-colors"
- />
- <textarea
- placeholder="Кратко опишите ваши потребности"
- rows={3}
- value={enterpriseForm.message}
- onChange={(e) => setEnterpriseForm({ ...enterpriseForm, message: e.target.value })}
- className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus-visible:border-[var(--brand)] focus:ring-1 focus-visible:ring-[var(--brand)] transition-colors resize-none"
- />
- <button
- onClick={handleEnterpriseSubmit}
- className="w-full py-2.5 rounded-xl bg-[var(--accent)] text-white text-sm font-semibold hover:bg-[var(--accent)] transition-colors duration-200 flex items-center justify-center gap-2"
- >
+  <input
+  type="text"
+  placeholder="Ваше имя"
+  value={enterpriseForm.name}
+  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, name: e.target.value })}
+  data-testid="enterprise-name"
+  className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus-visible:border-[var(--brand)] focus:ring-1 focus-visible:ring-[var(--brand)] transition-colors"
+  />
+  <input
+  type="email"
+  placeholder="Email"
+  value={enterpriseForm.email}
+  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, email: e.target.value })}
+  data-testid="enterprise-email"
+  className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus-visible:border-[var(--brand)] focus:ring-1 focus-visible:ring-[var(--brand)] transition-colors"
+  />
+  <input
+  type="text"
+  placeholder="Компания"
+  value={enterpriseForm.company}
+  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, company: e.target.value })}
+  data-testid="enterprise-company"
+  className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus-visible:border-[var(--brand)] focus:ring-1 focus-visible:ring-[var(--brand)] transition-colors"
+  />
+  <textarea
+  placeholder="Кратко опишите ваши потребности"
+  rows={3}
+  value={enterpriseForm.message}
+  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, message: e.target.value })}
+  data-testid="enterprise-message"
+  className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus-visible:border-[var(--brand)] focus:ring-1 focus-visible:ring-[var(--brand)] transition-colors resize-none"
+  />
+  <button
+  onClick={handleEnterpriseSubmit}
+  data-testid="enterprise-submit"
+  className="w-full py-2.5 rounded-xl bg-[var(--accent)] text-white text-sm font-semibold hover:bg-[var(--accent)] transition-colors duration-200 flex items-center justify-center gap-2"
+  >
  <Mail className="w-4 h-4" />
  Отправить заявку
  </button>

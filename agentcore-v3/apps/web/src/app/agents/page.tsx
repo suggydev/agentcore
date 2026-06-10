@@ -142,7 +142,7 @@ export default function AgentsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto px-6 py-10">
+    <div className="max-w-5xl mx-auto px-6 py-10" data-testid="agents-page">
         <div className="flex items-center justify-between mb-8">
           <div>
             <div className="h-8 bg-surface-2 rounded w-48 animate-pulse" />
@@ -168,13 +168,13 @@ export default function AgentsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
+    <div className="max-w-5xl mx-auto px-6 py-10" data-testid="agents-page">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-[28px] font-semibold text-text tracking-[-0.01em]">{t('agents.title')}</h1>
+          <h1 className="text-[28px] font-semibold text-text tracking-[-0.01em]" data-testid="agents-title">{t('agents.title')}</h1>
           <p className="text-[14px] text-text-muted mt-1">{t('agents.subtitle')}</p>
         </div>
-        <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')}>
+        <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')} data-testid="create-agent-button create-agent">
           <Plus size={16} />
           {t('agents.create')}
         </Button>
@@ -187,6 +187,7 @@ export default function AgentsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label={t('agents.search')}
+            data-testid="search-agents"
           />
         </div>
         <div className="flex items-center gap-1">
@@ -194,6 +195,7 @@ export default function AgentsPage() {
             <button
               key={fb.id}
               onClick={() => setFilter(fb.id)}
+              data-testid={`filter-${fb.id}`}
               className={`px-3 py-1.5 rounded-pill text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                 filter === fb.id
                   ? 'bg-accent-soft text-brand'
@@ -211,13 +213,13 @@ export default function AgentsPage() {
         <div className="flex flex-col items-center justify-center py-16">
           <Brain size={48} className="text-text-muted mb-4" />
           <p className="text-[16px] font-medium text-text mb-2">{t('agents.createFirst')}</p>
-          <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')}>
+        <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')} data-testid="create-agent-empty">
             <Plus size={16} />
             {t('agents.create')}
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredAgents.map((agent, i) => (
             <motion.div
               key={agent.id}
@@ -229,6 +231,7 @@ export default function AgentsPage() {
                 hoverable
                 onClick={() => router.push(`/agents/${agent.id}`)}
                 className="flex flex-col"
+                data-testid="agent-card"
               >
                 <div className="flex items-start gap-3 mb-3">
                   <div className="w-10 h-10 rounded-button bg-accent-soft flex items-center justify-center text-[22px] flex-shrink-0">
@@ -263,6 +266,7 @@ export default function AgentsPage() {
               hoverable
               onClick={() => setCreateOpen(true)}
               className="flex flex-col items-center justify-center h-full border-dashed min-h-[140px]"
+              data-testid="create-agent-card"
             >
               <Plus size={24} className="text-text-muted mb-2" />
               <p className="text-[14px] font-medium text-text-muted">{t('agents.create')}</p>

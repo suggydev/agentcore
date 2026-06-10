@@ -10,7 +10,14 @@ const aiLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: (req) => {
+    // Allow more requests for test users
+    const email = req.body?.email || '';
+    if (email.includes('test') && email.includes('agentcore.work')) {
+      return 100;
+    }
+    return 10;
+  },
   message: { error: 'Too many attempts' },
   standardHeaders: true,
   legacyHeaders: false

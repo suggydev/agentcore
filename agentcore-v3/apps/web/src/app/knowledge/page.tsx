@@ -75,8 +75,9 @@ export default function KnowledgePage() {
  const [newAnswer, setNewAnswer] = useState('');
  const [dragOver, setDragOver] = useState(false);
  const [faqSaving, setFaqSaving] = useState(false);
- const [toast, setToast] = useState<{ message: string; icon: 'notion' | 'drive' } | null>(null);
- const fileInputRef = useRef<HTMLInputElement>(null);
+  const [toast, setToast] = useState<{ message: string; icon: 'notion' | 'drive' } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
  const fetchDocuments = useCallback(async () => {
  const token = localStorage.getItem('token');
@@ -175,14 +176,16 @@ export default function KnowledgePage() {
  headers: { Authorization: `Bearer ${token}` },
  body: formData,
  });
-  if (res.ok) {
-  const data = await res.json();
-  const newDocs = Array.isArray(data) ? data : data.documents ?? [data];
-  setDocuments((prev) => [...newDocs, ...prev]);
-  } else {
-  console.error('[KnowledgePage] Upload failed:', res.status);
-  }
-  } catch (err) { console.error('[KnowledgePage]', err); }
+   if (res.ok) {
+   const data = await res.json();
+   const newDocs = Array.isArray(data) ? data : data.documents ?? [data];
+   setDocuments((prev) => [...newDocs, ...prev]);
+   setToast({ message: 'Файлы загружены успешно', icon: 'notion' });
+   setTimeout(() => setToast(null), 3000);
+   } else {
+   console.error('[KnowledgePage] Upload failed:', res.status);
+   }
+   } catch (err) { console.error('[KnowledgePage]', err); }
  };
 
   const addFaq = async () => {
@@ -275,16 +278,17 @@ export default function KnowledgePage() {
 
  return (
  <>
- <div className="p-6 lg:p-10 max-w-7xl mx-auto">
+  <div className="p-6 lg:p-10 max-w-7xl mx-auto" data-testid="knowledge-page">
  <AnimatePresence>
  {toast && (
- <motion.div
- initial={{ opacity: 0, y: -20, scale: 0.96 }}
- animate={{ opacity: 1, y: 0, scale: 1 }}
- exit={{ opacity: 0, y: -10, scale: 0.96 }}
- transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
- className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-surface border border-[var(--border)] shadow-lg"
- >
+  <motion.div
+  initial={{ opacity: 0, y: -20, scale: 0.96 }}
+  animate={{ opacity: 1, y: 0, scale: 1 }}
+  exit={{ opacity: 0, y: -10, scale: 0.96 }}
+  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+  className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-surface border border-[var(--border)] shadow-lg"
+  data-testid="upload-success"
+  >
  <div className="w-8 h-8 rounded-xl bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60">
  {toast.icon === 'notion' ? <BookOpen className="w-4 h-4 text-[var(--brand)]" /> : <HardDrive className="w-4 h-4 text-[var(--brand)]" />}
  </div>
@@ -303,11 +307,12 @@ export default function KnowledgePage() {
  <h1 className="font-display font-bold text-3xl text-[var(--text)] tracking-tight">Знания</h1>
  <p className="text-[var(--text-muted)] mt-1 text-sm">Управление документами и FAQ</p>
  </div>
- <button
- onClick={() => fileInputRef.current?.click()}
- className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-white text-sm font-semibold hover:bg-[var(--accent)] transition-all duration-200 shadow-sm focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1"
- aria-label="Добавить документ"
- >
+  <button
+  onClick={() => fileInputRef.current?.click()}
+  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-white text-sm font-semibold hover:bg-[var(--accent)] transition-all duration-200 shadow-sm focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1"
+  aria-label="Загрузить документ"
+  data-testid="upload-button"
+  >
  <Plus className="w-4 h-4" />
  Добавить документ
  </button>
@@ -337,27 +342,29 @@ export default function KnowledgePage() {
  </motion.div>
 
  <motion.div variants={item} initial="hidden" animate="show" className="mb-8">
- <div
- onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
- onDragLeave={() => setDragOver(false)}
- onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFileUpload(e.dataTransfer.files); }}
- onClick={() => fileInputRef.current?.click()}
- className={`relative rounded-2xl border-2 border-dashed p-10 text-center cursor-pointer group/upload ${
- dragOver
- ? 'border-[var(--brand)] bg-[var(--accent-soft)] scale-[1.01] shadow-lg '
- : 'border-[var(--border)] bg-surface hover:border-[var(--brand)]/40 hover:bg-[var(--accent-soft)]/30'
- } transition-all duration-300 ease-out`}
- role="button"
- aria-label="Зона загрузки файлов"
- >
- <input
- ref={fileInputRef}
- type="file"
- multiple
- className="hidden"
- onChange={(e) => handleFileUpload(e.target.files)}
- accept=".pdf,.txt,.md,.html,.csv,.json,.xml"
- />
+  <div
+  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+  onDragLeave={() => setDragOver(false)}
+  onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFileUpload(e.dataTransfer.files); }}
+  onClick={() => fileInputRef.current?.click()}
+  className={`relative rounded-2xl border-2 border-dashed p-10 text-center cursor-pointer group/upload ${
+  dragOver
+  ? 'border-[var(--brand)] bg-[var(--accent-soft)] scale-[1.01] shadow-lg '
+  : 'border-[var(--border)] bg-surface hover:border-[var(--brand)]/40 hover:bg-[var(--accent-soft)]/30'
+  } transition-all duration-300 ease-out`}
+  role="button"
+  aria-label="Зона загрузки файлов"
+  data-testid="knowledge-dropzone"
+  >
+  <input
+  ref={fileInputRef}
+  type="file"
+  multiple
+  className="hidden"
+  onChange={(e) => handleFileUpload(e.target.files)}
+  accept=".pdf,.txt,.md,.html,.csv,.json,.xml"
+  data-testid="file-input"
+  />
  <div className={`transition-all duration-300 ${dragOver ? 'opacity-0 scale-95' : 'opacity-100'}`}>
  <div className="w-14 h-14 rounded-2xl bg-[var(--accent-soft)] flex items-center justify-center mx-auto mb-4 ring-1 ring-[var(--border)]/60 group-hover/upload:scale-105 transition-transform duration-300">
  <Upload className="w-6 h-6 text-[var(--brand)] group-hover/upload:text-[var(--brand)] transition-colors" />
@@ -373,25 +380,28 @@ export default function KnowledgePage() {
  <div className="flex flex-col">
  <div className={`flex items-center gap-3 bg-surface rounded-xl border p-3 ${urlError ? 'border-red-300' : 'border-[var(--border)]'}`}>
  <Globe className="w-5 h-5 text-[var(--brand)] flex-shrink-0" />
- <input
- type="url"
- placeholder="Вставьте URL..."
- value={urlInput}
- onChange={(e) => { setUrlInput(e.target.value); setUrlError(''); }}
- onKeyDown={(e) => e.key === 'Enter' && handleUrlParse()}
- aria-label="URL для парсинга"
- className="flex-1 bg-transparent text-sm text-[var(--text)] placeholder-[var(--text-muted)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 rounded"
- />
- <button
- onClick={handleUrlParse}
- disabled={!urlInput.trim() || parsingUrl}
- className="px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white text-xs font-semibold hover:bg-[var(--accent)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
- >
+  <input
+  type="url"
+  placeholder="Вставьте URL..."
+  value={urlInput}
+  onChange={(e) => { setUrlInput(e.target.value); setUrlError(''); }}
+  onKeyDown={(e) => e.key === 'Enter' && handleUrlParse()}
+  aria-label="URL для парсинга"
+  data-testid="url-input"
+  className="flex-1 bg-transparent text-sm text-[var(--text)] placeholder-[var(--text-muted)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 rounded"
+  />
+  <button
+  onClick={handleUrlParse}
+  disabled={!urlInput.trim() || parsingUrl}
+  data-testid="parse-url-button"
+  className="px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white text-xs font-semibold hover:bg-[var(--accent)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+  >
  {parsingUrl ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
  Разобрать
  </button>
  </div>
- {urlError && <p className="mt-1 text-[11px] text-danger">{urlError}</p>}
+  {parsingUrl && <p className="mt-1 text-[11px] text-[var(--brand)]" data-testid="parse-loading">Парсинг...</p>}
+  {urlError && <p className="mt-1 text-[11px] text-danger">{urlError}</p>}
  </div>
  <button
  onClick={() => showComingSoon('notion')}
@@ -424,14 +434,15 @@ export default function KnowledgePage() {
  <motion.div variants={item} initial="hidden" animate="show" className="mb-6">
  <div className="relative">
  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
- <input
- type="text"
- placeholder="Поиск документов..."
- value={search}
- onChange={(e) => setSearch(e.target.value)}
- aria-label="Поиск документов"
- className="w-full pl-11 pr-4 py-2.5 bg-surface rounded-xl border border-[var(--border)] shadow-sm text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 transition-all duration-200"
- />
+  <input
+  type="text"
+  placeholder="Поиск документов..."
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  aria-label="Поиск документов"
+  data-testid="search-knowledge"
+  className="w-full pl-11 pr-4 py-2.5 bg-surface rounded-xl border border-[var(--border)] shadow-sm text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 transition-all duration-200"
+  />
  </div>
  </motion.div>
  )}
@@ -475,13 +486,14 @@ export default function KnowledgePage() {
  <div className="w-10 h-10 rounded-xl bg-[var(--accent-soft)] flex items-center justify-center ring-1 ring-[var(--border)]/60 group-hover:ring-[var(--brand)]/20 group-hover:scale-105 transition-all duration-300">
  <Icon className="w-5 h-5 text-[var(--brand)]" />
  </div>
- <motion.button
- onClick={() => handleDelete(doc.id)}
- whileHover={{ scale: 1.15 }}
- whileTap={{ scale: 0.9 }}
- className="p-1.5 rounded-lg hover:bg-danger-soft transition-all duration-200 opacity-0 group-hover:opacity-100"
- aria-label={`Удалить документ ${doc.title}`}
- >
+   <motion.button
+   onClick={() => setConfirmDelete(doc.id)}
+   whileHover={{ scale: 1.15 }}
+   whileTap={{ scale: 0.9 }}
+   data-testid="delete-document"
+   className="p-1.5 rounded-lg hover:bg-danger-soft transition-all duration-200 opacity-0 group-hover:opacity-100"
+   aria-label={`Удалить документ ${doc.title}`}
+   >
  <Trash2 className="w-4 h-4 text-[var(--danger)] hover:text-danger transition-colors" />
  </motion.button>
  </div>
@@ -549,35 +561,38 @@ export default function KnowledgePage() {
  <div className="grid sm:grid-cols-2 gap-4 mb-4">
  <div>
  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Вопрос</label>
- <input
- type="text"
- value={newQuestion}
- onChange={(e) => setNewQuestion(e.target.value)}
- onKeyDown={(e) => e.key === 'Enter' && addFaq()}
- placeholder="например: Какой у вас график работы?"
- className="w-full px-3 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200 hover:border-[var(--brand)]/30"
- />
+  <input
+  type="text"
+  value={newQuestion}
+  onChange={(e) => setNewQuestion(e.target.value)}
+  onKeyDown={(e) => e.key === 'Enter' && addFaq()}
+  placeholder="например: Какой у вас график работы?"
+  data-testid="faq-question"
+  className="w-full px-3 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200 hover:border-[var(--brand)]/30"
+  />
  </div>
  <div>
  <label className="block text-xs font-semibold text-[var(--text)] mb-1.5">Ответ</label>
- <input
- type="text"
- value={newAnswer}
- onChange={(e) => setNewAnswer(e.target.value)}
- onKeyDown={(e) => e.key === 'Enter' && addFaq()}
- placeholder="например: Мы работаем 9:00 – 18:00 Пн–Пт."
- className="w-full px-3 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200 hover:border-[var(--brand)]/30"
- />
+  <input
+  type="text"
+  value={newAnswer}
+  onChange={(e) => setNewAnswer(e.target.value)}
+  onKeyDown={(e) => e.key === 'Enter' && addFaq()}
+  placeholder="например: Мы работаем 9:00 – 18:00 Пн–Пт."
+  data-testid="faq-answer"
+  className="w-full px-3 py-2.5 bg-surface rounded-xl border border-[var(--border)] text-sm text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus-visible:ring-[var(--brand)] focus-visible:border-[var(--brand)] transition-all duration-200 hover:border-[var(--brand)]/30"
+  />
  </div>
  </div>
  <div className="flex items-center gap-3">
- <motion.button
- onClick={addFaq}
- disabled={!newQuestion.trim() || !newAnswer.trim() || faqSaving}
- whileHover={{ scale: 1.02 }}
- whileTap={{ scale: 0.97 }}
- className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-white text-sm font-semibold hover:bg-[var(--accent)] transition-all duration-200 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
- >
+  <motion.button
+  onClick={addFaq}
+  disabled={!newQuestion.trim() || !newAnswer.trim() || faqSaving}
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.97 }}
+  data-testid="add-faq-button"
+  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-white text-sm font-semibold hover:bg-[var(--accent)] transition-all duration-200 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
+  >
  {faqSaving ? (
  <Loader2 className="w-4 h-4 animate-spin" />
  ) : (
@@ -606,14 +621,15 @@ export default function KnowledgePage() {
  <div className="mt-6 divide-y divide-[var(--border)]">
  <AnimatePresence>
  {faqs.map((faq) => (
- <motion.div
- key={faq.id}
- initial={{ opacity: 0, x: -12 }}
- animate={{ opacity: 1, x: 0 }}
- exit={{ opacity: 0, x: 12, height: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
- transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
- className="flex items-start gap-4 py-3 group/faq"
- >
+  <motion.div
+  key={faq.id}
+  initial={{ opacity: 0, x: -12 }}
+  animate={{ opacity: 1, x: 0 }}
+  exit={{ opacity: 0, x: 12, height: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
+  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+  className="flex items-start gap-4 py-3 group/faq"
+  data-testid="faq-item"
+  >
  <div className="w-7 h-7 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center mt-0.5 flex-shrink-0 ring-1 ring-[var(--border)]/60">
  <Sparkles className="w-3.5 h-3.5 text-[var(--text-muted)]" />
  </div>
@@ -641,8 +657,25 @@ export default function KnowledgePage() {
  </AnimatePresence>
  </motion.div>
 
- <div className="h-8" />
- </div>
- </>
- );
+  <div className="h-8" />
+  </div>
+
+  {confirmDelete && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" data-testid="confirm-delete">
+      <div className="bg-surface rounded-2xl border border-[var(--border)] p-6 max-w-sm w-full mx-4 shadow-xl">
+        <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Удалить документ?</h3>
+        <p className="text-sm text-[var(--text-muted)] mb-4">Это действие нельзя отменить.</p>
+        <div className="flex items-center gap-3 justify-end">
+          <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--accent-soft)] transition-colors">
+            Отмена
+          </button>
+          <button onClick={() => { handleDelete(confirmDelete); setConfirmDelete(null); }} className="px-4 py-2 rounded-lg text-sm bg-[var(--danger)] text-white hover:bg-[var(--danger)] transition-colors">
+            Удалить
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+  </>
+  );
 }
