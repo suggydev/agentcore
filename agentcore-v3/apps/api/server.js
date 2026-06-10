@@ -1,3 +1,4 @@
+require('express-async-errors');
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -36,7 +37,7 @@ app.use(cors({
 }));
 
 // Body parsing
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(generalLimiter);
 
@@ -45,8 +46,8 @@ app.use(generalLimiter);
 // ============================
 
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/agents', require('./routes/agents'));
 app.use('/api/agents/generate', require('./routes/agentGenerate'));
+app.use('/api/agents', require('./routes/agents'));
 app.use('/api/conversations', require('./routes/conversations'));
 app.use('/api/v1/models', require('./routes/models'));
 app.use('/api/v1/chat', require('./routes/chat'));

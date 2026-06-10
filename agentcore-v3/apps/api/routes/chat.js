@@ -79,6 +79,113 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
       }
     );
 
+    if (stream) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
+      req.on('close', () => {
+        if (response.data && typeof response.data.destroy === 'function') {
+          response.data.destroy();
+        }
+      });
+      res.on('error', () => {
+        if (response.data && typeof response.data.destroy === 'function') {
+          response.data.destroy();
+        }
+      });
+
+      let streamEnded = false;
+      let fullContent = '';
+      const bufferedMessages = messages.map((m, idx) => ({
+        role: m.role,
+        content: m.content,
+        model: selectedModel,
+        order: idx
+      }));
+
+      const createConversationAndSave = async (assistantContent) => {
+        const firstUserMsg = messages.find(m => m.role === 'user');
+        const title = firstUserMsg?.content?.substring(0, 50) || 'New Chat';
+        try {
+          const conversation = await prisma.conversation.create({
+            data: {
+              workspaceId: req.user.workspaceId,
+              agentId: agentId || null,
+              title,
+              messages: {
+                create: [
+                  ...bufferedMessages,
+                  {
+                    role: 'assistant',
+                    content: assistantContent || '[Streaming response - no content received]',
+                    model: selectedModel,
+                    order: messages.length
+                  }
+                ]
+              }
+            },
+            include: { messages: true }
+          });
+          await prisma.conversation.update({
+            where: { id: conversation.id },
+            data: { updatedAt: new Date() }
+          });
+        } catch (e) {
+          console.error('Failed to save streaming conversation:', e.message);
+        }
+      };
+
+      let buffer = '';
+      response.data.on('data', (chunk) => {
+        buffer += chunk.toString();
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(data);
+              const delta = parsed.choices?.[0]?.delta?.content;
+              if (delta) fullContent += delta;
+            } catch (parseErr) { console.warn('[Chat] Failed to parse streaming chunk:', data, parseErr.message); }
+          }
+        }
+      });
+
+      response.data.on('end', async () => {
+        if (buffer) {
+          const line = buffer.trim();
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6).trim();
+            if (data !== '[DONE]') {
+              try {
+                const parsed = JSON.parse(data);
+                const delta = parsed.choices?.[0]?.delta?.content;
+                if (delta) fullContent += delta;
+              } catch (parseErr) { /* ignore final parse error */ }
+            }
+          }
+        }
+        if (!streamEnded) {
+          streamEnded = true;
+          await createConversationAndSave(fullContent || '[Streaming response - no content received]');
+        }
+      });
+
+      response.data.on('error', async (err) => {
+        console.error('Streaming error:', err.message);
+        if (!streamEnded) {
+          streamEnded = true;
+          await createConversationAndSave(fullContent || '[Streaming error]');
+        }
+      });
+
+      response.data.pipe(res);
+      return;
+    }
+
     const firstUserMsg = messages.find(m => m.role === 'user');
     const title = firstUserMsg?.content?.substring(0, 50) || 'New Chat';
     const conversation = await prisma.conversation.create({
@@ -97,82 +204,6 @@ router.post('/completions', authenticate, checkTrial, aiLimiter, async (req, res
       },
       include: { messages: true }
     });
-
-    if (stream) {
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-
-      let assistantOrder = messages.length;
-      let streamEnded = false;
-      let fullContent = '';
-
-      const saveAssistantMessage = async (content) => {
-        try {
-          await prisma.message.create({
-            data: {
-              content,
-              role: 'assistant',
-              model: selectedModel,
-              order: assistantOrder,
-              conversationId: conversation.id
-            }
-          });
-        } catch (e) {
-          console.error('Failed to save streaming message:', e.message);
-        }
-      };
-
-      let buffer = '';
-      response.data.on('data', (chunk) => {
-        buffer += chunk.toString();
-        const lines = buffer.split('\n');
-        buffer = lines.pop(); // keep incomplete line in buffer
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6).trim();
-            if (data === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(data);
-              const delta = parsed.choices?.[0]?.delta?.content;
-              if (delta) fullContent += delta;
-            } catch (parseErr) { console.warn('[Chat] Failed to parse streaming chunk:', data, parseErr.message); }
-          }
-        }
-      });
-
-      response.data.on('end', async () => {
-        if (buffer) {
-          // process final buffered line
-          const line = buffer.trim();
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6).trim();
-            if (data !== '[DONE]') {
-              try {
-                const parsed = JSON.parse(data);
-                const delta = parsed.choices?.[0]?.delta?.content;
-                if (delta) fullContent += delta;
-              } catch (parseErr) { /* ignore final parse error */ }
-            }
-          }
-        }
-        if (!streamEnded) {
-          streamEnded = true;
-          await saveAssistantMessage(fullContent || '[Streaming response - no content received]');
-        }
-      });
-
-      response.data.on('error', async (err) => {
-        console.error('Streaming error:', err.message);
-        if (!streamEnded) {
-          streamEnded = true;
-          await saveAssistantMessage(fullContent || '[Streaming error]');
-        }
-      });
-
-      response.data.pipe(res);
-      return;
-    }
 
     const aiMessage = response.data.choices?.[0]?.message;
     if (aiMessage) {
@@ -225,8 +256,8 @@ router.post('/images/generations', authenticate, checkTrial, aiLimiter, async (r
 
     const models = await fetchModels();
     const imageModel = model ||
-      models.find(m => m.id.includes('flux-1-dev'))?.id ||
-      models.find(m => m.id.includes('flux'))?.id ||
+      models.find(m => m.supports_image_input && !m.id.includes('flux'))?.id ||
+      models.find(m => m.supports_image_input)?.id ||
       'accounts/fireworks/models/flux-1-dev-fp8';
 
     const response = await axios.post(

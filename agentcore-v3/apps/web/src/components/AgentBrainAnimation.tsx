@@ -91,13 +91,15 @@ export default function AgentBrainAnimation({ agentName, isVisible, onComplete }
  };
  }, [isVisible, handleComplete]);
 
- if (!isVisible) return null;
+  if (!isVisible) return null;
 
- const sparkles = Array.from({ length: 8 }, (_, i) => {
- const angle = (i / 8) * Math.PI * 2 + Math.random() * 0.4;
- const distance = 50 + Math.random() * 100;
- return <Sparkle key={i} angle={angle} distance={distance} />;
- });
+  const showParticles = phase >= 2 && phase < 4;
+
+  const sparkles = Array.from({ length: 8 }, (_, i) => {
+    const angle = (i / 8) * Math.PI * 2 + Math.random() * 0.4;
+    const distance = 50 + Math.random() * 100;
+    return <Sparkle key={i} angle={angle} distance={distance} />;
+  });
 
  return (
  <AnimatePresence>
@@ -142,30 +144,31 @@ export default function AgentBrainAnimation({ agentName, isVisible, onComplete }
  />
  ))}
 
- {PARTICLE_CONNECTIONS.map(([a, b], i) => {
- const from = NODES[a];
- const to = NODES[b];
- return phase >= 2 ? (
- <motion.circle
- key={`particle-${i}`}
- r={2.5}
- fill="#C5A8CD"
- initial={{ cx: from.x, cy: from.y, opacity: 0 }}
- animate={{
- cx: [from.x, to.x],
- cy: [from.y, to.y],
- opacity: [0, 1, 1, 0],
- }}
- transition={{
- duration: 1,
- delay: 1.8 + i * 0.2,
- repeat: Infinity,
- repeatDelay: 2.2,
- ease: 'easeInOut',
- }}
- />
- ) : null;
- })}
+        {showParticles && PARTICLE_CONNECTIONS.map(([a, b], i) => {
+          const from = NODES[a];
+          const to = NODES[b];
+          return (
+            <motion.circle
+              key={`particle-${i}`}
+              r={2.5}
+              fill="#C5A8CD"
+              style={{ willChange: 'transform, opacity' }}
+              initial={{ cx: from.x, cy: from.y, opacity: 0 }}
+              animate={{
+                cx: [from.x, to.x],
+                cy: [from.y, to.y],
+                opacity: [0, 1, 1, 0],
+              }}
+              transition={{
+                duration: 1,
+                delay: 1.8 + i * 0.2,
+                repeat: Infinity,
+                repeatDelay: 2.2,
+                ease: 'easeInOut',
+              }}
+            />
+          );
+        })}
 
  {phase >= 3 && (
  <>

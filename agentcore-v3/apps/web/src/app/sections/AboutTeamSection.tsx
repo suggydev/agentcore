@@ -37,7 +37,7 @@ export default function AboutTeamSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-14"
         >
-          <span className="label mb-3 block" style={{ color: '#ff3e00' }}>
+          <span className="label mb-3 block text-brand">
             О команде
           </span>
           <h2 className="heading-2 mb-4 max-w-2xl mx-auto">
@@ -56,14 +56,13 @@ export default function AboutTeamSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08, duration: 0.4 }}
-              className="p-6 bg-white rounded-[10px]"
-              style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}
+              className="p-6 bg-white rounded-[10px] shadow-inset"
             >
-              <div className="w-10 h-10 rounded-[10px] bg-[#f8f7f4] flex items-center justify-center mb-4">
-                <item.icon className="w-5 h-5 text-[#ff3e00]" />
+              <div className="w-10 h-10 rounded-[10px] bg-parchment-card flex items-center justify-center mb-4">
+                <item.icon className="w-5 h-5 text-brand" />
               </div>
-              <h3 className="font-semibold text-[#343433] mb-2 text-sm">{item.title}</h3>
-              <p className="text-sm text-[#474645] leading-relaxed">{item.description}</p>
+              <h3 className="font-semibold text-charcoal mb-2 text-sm">{item.title}</h3>
+              <p className="text-sm text-graphite leading-relaxed">{item.description}</p>
             </motion.div>
           ))}
         </div>
@@ -73,10 +72,10 @@ export default function AboutTeamSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-[#121212] rounded-[10px] p-8 md:p-10 text-white max-w-3xl mx-auto"
+          className="bg-midnight rounded-[10px] p-8 md:p-10 text-white max-w-3xl mx-auto"
         >
           <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-14 h-14 rounded-[40px] bg-[#ff3e00] flex items-center justify-center flex-shrink-0">
+            <div className="w-14 h-14 rounded-[40px] bg-brand flex items-center justify-center flex-shrink-0">
               <span className="text-2xl font-bold text-white">14</span>
             </div>
             <div>

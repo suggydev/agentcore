@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Navigation from '../components/Navigation';
 import HeroSection from './sections/HeroSection';
 import ValuePropSection from './sections/ValuePropSection';
@@ -10,12 +11,13 @@ import VideoSection from './sections/VideoSection';
 import IntegrationSection from './sections/IntegrationSection';
 import ResultsSection from './sections/ResultsSection';
 import AboutTeamSection from './sections/AboutTeamSection';
-import PricingSection from './sections/PricingSection';
-import FAQSection from './sections/FAQSection';
-import TestimonialsSection from './sections/TestimonialsSection';
-import DemoCTASection from './sections/DemoCTASection';
-import CTASection from './sections/CTASection';
-import Footer from './sections/Footer';
+
+const PricingSection = dynamic(() => import('./sections/PricingSection'), { ssr: false });
+const FAQSection = dynamic(() => import('./sections/FAQSection'), { ssr: false });
+const TestimonialsSection = dynamic(() => import('./sections/TestimonialsSection'), { ssr: false });
+const DemoCTASection = dynamic(() => import('./sections/DemoCTASection'), { ssr: false });
+const CTASection = dynamic(() => import('./sections/CTASection'), { ssr: false });
+const Footer = dynamic(() => import('./sections/Footer'), { ssr: false });
 
 export default function HomePage() {
   return (

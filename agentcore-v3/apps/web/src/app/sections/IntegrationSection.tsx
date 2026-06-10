@@ -47,7 +47,7 @@ export default function IntegrationSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-14"
         >
-          <span className="label mb-3 block" style={{ color: '#ff3e00' }}>
+          <span className="label mb-3 block text-brand">
             Интеграции
           </span>
           <h2 className="heading-2 mb-4">
@@ -66,24 +66,23 @@ export default function IntegrationSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.4 }}
-              className="bg-[#f8f7f4] rounded-[10px] p-6"
-              style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}
+              className="bg-parchment-card rounded-[10px] p-6 shadow-inset"
             >
               <div className="flex items-center gap-3 mb-6">
                 <span className="text-2xl">{channel.icon}</span>
                 <div>
-                  <h3 className="font-semibold text-[#343433]">{channel.name}</h3>
-                  <div className="text-xs text-[#848281]">{channel.time}</div>
+                  <h3 className="font-semibold text-charcoal">{channel.name}</h3>
+                  <div className="text-xs text-text-muted">{channel.time}</div>
                 </div>
               </div>
 
               <div className="space-y-3">
                 {channel.steps.map((step, j) => (
                   <div key={j} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-[#f8f7f4] flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-[#ff3e00]" />
+                    <div className="w-5 h-5 rounded-full bg-parchment-card flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-brand" />
                     </div>
-                    <span className="text-sm text-[#474645]">{step}</span>
+                    <span className="text-sm text-graphite">{step}</span>
                   </div>
                 ))}
               </div>
@@ -98,7 +97,7 @@ export default function IntegrationSection() {
           transition={{ delay: 0.3, duration: 0.4 }}
           className="mt-10 text-center"
         >
-          <p className="text-sm text-[#848281] mb-4">
+          <p className="text-sm text-text-muted mb-4">
             Также доступны: Instagram, VK, Avito, Viber, Email, SMS
           </p>
           <a

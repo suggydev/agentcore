@@ -81,7 +81,7 @@ class YooKassaProvider extends IntegrationProvider {
         timeout: 120000,
       });
       this.initialized = true;
-      this.log('info', 'YooKassa client initialized', { shopId: this.shopId });
+      this.log('info', 'YooKassa client initialized', { shopId: this.shopId ? this.shopId.slice(-4).padStart(this.shopId.length, '*') : undefined });
     }
     return this._client;
   }

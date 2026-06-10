@@ -64,12 +64,15 @@ function sendError(res, key, overrides = {}) {
 }
 
 function safeError(res, err, status = 500, fallbackMessage = 'Внутренняя ошибка сервера') {
-  if (status === 500) {
+  if (status >= 500) {
     console.error('[SAFE_ERROR]', err.message, err.stack?.split('\n').slice(0, 3).join(' | '));
+    res.status(status).json({ error: fallbackMessage, code: err.code || 'INTERNAL_ERROR' });
+  } else {
+    res.status(status).json({
+      error: err.message || fallbackMessage,
+      code: err.code
+    });
   }
-  res.status(status).json({
-    error: err.message || fallbackMessage
-  });
 }
 
 module.exports = { errorDictionary, createError, sendError, safeError };

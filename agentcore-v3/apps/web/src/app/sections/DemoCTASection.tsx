@@ -14,7 +14,7 @@ export default function DemoCTASection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <span className="label mb-3 block" style={{ color: '#ff3e00' }}>
+          <span className="label mb-3 block text-brand">
             Быстрый старт
           </span>
           <h2 className="heading-2 mb-4">
@@ -30,38 +30,34 @@ export default function DemoCTASection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-[#f8f7f4] rounded-[10px] p-8 md:p-10"
-          style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}
+          className="bg-parchment-card rounded-[10px] p-8 md:p-10 shadow-inset"
         >
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-[10px] bg-white flex items-center justify-center"
-                style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
-                <Video className="w-5 h-5 text-[#ff3e00]" />
+              <div className="w-12 h-12 rounded-[10px] bg-white flex items-center justify-center shadow-inset">
+                <Video className="w-5 h-5 text-brand" />
               </div>
               <div>
-                <div className="font-semibold text-sm text-[#343433]">Демонстрация экрана</div>
-                <div className="text-xs text-[#848281] mt-1">Покажем каждый шаг в реальном времени</div>
+                <div className="font-semibold text-sm text-charcoal">Демонстрация экрана</div>
+                <div className="text-xs text-text-muted mt-1">Покажем каждый шаг в реальном времени</div>
               </div>
             </div>
             <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-[10px] bg-white flex items-center justify-center"
-                style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
-                <Clock className="w-5 h-5 text-[#ff3e00]" />
+              <div className="w-12 h-12 rounded-[10px] bg-white flex items-center justify-center shadow-inset">
+                <Clock className="w-5 h-5 text-brand" />
               </div>
               <div>
-                <div className="font-semibold text-sm text-[#343433]">15 минут</div>
-                <div className="text-xs text-[#848281] mt-1">От регистрации до работающего агента</div>
+                <div className="font-semibold text-sm text-charcoal">15 минут</div>
+                <div className="text-xs text-text-muted mt-1">От регистрации до работающего агента</div>
               </div>
             </div>
             <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-[10px] bg-white flex items-center justify-center"
-                style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}>
-                <Calendar className="w-5 h-5 text-[#ff3e00]" />
+              <div className="w-12 h-12 rounded-[10px] bg-white flex items-center justify-center shadow-inset">
+                <Calendar className="w-5 h-5 text-brand" />
               </div>
               <div>
-                <div className="font-semibold text-sm text-[#343433]">Бесплатно</div>
-                <div className="text-xs text-[#848281] mt-1">Без обязательств и платежей</div>
+                <div className="font-semibold text-sm text-charcoal">Бесплатно</div>
+                <div className="text-xs text-text-muted mt-1">Без обязательств и платежей</div>
               </div>
             </div>
           </div>
@@ -76,7 +72,7 @@ export default function DemoCTASection() {
               Записаться на демонстрацию
               <ArrowRight className="w-4 h-4" />
             </a>
-            <span className="text-xs text-[#848281] font-medium">
+            <span className="text-xs text-text-muted font-medium">
               Обычно проводим в тот же день
             </span>
           </div>

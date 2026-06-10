@@ -59,7 +59,7 @@ export default function NewDashboardLayout({ children }: NewDashboardLayoutProps
   {mobileOpen && (
   <>
   <motion.div
-  className="fixed inset-0 bg-[var(--surface-2)] backdrop-blur-md z-40 lg:hidden"
+  className="fixed inset-0 bg-black/20 backdrop-blur-md z-40 lg:hidden"
   initial={{ opacity: 0 }}
   animate={{ opacity: 1 }}
   exit={{ opacity: 0 }}

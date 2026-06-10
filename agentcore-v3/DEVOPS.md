@@ -40,9 +40,16 @@
 ## Бекапы
 
 ```bash
-# PostgreSQL ежедневный бекап
-pg_dump agentcore > /backups/agentcore_$(date +%Y%m%d).sql
+# Создать директорию для бекапов
+mkdir -p /opt/backups
 
-# Добавить в crontab:
-# 0 3 * * * pg_dump agentcore > /backups/agentcore_$(date +%Y%m%d).sql
+# PostgreSQL ежедневный бекап (сжатый формат)
+pg_dump -Fc agentcore > /opt/backups/agentcore_$(date +%Y%m%d).dump
+
+# Восстановление: pg_restore -d agentcore /opt/backups/agentcore_YYYYMMDD.dump
+```
+
+Добавить в crontab:
+```bash
+0 3 * * * pg_dump -Fc agentcore > /opt/backups/agentcore_$(date +\%Y\%m\%d).dump 2>&1 | logger -t pg_backup
 ```

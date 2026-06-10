@@ -31,7 +31,7 @@ export default function WorkflowSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <span className="inline-block px-4 py-1.5 rounded-[6px] bg-[#f8f7f4] text-xs font-semibold text-[#343433] tracking-wide uppercase mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-[6px] bg-parchment-card text-xs font-semibold text-charcoal tracking-wide uppercase mb-4">
             Как это работает
           </span>
           <h2 className="heading-2 mb-4">
@@ -52,7 +52,7 @@ export default function WorkflowSection() {
               transition={{ delay: i * 0.1, duration: 0.4 }}
               className="flex gap-6 items-start"
             >
-              <div className="text-4xl font-mono font-bold text-[#ff3e00] leading-none flex-shrink-0 w-14">
+              <div className="text-4xl font-mono font-bold text-brand leading-none flex-shrink-0 w-14">
                 {step.number}
               </div>
               <div className="pt-1">

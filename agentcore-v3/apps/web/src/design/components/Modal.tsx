@@ -58,6 +58,10 @@ export function Modal({
         const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
+        if (focusable.length === 0) {
+          e.preventDefault();
+          return;
+        }
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
 
@@ -102,6 +106,7 @@ export function Modal({
           onClick={handleBackdropClick}
         >
           <div className="absolute inset-0 bg-[var(--text)]/20 backdrop-blur-sm" data-testid="modal-overlay" />
+          <div className="sr-only" aria-live="polite" role="status" aria-label={`${title ? title + ' dialog opened' : 'Dialog opened'}`} />
           <motion.div
             ref={dialogRef}
             className={`relative w-full ${sizeClasses[size]} bg-[var(--surface)] rounded-[var(--radius-card)] shadow-[0_8px_30px_rgba(0,0,0,0.08)] p-6 outline-none`}

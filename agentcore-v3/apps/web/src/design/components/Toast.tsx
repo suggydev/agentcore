@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 import { t } from '@/design/i18n';
@@ -35,11 +35,37 @@ const variantLabel: Record<ToastVariant, string> = {
   info: t('toast.info'),
 };
 
-let toastCounter = 0;
-
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) {
   const config = variantConfig[toast.variant];
   const Icon = config.icon;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dismissDuration = 3000;
+
+  const dismiss = useCallback(() => {
+    onRemove(toast.id);
+  }, [onRemove, toast.id]);
+
+  useEffect(() => {
+    if (!toast.undo) {
+      timerRef.current = setTimeout(dismiss, dismissDuration);
+    }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [dismiss, toast.undo]);
+
+  const handleMouseEnter = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (!toast.undo) {
+      timerRef.current = setTimeout(dismiss, dismissDuration);
+    }
+  }, [dismiss, toast.undo]);
 
   return (
     <motion.div
@@ -48,6 +74,8 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 100 }}
       transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className={`flex items-start gap-3 p-4 rounded-[var(--radius-card)] border ${config.bgClass} ${config.borderClass} bg-[var(--surface)] shadow-[0_8px_30px_rgba(0,0,0,0.08)] min-w-[320px] max-w-[420px]`}
       role="alert"
       aria-live="assertive"
@@ -83,6 +111,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const counterRef = useRef(0);
 
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -90,11 +119,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const addToast = useCallback(
     (toast: Omit<Toast, 'id'>) => {
-      const id = `toast-${++toastCounter}`;
+      counterRef.current += 1;
+      const id = `toast-${counterRef.current}`;
       setToasts((prev) => [...prev, { ...toast, id }]);
-      setTimeout(() => removeToast(id), 3000);
     },
-    [removeToast]
+    []
   );
 
   return (

@@ -19,36 +19,12 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  font-family: var(--font-sans);
-  background-color: var(--bg);
-  color: var(--text);
-  overflow-x: hidden;
-}
-
-::selection {
-  background-color: var(--brand-light);
-  color: var(--brand);
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-2);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
-
 @layer components {
+  .animate-shimmer {
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface) 50%, var(--surface-2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
   /* Primary CTA — Dark Pill */
   .btn-primary {
     background-color: var(--accent);
@@ -239,4 +215,12 @@ body {
   .nav-link:hover {
     color: var(--text-secondary);
   }
+}
+
+@media print {
+  nav, .sidebar, footer, button, .no-print { display: none !important; }
+  body { font-size: 12pt; line-height: 1.5; color: #000; background: #fff; }
+  a { color: #000; text-decoration: underline; }
+  a[href]:after { content: " (" attr(href) ")"; }
+  @page { margin: 2cm; }
 }

@@ -157,6 +157,13 @@ const topUpSchema = z.object({
 
 router.post('/top-up', authenticate, aiLimiter, async (req, res) => {
   try {
+    if (process.env.NODE_ENV === 'production' && (!config.YOOKASSA_SHOP_ID || !config.YOOKASSA_SECRET_KEY)) {
+      return res.status(503).json({
+        error: 'Платёжная система временно недоступна. Попробуйте позже.',
+        supported: false
+      });
+    }
+
     const parsed = topUpSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ error: 'Сумма пополнения должна быть положительным числом' });

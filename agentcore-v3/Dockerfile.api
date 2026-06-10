@@ -1,34 +1,26 @@
 FROM node:20-alpine AS base
-RUN apk add --no-cache openssl
-
 WORKDIR /app
 
-FROM base AS deps
-COPY apps/api/package.json apps/api/package-lock.json ./
-RUN npm ci --production
-
-FROM base AS builder
 COPY apps/api/package.json apps/api/package-lock.json ./
 RUN npm ci
+
 COPY apps/api/ .
 COPY packages/prisma/ packages/prisma/
 RUN npx prisma generate
+RUN npm prune --production
 
-FROM base AS runner
+FROM node:20-alpine AS runner
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/server.js ./server.js
-COPY --from=builder /app/config ./config
-COPY --from=builder /app/routes ./routes
-COPY --from=builder /app/services ./services
-COPY --from=builder /app/middleware ./middleware
-COPY --from=builder /app/utils ./utils
-COPY --from=builder /app/prisma-client.js ./prisma-client.js
+COPY --from=base /app/package.json ./package.json
+COPY --from=base /app/server.js ./server.js
+COPY --from=base /app/config ./config
+COPY --from=base /app/routes ./routes
+COPY --from=base /app/services ./services
+COPY --from=base /app/middleware ./middleware
+COPY --from=base /app/utils ./utils
+COPY --from=base /app/prisma-client.js ./prisma-client.js
+COPY --from=base /app/node_modules ./node_modules
 
 ENV NODE_ENV=production
 ENV PORT=4000

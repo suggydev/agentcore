@@ -8,6 +8,8 @@ import { Input, Textarea } from '@/design/components/Input';
 import { t } from '@/design/i18n';
 import { extractFromPrompt } from '@/data/agentTemplates';
 
+const EMOJI_OPTIONS = ['🤖', '👩‍💼', '👨‍💼', '🧑‍💻', '👩‍🏫', '👨‍⚕️', '🛒', '🏠', '☁️', '⚖️', '🏦', '🎓', '🌸', '💼'];
+
 interface CreateAgentFormProps {
   companyName: string;
   onSubmit: (data: { name: string; systemPrompt: string; emoji: string }) => Promise<void>;
@@ -61,8 +63,6 @@ export default function CreateAgentForm({ companyName, onSubmit, onCancel }: Cre
     }
     setSubmitting(false);
   }, [name, systemPrompt, emoji, onSubmit]);
-
-  const EMOJI_OPTIONS = ['🤖', '👩‍💼', '👨‍💼', '🧑‍💻', '👩‍🏫', '👨‍⚕️', '🛒', '🏠', '☁️', '⚖️', '🏦', '🎓', '🌸', '💼'];
 
   return (
     <div className="space-y-5">

@@ -42,9 +42,14 @@ export default function VideoSection() {
               <div className="text-sm text-[#848281] mt-1">2:30 минуты</div>
             </div>
           </div>
-          <p className="text-xs text-[#848281] text-center mt-3">
-            Скоро здесь будет видео. Пока можно записаться на живую демонстрацию.
-          </p>
+          <div className="flex justify-center mt-3">
+            <a
+              href="#pricing"
+              className="btn-primary text-sm"
+            >
+              Записаться на живую демонстрацию
+            </a>
+          </div>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import Link from 'next/link';
 import Logo from './Logo';
@@ -12,14 +12,22 @@ const navItems = [
   { href: '#pricing', label: 'Тарифы' },
 ] as const;
 
+export function scrollToSection(href: string) {
+  const section = document.querySelector(href);
+  section?.scrollIntoView({ behavior: 'smooth' });
+}
+
 export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const isAuthenticated = useAgentStore((s) => s.auth.isAuthenticated);
   const { scrollY } = useScroll();
+  const lastScrollY = useRef(0);
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
+    if (Math.abs(latest - lastScrollY.current) < 20) return;
+    lastScrollY.current = latest;
     setScrolled(latest > 50);
     const prev = scrollY.getPrevious();
     setHidden(latest > 200 && prev !== undefined && latest > prev);
@@ -66,20 +74,17 @@ export default function Navigation() {
             aria-label="Toggle menu"
           >
             <motion.span
-              className="block w-5 h-px rounded-full origin-center"
-              style={{ background: '#343433' }}
+              className="block w-5 h-px rounded-full origin-center bg-charcoal"
               animate={mobileOpen ? { rotate: 45, y: 5.5 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.3 }}
             />
             <motion.span
-              className="block w-5 h-px rounded-full"
-              style={{ background: '#343433' }}
+              className="block w-5 h-px rounded-full bg-charcoal"
               animate={mobileOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
               transition={{ duration: 0.2 }}
             />
             <motion.span
-              className="block w-5 h-px rounded-full origin-center"
-              style={{ background: '#343433' }}
+              className="block w-5 h-px rounded-full origin-center bg-charcoal"
               animate={mobileOpen ? { rotate: -45, y: -5.5 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.3 }}
             />
@@ -115,12 +120,11 @@ export default function Navigation() {
                     onClick={(e) => {
                       if (item.href.startsWith('#')) {
                         e.preventDefault();
-                        const el = document.querySelector(item.href);
-                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        scrollToSection(item.href);
                       }
                       closeMobile();
                     }}
-                    className="text-2xl font-medium text-[#343433] hover:text-[#848281] transition-colors"
+                    className="text-2xl font-medium text-charcoal hover:text-text-muted transition-colors"
                   >
                     {item.label}
                   </a>
@@ -147,10 +151,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   const handleClick = (e: React.MouseEvent) => {
     if (href.startsWith('#')) {
       e.preventDefault();
-      const el = document.querySelector(href);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
+      scrollToSection(href);
     }
   };
 

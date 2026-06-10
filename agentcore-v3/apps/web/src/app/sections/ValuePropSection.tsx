@@ -5,7 +5,7 @@ import { MessageCircle, Brain, MessageSquare, BarChart3, Check } from 'lucide-re
 
 export default function ValuePropSection() {
   return (
-    <section id="capabilities" className="py-24 relative bg-white">
+    <section id="value-prop" className="py-24 relative bg-white">
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <motion.div
@@ -14,13 +14,13 @@ export default function ValuePropSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <span className="inline-block px-4 py-1.5 rounded-[6px] bg-[#f8f7f4] text-xs font-semibold text-[#343433] tracking-wide uppercase mb-5">
+            <span className="inline-block px-4 py-1.5 rounded-[6px] bg-parchment-card text-xs font-semibold text-charcoal tracking-wide uppercase mb-5">
               Как это работает
             </span>
             <h2 className="heading-2 mb-5">
               Цифровой сотрудник,
               <br />
-              <span className="text-[#ff3e00]">который реально помогает</span>
+              <span className="text-brand">который реально помогает</span>
             </h2>
             <p className="body-large mb-8">
               Не просто чат-бот, а полноценный цифровой сотрудник. Он понимает ваш бизнес,
@@ -41,10 +41,10 @@ export default function ValuePropSection() {
                   transition={{ delay: i * 0.06, duration: 0.4 }}
                   viewport={{ once: true }}
                 >
-                  <div className="w-5 h-5 rounded-full bg-[#f8f7f4] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-[#ff3e00]" />
+                  <div className="w-5 h-5 rounded-full bg-parchment-card flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-brand" />
                   </div>
-                  <span className="text-[#474645] font-medium text-sm leading-relaxed">{item}</span>
+                  <span className="text-graphite font-medium text-sm leading-relaxed">{item}</span>
                 </motion.div>
               ))}
             </div>
@@ -73,15 +73,14 @@ export default function ValuePropSection() {
                     viewport={{ once: true }}
                     className={`rounded-[10px] p-4 sm:p-5 flex flex-col justify-between cursor-default min-h-[120px] sm:min-h-[140px] ${
                       card.accent
-                        ? 'bg-[#121212] text-white'
-                        : 'bg-white'
+                        ? 'bg-midnight text-white'
+                        : 'bg-white shadow-inset'
                     }`}
-                    style={card.accent ? {} : { boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}
                   >
-                    <card.icon className={`w-6 h-6 sm:w-7 sm:h-7 ${card.accent ? 'text-white/70' : 'text-[#ff3e00]'}`} />
+                    <card.icon className={`w-6 h-6 sm:w-7 sm:h-7 ${card.accent ? 'text-white/70' : 'text-brand'}`} />
                     <div>
-                      <div className={`font-semibold text-xs sm:text-sm ${card.accent ? 'text-white' : 'text-[#343433]'}`}>{card.title}</div>
-                      <div className={`text-[10px] sm:text-[11px] mt-1 leading-relaxed ${card.accent ? 'text-white/60' : 'text-[#848281]'}`}>{card.sub}</div>
+                      <div className={`font-semibold text-xs sm:text-sm ${card.accent ? 'text-white' : 'text-charcoal'}`}>{card.title}</div>
+                      <div className={`text-[10px] sm:text-[11px] mt-1 leading-relaxed ${card.accent ? 'text-white/60' : 'text-text-muted'}`}>{card.sub}</div>
                     </div>
                   </motion.div>
                 ))}

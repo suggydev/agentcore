@@ -60,7 +60,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         aria-busy={loading}
         aria-label={props['aria-label']}
-        {...(props as Record<string, unknown>)}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        {...(props as any)}
       >
         {loading && <Loader2 className="animate-spin" size={size === 'sm' ? 12 : size === 'lg' ? 18 : 14} />}
         {!loading && leftIcon}

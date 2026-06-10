@@ -36,7 +36,7 @@ const RESULTS = [
 
 export default function ResultsSection() {
   return (
-    <section className="py-24 text-white" style={{ background: '#121212' }}>
+    <section className="py-24 text-white bg-midnight">
       <div className="max-w-[1200px] mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

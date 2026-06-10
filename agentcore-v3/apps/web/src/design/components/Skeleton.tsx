@@ -15,14 +15,12 @@ export function Skeleton({
   height,
   className = '',
 }: SkeletonProps) {
-  const shimmerBase = 'bg-[var(--surface-2)] relative overflow-hidden rounded-[var(--radius-sm)]';
-  const shimmerGradient =
-    "after:content-[''] after:absolute after:inset-0 after:bg-gradient-to-r after:from-transparent after:via-[var(--surface)]/50 after:to-transparent after:animate-shimmer";
+  const shimmerClass = 'animate-shimmer rounded-[var(--radius-sm)]';
 
   if (variant === 'avatar') {
     return (
       <div
-        className={`${shimmerBase} ${shimmerGradient} rounded-full ${className}`}
+        className={`${shimmerClass} rounded-full ${className}`}
         style={{ width: width ?? 40, height: height ?? 40 }}
         role="status"
         aria-label="Loading"
@@ -33,7 +31,7 @@ export function Skeleton({
   if (variant === 'card') {
     return (
       <div
-        className={`${shimmerBase} ${shimmerGradient} rounded-[var(--radius-card)] ${className}`}
+        className={`${shimmerClass} rounded-[var(--radius-card)] ${className}`}
         style={{ width: width ?? '100%', height: height ?? 120 }}
         role="status"
         aria-label="Loading"
@@ -44,16 +42,16 @@ export function Skeleton({
   if (variant === 'paragraph') {
     return (
       <div className={`flex flex-col gap-2 ${className}`} role="status" aria-label="Loading">
-        <div className={`${shimmerBase} ${shimmerGradient}`} style={{ width: '100%', height: height ?? 14 }} />
-        <div className={`${shimmerBase} ${shimmerGradient}`} style={{ width: '90%', height: height ?? 14 }} />
-        <div className={`${shimmerBase} ${shimmerGradient}`} style={{ width: '60%', height: height ?? 14 }} />
+        <div className={shimmerClass} style={{ width: '100%', height: height ?? 14 }} />
+        <div className={shimmerClass} style={{ width: '90%', height: height ?? 14 }} />
+        <div className={shimmerClass} style={{ width: '60%', height: height ?? 14 }} />
       </div>
     );
   }
 
   return (
     <div
-      className={`${shimmerBase} ${shimmerGradient} ${className}`}
+      className={`${shimmerClass} ${className}`}
       style={{ width: width ?? '100%', height: height ?? 14 }}
       role="status"
       aria-label="Loading"

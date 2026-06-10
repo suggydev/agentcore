@@ -17,7 +17,7 @@ function buildCrumbs(pathname: string): Crumb[] {
  crumbs.push({ label: 'Brain Map' });
  }
  const parts = pathname.split('/');
- const idPart = parts.find((p) => p.length > 20 && p !== 'agents' && p !== 'brain-map');
+  const idPart = parts.find((p) => /^[a-f0-9-]{20,}$/i.test(p));
  if (idPart) {
  crumbs.push({ label: 'Агент' });
  }

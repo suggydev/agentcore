@@ -74,6 +74,10 @@ echo ""
 echo -e "${YELLOW}============================================${NC}"
 echo ""
 
+# Add certbot auto-renewal cron
+log "5a/6" "Adding certbot renewal cron..."
+(crontab -l 2>/dev/null; echo "0 12 * * * certbot renew --quiet --post-hook 'systemctl reload nginx'") | crontab -
+
 # 6. Rebuild frontend
 log "6/6" "Rebuilding frontend..."
 cd "${SCRIPT_DIR}/apps/web"

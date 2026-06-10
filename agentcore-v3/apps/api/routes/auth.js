@@ -11,12 +11,40 @@ const { safeError } = require('../utils/errors');
 
 const router = express.Router();
 
+const loginAttempts = new Map();
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
+
+function isLockedOut(email) {
+  const record = loginAttempts.get(email);
+  if (!record) return false;
+  if (record.count >= MAX_FAILED_ATTEMPTS && Date.now() - record.lastAttempt < LOCKOUT_DURATION_MS) {
+    return true;
+  }
+  if (Date.now() - record.lastAttempt >= LOCKOUT_DURATION_MS) {
+    loginAttempts.delete(email);
+    return false;
+  }
+  return false;
+}
+
+function recordFailedAttempt(email) {
+  const record = loginAttempts.get(email) || { count: 0, lastAttempt: 0 };
+  record.count += 1;
+  record.lastAttempt = Date.now();
+  loginAttempts.set(email, record);
+}
+
+function resetAttempts(email) {
+  loginAttempts.delete(email);
+}
+
 router.post('/register', authLimiter, async (req, res) => {
   try {
     const schema = z.object({
       name: z.string().min(2).max(255),
       email: z.string().email().max(255),
-      password: z.string().min(6),
+      password: z.string().min(8).regex(/[A-Z]/, 'Password must contain an uppercase letter').regex(/[0-9]/, 'Password must contain a digit'),
       workspaceName: z.string().max(100).optional()
     });
     const data = schema.parse(req.body);
@@ -114,6 +142,13 @@ router.post('/register', authLimiter, async (req, res) => {
     }
 
     const token = jwt.sign({ userId: user.id, workspaceId: workspace.id, role: user.role, tokenVersion: user.tokenVersion }, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRES_IN || '7d' });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
     res.json({
       accessToken: token,
       user: { id: user.id, name: user.name, email: user.email },
@@ -134,6 +169,12 @@ router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email: rawEmail, password } = z.object({ email: z.string().email(), password: z.string() }).parse(req.body);
     const email = rawEmail.toLowerCase().trim();
+
+    if (isLockedOut(email)) {
+      await bcrypt.hash(password, 10);
+      return res.status(429).json({ error: 'Слишком много попыток. Попробуйте через 15 минут.', code: 'TOO_MANY_ATTEMPTS' });
+    }
+
     let user;
     try {
       user = await prisma.user.findUnique({ where: { email } });
@@ -151,8 +192,10 @@ router.post('/login', authLimiter, async (req, res) => {
     const hashToCompare = user?.password || dummyHash;
     const valid = await bcrypt.compare(password, hashToCompare);
     if (!user || !valid) {
+      recordFailedAttempt(email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+    resetAttempts(email);
     let workspace;
     try {
       workspace = await prisma.workspace.findUnique({ where: { id: user.workspaceId } });
@@ -160,7 +203,15 @@ router.post('/login', authLimiter, async (req, res) => {
       console.warn('[Auth] Workspace query failed:', wsErr.message);
       workspace = null;
     }
+    loginAttempts.delete(attemptKey);
     const token = jwt.sign({ userId: user.id, workspaceId: user.workspaceId, role: user.role || 'OWNER', tokenVersion: user.tokenVersion || 0 }, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRES_IN || '7d' });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
     res.json({
       accessToken: token,
       user: { id: user.id, name: user.name, email: user.email },
@@ -194,6 +245,13 @@ router.post('/refresh', authenticate, async (req, res) => {
       { expiresIn: config.JWT_EXPIRES_IN || '7d' }
     );
 
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
     res.json({
       accessToken: token,
       user: { id: user.id, name: user.name, email: user.email },
@@ -213,6 +271,7 @@ router.post('/logout', authenticate, async (req, res) => {
       where: { id: req.user.userId },
       data: { tokenVersion: { increment: 1 } }
     });
+    res.clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/' });
     res.json({ success: true });
   } catch (err) {
     safeError(res, err);
@@ -263,7 +322,7 @@ router.post('/change-password', authenticate, async (req, res) => {
   try {
     const schema = z.object({
       oldPassword: z.string().min(1),
-      newPassword: z.string().min(6),
+      newPassword: z.string().min(8).regex(/[A-Z]/, 'Password must contain an uppercase letter').regex(/[0-9]/, 'Password must contain a digit'),
     });
     const data = schema.parse(req.body);
     const user = await prisma.user.findUnique({ where: { id: req.user.userId } });

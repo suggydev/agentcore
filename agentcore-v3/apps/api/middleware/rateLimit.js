@@ -13,7 +13,8 @@ const authLimiter = rateLimit({
   max: (req) => {
     // Allow more requests for test users
     const email = req.body?.email || '';
-    if (email.includes('test') && email.includes('agentcore.work')) {
+    const TEST_EMAILS = process.env.TEST_EMAILS ? process.env.TEST_EMAILS.split(',') : [];
+    if (TEST_EMAILS.includes(email)) {
       return 100;
     }
     return 10;

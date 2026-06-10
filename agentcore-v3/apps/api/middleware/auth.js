@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../prisma-client');
 const config = require('../config');
@@ -18,7 +19,7 @@ async function authenticate(req, res, next) {
       // Handle case where SUPERADMIN role doesn't exist in enum
       if (findErr.message && findErr.message.includes('SUPERADMIN')) {
         console.warn('[Auth] SUPERADMIN role not in enum, using raw query fallback');
-        const users = await prisma.$queryRaw`SELECT * FROM "User" WHERE id = ${userId}`;
+        const users = await prisma.$queryRaw`SELECT id, email, name, role, "workspaceId", "tokenVersion" FROM "User" WHERE id = ${userId}`;
         user = users[0] || null;
       } else {
         throw findErr;
@@ -74,7 +75,7 @@ async function checkTrial(req, res, next) {
     next();
   } catch (err) {
     console.error('checkTrial middleware error:', err.message);
-    res.status(500).json({ error: `Internal server error — unable to verify trial status: ${err.message}` });
+    res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
   }
 }
 
@@ -84,7 +85,7 @@ function webchatAuth(req, res, next) {
     return res.status(503).json({ error: 'WebChat is not configured' });
   }
   const apiKey = req.headers['x-api-key'] || req.headers['x-webchat-key'];
-  if (apiKey !== config.WEBCHAT_API_KEY) {
+  if (!apiKey || apiKey.length !== config.WEBCHAT_API_KEY.length || !crypto.timingSafeEqual(Buffer.from(apiKey), Buffer.from(config.WEBCHAT_API_KEY))) {
     return res.status(401).json({ error: 'Invalid webchat API key' });
   }
   next();

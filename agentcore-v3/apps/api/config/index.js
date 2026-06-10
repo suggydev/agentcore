@@ -23,7 +23,7 @@ const envSchema = z.object({
   CREATE_DEFAULT_AGENTS: z.string().default('true').transform(v => v === 'true'),
   PRO_CREDIT_AMOUNT: z.string().default('10').transform(Number),
   BUSINESS_CREDIT_AMOUNT: z.string().default('10').transform(Number),
-  ENCRYPTION_KEY: z.string().optional()
+  ENCRYPTION_KEY: z.string().min(32, 'ENCRYPTION_KEY must be at least 32 chars')
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -56,7 +56,11 @@ module.exports = {
   SUGGY_BASE_URL: env.SUGGY_BASE_URL,
   MODEL_CACHE_TTL: env.MODEL_CACHE_TTL,
   FALLBACK_MODELS,
-  CORS_ORIGINS: env.CORS_ORIGINS.split(',').map(s => s.trim()).filter(Boolean),
+  CORS_ORIGINS: (() => {
+    const raw = env.CORS_ORIGINS;
+    if (raw.startsWith('[')) { try { return JSON.parse(raw); } catch {} }
+    return raw.split(',').map(s => s.trim()).filter(Boolean);
+  })(),
   WEBCHAT_API_KEY: env.WEBCHAT_API_KEY,
   NODE_ENV: env.NODE_ENV,
   YOOKASSA_SHOP_ID: env.YOOKASSA_SHOP_ID,
@@ -68,5 +72,5 @@ module.exports = {
   CREATE_DEFAULT_AGENTS: env.CREATE_DEFAULT_AGENTS,
   PRO_CREDIT_AMOUNT: env.PRO_CREDIT_AMOUNT,
   BUSINESS_CREDIT_AMOUNT: env.BUSINESS_CREDIT_AMOUNT,
-  ENCRYPTION_KEY: env.ENCRYPTION_KEY || env.DATABASE_URL
+  ENCRYPTION_KEY: env.ENCRYPTION_KEY
 };

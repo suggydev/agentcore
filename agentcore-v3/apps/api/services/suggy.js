@@ -23,7 +23,6 @@ async function fetchModels() {
     return modelsCache.data;
   } catch (err) {
     console.error('Failed to fetch models:', err.message);
-    // Use fallback models if API is unavailable and cache is empty
     if (modelsCache.data.length > 0) {
       return modelsCache.data;
     }
@@ -35,14 +34,12 @@ async function fetchModels() {
 function routeToModel(task, message, models) {
   const combined = ((task || '') + ' ' + (message || '')).toLowerCase();
 
-  // Exclude known image models even if API incorrectly marks supports_chat=true
   const chatModels = models.filter(m => m.supports_chat === true && !m.id.includes('flux'));
   if (chatModels.length === 0) {
     console.error('[routeToModel] No chat-capable models found!');
     return null;
   }
 
-  // Vision / image understanding
   if (/describe.*image|what.*in.*image|analyze.*photo|vision|look.*at.*this|photo.*of/i.test(combined) ||
       (message && (message.includes('data:image') || message.includes('http') && /\.(jpg|jpeg|png|gif|webp)/i.test(message)))) {
     return chatModels.find(m => m.supports_image_input && m.id.includes('kimi')) ||
@@ -50,37 +47,28 @@ function routeToModel(task, message, models) {
            chatModels[0];
   }
 
-  // Long document analysis
   if (/analyze.*document|summarize.*long|read.*file|large.*text|book|paper|research|thesis|dissertation/i.test(combined)) {
-    return chatModels.find(m => m.context_length > 500000) ||
-           chatModels.find(m => m.context_length > 200000) ||
+    return chatModels.find(m => (m.context_length || 0) > 500000) ||
+           chatModels.find(m => (m.context_length || 0) > 200000) ||
            chatModels[0];
   }
 
-  // Coding / technical
   if (/code|program|debug|function|script|algorithm|api|error|bug|fix|syntax|python|javascript|typescript|react|html|css|sql|database/i.test(combined)) {
-    return chatModels.find(m => m.id.includes('deepseek')) ||
-           chatModels.find(m => m.id.includes('gpt-oss')) ||
+    return chatModels.find(m => m.supports_chat && (m.context_length || 0) > 100000) ||
            chatModels[0];
   }
 
-  // Complex reasoning / math
   if (/reason|logic|math|solve|prove|complex|theorem|equation|calculate|analysis/i.test(combined)) {
-    return chatModels.find(m => m.id.includes('deepseek')) ||
-           chatModels.find(m => m.context_length > 200000) ||
+    return chatModels.find(m => m.supports_chat && (m.context_length || 0) > 100000) ||
            chatModels[0];
   }
 
-  // Writing / creative
   if (/write|story|poem|essay|article|blog|creative|content|marketing|copy|email|letter/i.test(combined)) {
-    return chatModels.find(m => m.id.includes('glm')) ||
-           chatModels.find(m => m.id.includes('kimi')) ||
+    return chatModels.find(m => m.supports_chat && m.supports_image_input) ||
            chatModels[0];
   }
 
-  // General chat / default
-  return chatModels.find(m => m.id.includes('glm')) ||
-         chatModels.find(m => m.id.includes('kimi-k2p6')) ||
+  return chatModels.find(m => (m.context_length || 0) > 128000) ||
          chatModels[0];
 }
 

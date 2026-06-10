@@ -6,8 +6,10 @@ const IV_LENGTH = 12;
 const TAG_LENGTH = 16;
 
 function _deriveKey() {
-  const raw = config.ENCRYPTION_KEY || config.DATABASE_URL || 'agentcore-default-key-fallback';
-  return crypto.createHash('sha256').update(raw).digest();
+  if (!config.ENCRYPTION_KEY) {
+    throw new Error('ENCRYPTION_KEY is not configured. Application cannot start.');
+  }
+  return crypto.createHash('sha256').update(config.ENCRYPTION_KEY).digest();
 }
 
 function encrypt(text) {

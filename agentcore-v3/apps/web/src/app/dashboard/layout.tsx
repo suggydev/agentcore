@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import DashboardLayout from '@/components/DashboardLayout';
+import NewDashboardLayout from '@/components/NewDashboardLayout';
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -26,5 +26,5 @@ export default function DashboardRootLayout({
     }
   }, [router]);
 
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return <NewDashboardLayout>{children}</NewDashboardLayout>;
 }

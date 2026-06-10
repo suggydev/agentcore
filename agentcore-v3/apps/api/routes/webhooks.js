@@ -1,5 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 const { prisma } = require('../prisma-client');
 const config = require('../config');
 const { verifyHmac, decrypt } = require('../utils/encryption');
@@ -8,6 +9,8 @@ const { processIncomingMessage } = require('../services/messageDispatcher');
 const { safeError } = require('../utils/errors');
 
 const router = express.Router();
+
+const webhookLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, message: { error: 'Too many webhook requests', code: 'TOO_MANY_REQUESTS' } });
 
 const _signatureVerifiers = {
   telegram: (payload, signature, secret) => {
@@ -81,7 +84,7 @@ function _getDefaultVerifier(payload, signature, secret) {
   }
 }
 
-router.post('/:provider/:agentId', async (req, res) => {
+router.post('/:provider/:agentId', webhookLimiter, async (req, res) => {
   try {
     const { provider: providerName, agentId } = req.params;
     const payload = req.body;

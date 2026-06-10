@@ -35,12 +35,13 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center lg:items-start gap-3"
           >
-            <a
-              href="https://t.me/agentcore_support"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary px-8 py-4 text-base inline-flex items-center gap-2"
-            >
+              <a
+                href="https://t.me/agentcore_support"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Записаться на демонстрацию (откроется Telegram)"
+                className="btn-primary px-8 py-4 text-base inline-flex items-center gap-2"
+              >
               <Video className="w-4 h-4" />
               Записаться на демонстрацию
               <ArrowRight className="w-4 h-4" />
@@ -67,7 +68,7 @@ export default function HeroSection() {
             style={{ maxWidth: '320px', perspective: '1000px' }}
           >
             <div 
-              className="relative bg-[#121212] rounded-[32px] p-3"
+              className="relative bg-midnight rounded-[32px] p-3"
               style={{ 
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.1)',
                 transform: 'rotateY(-5deg) rotateX(5deg)',
@@ -77,14 +78,14 @@ export default function HeroSection() {
               <div className="bg-[#fbfaf9] rounded-[24px] overflow-hidden">
                 {/* Notch */}
                 <div className="flex justify-center pt-2 pb-1">
-                  <div className="w-20 h-5 bg-[#121212] rounded-full" />
+                  <div className="w-20 h-5 bg-midnight rounded-full" />
                 </div>
                 
                 <div className="p-4 space-y-3">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-[#f8f7f4] flex items-center justify-center text-sm">🤖</div>
-                    <div className="text-[13px] font-semibold text-[#343433]">AgentCore</div>
-                    <div className="ml-auto text-[10px] text-[#848281]">онлайн</div>
+                    <div className="w-8 h-8 rounded-full bg-parchment-card flex items-center justify-center text-sm">🤖</div>
+                    <div className="text-[13px] font-semibold text-charcoal">AgentCore</div>
+                    <div className="ml-auto text-[10px] text-text-muted">онлайн</div>
                   </div>
                   
                   <div className="space-y-3">
@@ -94,20 +95,20 @@ export default function HeroSection() {
                       </div>
                     </div>
                     <div className="flex justify-start">
-                      <div className="bg-[#f8f7f4] text-[#343433] text-[12px] px-4 py-2.5 rounded-2xl rounded-bl-sm max-w-[85%]">
+                      <div className="bg-parchment-card text-charcoal text-[12px] px-4 py-2.5 rounded-2xl rounded-bl-sm max-w-[85%]">
                         {DEMO_CHAT.agent}
                       </div>
                     </div>
                     <div className="flex justify-start">
-                      <div className="flex items-center gap-1.5 px-4 py-2.5 bg-[#f8f7f4] rounded-2xl rounded-bl-sm">
-                        <span className="text-[#848281] text-sm tracking-wider">...</span>
-                        <span className="text-[11px] text-[#848281]">печатает</span>
+                      <div className="flex items-center gap-1.5 px-4 py-2.5 bg-parchment-card rounded-2xl rounded-bl-sm">
+                        <span className="text-text-muted text-sm tracking-wider">...</span>
+                        <span className="text-[11px] text-text-muted">печатает</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2 pt-2">
-                    <div className="flex-1 h-9 rounded-full bg-[#f8f7f4] flex items-center px-4 text-[12px] text-[#848281]">
+                    <div className="flex-1 h-9 rounded-full bg-parchment-card flex items-center px-4 text-[12px] text-text-muted">
                       Написать сообщение...
                     </div>
                     <div className="w-9 h-9 rounded-full bg-[#171717] flex items-center justify-center">

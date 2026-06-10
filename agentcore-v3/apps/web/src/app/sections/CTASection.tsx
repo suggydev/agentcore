@@ -5,7 +5,7 @@ import { Video, ArrowRight } from 'lucide-react';
 
 export default function CTASection() {
   return (
-    <section className="py-24 text-white" style={{ background: '#121212' }}>
+    <section className="py-24 text-white bg-midnight">
       <div className="max-w-[1200px] mx-auto text-center px-6">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -32,12 +32,13 @@ export default function CTASection() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <a
-            href="https://t.me/agentcore_support"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-white text-[#121212] px-8 py-4 rounded-[32px] font-semibold text-base hover:opacity-90 transition-opacity"
-          >
+            <a
+              href="https://t.me/agentcore_support"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Записаться на демонстрацию (откроется Telegram)"
+              className="inline-flex items-center gap-2 bg-white text-midnight px-8 py-4 rounded-[32px] font-semibold text-base hover:opacity-90 transition-opacity"
+            >
             <Video className="w-4 h-4" />
             Записаться на демонстрацию
             <ArrowRight className="w-4 h-4" />

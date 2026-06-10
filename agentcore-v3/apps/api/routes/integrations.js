@@ -14,7 +14,7 @@ const router = express.Router();
 
 const connectSchema = z.object({
   agentId: z.string().min(1),
-  credentials: z.record(z.string(), z.any()).optional()
+  credentials: z.record(z.string(), z.string().max(1000)).optional()
 });
 
 router.get('/providers', generalLimiter, (req, res) => {
@@ -121,8 +121,7 @@ router.post('/:provider/connect', authenticate, generalLimiter, async (req, res)
         id: integration.id,
         provider: providerName,
         status: integration.status,
-        webhookUrl: integration.webhookUrl,
-        webhookSecret: integration.webhookSecret
+        webhookUrl: integration.webhookUrl
       }
     });
   } catch (err) {

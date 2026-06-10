@@ -6,13 +6,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
 import {
- Bot,
- Brain,
- BookOpen,
- Settings,
- Search,
- LogOut,
+  Bot,
+  Brain,
+  BookOpen,
+  Settings,
+  Search,
+  LogOut,
 } from 'lucide-react';
+import { useAgentStore } from '@/store/agentStore';
 
 const navItems = [
  { label: 'Агенты', icon: Bot, href: '/agents' },
@@ -29,19 +30,22 @@ export default function NewSidebar({ onOpenCommandPalette }: NewSidebarProps) {
  const pathname = usePathname();
  const [userMenuOpen, setUserMenuOpen] = useState(false);
  const userMenuRef = useRef<HTMLDivElement>(null);
- const [balance, setBalance] = useState(0);
+  const [balance, setBalance] = useState<number | null>(null);
+  const token = useAgentStore((s) => s.auth.token);
 
- useEffect(() => {
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
-  const token = localStorage.getItem('token');
-  if (!token) return;
-  fetch(`${API_BASE}/api/billing/suggy-balance`, {
-   headers: { Authorization: `Bearer ${token}` },
-  })
-  .then((res) => (res.ok ? res.json() : Promise.reject(res)))
-  .then((data) => setBalance(data.balance ?? 0))
-  .catch(err => { console.error('[NewSidebar] Failed to load balance:', err); });
- }, []);
+  useEffect(() => {
+    if (!token) return;
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+    fetch(`${API_BASE}/api/billing/suggy-balance`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+    .then((data) => setBalance(data.balance ?? 0))
+    .catch(err => {
+      console.error('[NewSidebar] Failed to load balance:', err);
+      setBalance(null);
+    });
+  }, [token]);
 
  useEffect(() => {
   if (userMenuOpen) {
@@ -145,7 +149,7 @@ export default function NewSidebar({ onOpenCommandPalette }: NewSidebarProps) {
   <div className="flex items-center justify-between mb-1">
   <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">Баланс</span>
   </div>
-  <div className="font-mono font-bold text-lg text-text">${balance.toFixed(2)}</div>
+          <div className="font-mono font-bold text-lg text-text">{balance === null ? '\u2014' : `$${balance.toFixed(2)}`}</div>
   <Link
   href="/settings"
   className="text-[10px] text-brand hover:text-brand-hover mt-1 inline-block transition-colors duration-200"

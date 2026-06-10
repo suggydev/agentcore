@@ -25,6 +25,20 @@ const messageSchema = z.object({
   model: z.string().optional()
 });
 
+const knowledgeCache = new Map();
+
+function getCachedKnowledge(workspaceId) {
+  const entry = knowledgeCache.get(workspaceId);
+  if (entry && Date.now() - entry.timestamp < 30000) {
+    return entry.data;
+  }
+  return null;
+}
+
+function setCachedKnowledge(workspaceId, data) {
+  knowledgeCache.set(workspaceId, { data, timestamp: Date.now() });
+}
+
 const router = express.Router();
 
 router.get('/', authenticate, generalLimiter, async (req, res) => {
@@ -93,7 +107,12 @@ router.post('/:id/messages', authenticate, checkTrial, aiLimiter, async (req, re
     });
     if (!conversation) return res.status(404).json({ error: 'Conversation not found' });
 
-    const count = await prisma.message.count({ where: { conversationId: req.params.id } });
+    const existingMessages = await prisma.message.findMany({
+      where: { conversationId: req.params.id },
+      orderBy: { order: 'asc' }
+    });
+    const count = existingMessages.length;
+
     const message = await prisma.message.create({
       data: {
         content,
@@ -121,17 +140,17 @@ router.post('/:id/messages', authenticate, checkTrial, aiLimiter, async (req, re
         selectedModel = routed ? routed.id : 'accounts/fireworks/models/glm-5p1';
       }
 
-      const history = await prisma.message.findMany({
-        where: { conversationId: req.params.id },
-        orderBy: { order: 'asc' }
-      });
+      let knowledgeDocs = getCachedKnowledge(req.user.workspaceId);
+      if (knowledgeDocs === null) {
+        knowledgeDocs = await prisma.knowledgeDocument.findMany({
+          where: { workspaceId: req.user.workspaceId },
+          select: { title: true, content: true }
+        });
+        setCachedKnowledge(req.user.workspaceId, knowledgeDocs);
+      }
 
-      const knowledgeDocs = await prisma.knowledgeDocument.findMany({
-        where: { workspaceId: req.user.workspaceId },
-        select: { title: true, content: true }
-      });
-
-      const messages = history.map(m => ({ role: m.role, content: m.content }));
+      const messages = existingMessages.map(m => ({ role: m.role, content: m.content }));
+      messages.push({ role: 'user', content });
 
       let systemPrompt = agent?.systemPrompt || null;
 

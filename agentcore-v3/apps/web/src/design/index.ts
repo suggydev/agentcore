@@ -20,4 +20,4 @@ export { ThemeProvider, useTheme } from '@/design/ThemeProvider';
 
 export { t } from '@/design/i18n';
 
-export { tokens } from '@/design/tokens';
+// tokens.ts removed - use globals.css CSS variables directly

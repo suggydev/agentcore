@@ -22,7 +22,7 @@ export default function FAQSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-14"
         >
-          <span className="inline-block px-4 py-1.5 rounded-[6px] bg-[#f8f7f4] text-xs font-semibold text-[#343433] tracking-wide uppercase mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-[6px] bg-parchment-card text-xs font-semibold text-charcoal tracking-wide uppercase mb-4">
             FAQ
           </span>
           <h2 className="heading-2 mb-3">
@@ -42,27 +42,30 @@ export default function FAQSection() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.05, duration: 0.4 }}
             >
-              <div className="rounded-[10px] bg-white transition-colors duration-200 cursor-pointer"
-                style={{ boxShadow: 'color(display-p3 0.949 0.941 0.929) 0px 0px 0px 1px inset' }}
+              <div
+                className="rounded-[10px] bg-white shadow-inset transition-colors duration-200 cursor-pointer hover:bg-[var(--surface-2)]"
                 onClick={() => toggle(i)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(i); } }}
               >
-                <button className="w-full flex items-center justify-between p-5 text-left">
-                  <span className="text-base font-semibold text-[#343433] pr-4">{item.question}</span>
+                <div className="w-full flex items-center justify-between p-5 text-left">
+                  <span className="text-base font-semibold text-charcoal pr-4">{item.question}</span>
                   <motion.span
                     animate={{ rotate: openIndex === i ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                     className="flex-shrink-0"
                   >
-                    <ChevronDown className="w-5 h-5 text-[#848281]" />
+                    <ChevronDown className="w-5 h-5 text-text-muted" />
                   </motion.span>
-                </button>
+                </div>
                 <motion.div
                   initial={false}
                   animate={{ height: openIndex === i ? 'auto' : 0, opacity: openIndex === i ? 1 : 0 }}
                   transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="overflow-hidden"
                 >
-                  <div className="px-5 pb-5 text-[#474645] text-sm leading-relaxed">
+                  <div className="px-5 pb-5 text-graphite text-sm leading-relaxed">
                     {item.answer}
                   </div>
                 </motion.div>
