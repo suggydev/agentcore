@@ -102,8 +102,11 @@ export default function MetricsTab({ agentId, token }: MetricsTabProps) {
             },
           ]);
         }
+      } else {
+        console.error('[MetricsTab] fetch failed:', res.status);
       }
-    } catch {
+    } catch (err) {
+      console.error('[MetricsTab]', err);
       setMetrics([]);
     }
     setLoading(false);

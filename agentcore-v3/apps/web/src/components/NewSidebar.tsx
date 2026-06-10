@@ -40,7 +40,7 @@ export default function NewSidebar({ onOpenCommandPalette }: NewSidebarProps) {
   })
   .then((res) => (res.ok ? res.json() : Promise.reject(res)))
   .then((data) => setBalance(data.balance ?? 0))
-  .catch(() => {});
+  .catch(err => { console.error('[NewSidebar] Failed to load balance:', err); });
  }, []);
 
  useEffect(() => {
@@ -60,15 +60,20 @@ export default function NewSidebar({ onOpenCommandPalette }: NewSidebarProps) {
   return pathname.startsWith(href);
  };
 
- const storedName = typeof window !== 'undefined' ? localStorage.getItem('userName') : null;
- const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : null;
- const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
- let parsedUser: { name?: string; email?: string } | null = null;
- if (userStr) {
-  try { parsedUser = JSON.parse(userStr); } catch { /* ignore */ }
- }
- const displayName = storedName || parsedUser?.name || null;
- const displayEmail = storedEmail || parsedUser?.email || null;
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [displayEmail, setDisplayEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+   const storedName = localStorage.getItem('userName');
+   const storedEmail = localStorage.getItem('userEmail');
+   const userStr = localStorage.getItem('user');
+   let parsedUser: { name?: string; email?: string } | null = null;
+   if (userStr) {
+    try { parsedUser = JSON.parse(userStr); } catch { /* ignore */ }
+   }
+   setDisplayName(storedName || parsedUser?.name || null);
+   setDisplayEmail(storedEmail || parsedUser?.email || null);
+  }, []);
 
  return (
   <div className="flex flex-col h-full bg-surface/80 backdrop-blur-xl border-r border-border">
@@ -142,7 +147,7 @@ export default function NewSidebar({ onOpenCommandPalette }: NewSidebarProps) {
   </div>
   <div className="font-mono font-bold text-lg text-text">${balance.toFixed(2)}</div>
   <Link
-  href="/settings/billing"
+  href="/settings"
   className="text-[10px] text-brand hover:text-brand-hover mt-1 inline-block transition-colors duration-200"
   aria-label="Пополнить баланс"
   >
@@ -190,7 +195,15 @@ export default function NewSidebar({ onOpenCommandPalette }: NewSidebarProps) {
   </Link>
   <button
   type="button"
-  onClick={() => {
+  onClick={async () => {
+  // Clear server-side cookie first
+  document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;';
+  // Also clear via API to be safe
+  try {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+  } catch {
+    // Ignore API errors — cookie already cleared client-side
+  }
   localStorage.clear();
   window.location.href = '/login';
   }}

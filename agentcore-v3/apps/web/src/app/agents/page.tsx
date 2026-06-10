@@ -12,7 +12,7 @@ import { Modal } from '@/design/components/Modal';
 import { useToast } from '@/design/components/Toast';
 import { t } from '@/design/i18n';
 import { useAgentStore } from '@/store/agentStore';
-import CreateAgentForm from '@/components/editor/CreateAgentForm';
+import CreateAgentWizard from '@/components/editor/CreateAgentWizard';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -54,24 +54,47 @@ export default function AgentsPage() {
     loadAgents();
   }, [token]);
 
+  const handleAuthError = useCallback((status: number, msg: string) => {
+    if (status === 401) {
+      localStorage.removeItem('token');
+      router.push('/login');
+      return;
+    }
+    addToast({ variant: 'error', message: msg });
+  }, [router, addToast]);
+
   const loadAgents = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/agents`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) setAgents(await res.json());
-    } catch {
-      addToast({ variant: 'error', message: t('toast.error') });
+      if (res.ok) {
+        const data = await res.json();
+        setAgents(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        const msg = errData.error || errData.message || `Ошибка ${res.status}: не удалось загрузить агентов`;
+        handleAuthError(res.status, msg);
+      }
+    } catch (err) {
+      console.error('[AgentsPage]', err);
+      addToast({ variant: 'error', message: err instanceof Error ? err.message : 'Не удалось загрузить агентов: сетевая ошибка' });
     }
     setLoading(false);
-  }, [token, addToast]);
+  }, [token, addToast, handleAuthError]);
 
-  const handleCreate = useCallback(async (data: { name: string; systemPrompt: string; emoji: string }) => {
+  const handleCreate = useCallback(async (data: { name: string; systemPrompt: string; emoji: string; description?: string }) => {
     try {
       const res = await fetch(`${API_BASE}/api/agents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name: data.name, systemPrompt: data.systemPrompt, emoji: data.emoji, temperature: 0.7 }),
+        body: JSON.stringify({
+          name: data.name,
+          systemPrompt: data.systemPrompt,
+          emoji: data.emoji,
+          description: data.description || data.systemPrompt.slice(0, 200),
+          temperature: 0.7,
+        }),
       });
 
       if (res.ok) {
@@ -79,21 +102,23 @@ export default function AgentsPage() {
         setCreateOpen(false);
         router.push(`/agents/${agent.id}`);
       } else {
-        addToast({ variant: 'error', message: t('toast.error') });
+        const errData = await res.json().catch(() => ({}));
+        const msg = errData.error || errData.message || `Ошибка ${res.status}: не удалось создать агента`;
+        handleAuthError(res.status, msg);
       }
-    } catch {
-      addToast({ variant: 'error', message: t('toast.error') });
+    } catch (err) {
+      addToast({ variant: 'error', message: err instanceof Error ? err.message : 'Не удалось создать агента: сетевая ошибка' });
     }
-  }, [token, router, addToast]);
+  }, [token, router, addToast, handleAuthError]);
 
-  const filteredAgents = agents.filter((a) => {
+  const filteredAgents = Array.isArray(agents) ? agents.filter((a) => {
     const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase()) ||
       (a.description?.toLowerCase().includes(search.toLowerCase()) ?? false);
     const matchesFilter = filter === 'all' ||
       (filter === 'active' && a.isActive) ||
       (filter === 'drafts' && !a.isActive);
     return matchesSearch && matchesFilter;
-  });
+  }) : [];
 
   const filterButtons: { id: FilterType; label: string }[] = [
     { id: 'all', label: t('agents.filters.all') },
@@ -101,10 +126,43 @@ export default function AgentsPage() {
     { id: 'drafts', label: t('agents.filters.drafts') },
   ];
 
+  const SkeletonCard = () => (
+    <div className="rounded-card bg-surface border border-[var(--border)] p-4 space-y-3 animate-pulse">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-button bg-surface-2 flex-shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 bg-surface-2 rounded w-3/4" />
+          <div className="h-3 bg-surface-2 rounded w-16" />
+        </div>
+      </div>
+      <div className="h-3 bg-surface-2 rounded w-full" />
+      <div className="h-3 bg-surface-2 rounded w-1/2" />
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-brand animate-spin" />
+    <div className="max-w-5xl mx-auto px-6 py-10" data-testid="agents-page">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="h-8 bg-surface-2 rounded w-48 animate-pulse" />
+            <div className="h-4 bg-surface-2 rounded w-64 mt-2 animate-pulse" />
+          </div>
+          <div className="h-10 bg-surface-2 rounded w-32 animate-pulse" />
+        </div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex-1 h-10 bg-surface-2 rounded animate-pulse" />
+          <div className="flex gap-1">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-8 bg-surface-2 rounded-pill w-16 animate-pulse" />
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -116,7 +174,7 @@ export default function AgentsPage() {
           <h1 className="text-[28px] font-semibold text-text tracking-[-0.01em]" data-testid="agents-title">{t('agents.title')}</h1>
           <p className="text-[14px] text-text-muted mt-1">{t('agents.subtitle')}</p>
         </div>
-        <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')} data-testid="create-agent-button">
+        <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')} data-testid="create-agent-button create-agent">
           <Plus size={16} />
           {t('agents.create')}
         </Button>
@@ -125,10 +183,11 @@ export default function AgentsPage() {
       <div className="flex items-center gap-3 mb-6">
         <div className="flex-1">
           <Input
-            placeholder={t('agents.search')} data-testid="search-agents"
+            placeholder={t('agents.search')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label={t('agents.search')}
+            data-testid="search-agents"
           />
         </div>
         <div className="flex items-center gap-1">
@@ -136,6 +195,7 @@ export default function AgentsPage() {
             <button
               key={fb.id}
               onClick={() => setFilter(fb.id)}
+              data-testid={`filter-${fb.id}`}
               className={`px-3 py-1.5 rounded-pill text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                 filter === fb.id
                   ? 'bg-accent-soft text-brand'
@@ -153,13 +213,13 @@ export default function AgentsPage() {
         <div className="flex flex-col items-center justify-center py-16">
           <Brain size={48} className="text-text-muted mb-4" />
           <p className="text-[16px] font-medium text-text mb-2">{t('agents.createFirst')}</p>
-          <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')} data-testid="create-agent-button">
+        <Button variant="primary" onClick={() => setCreateOpen(true)} aria-label={t('agents.create')} data-testid="create-agent-empty">
             <Plus size={16} />
             {t('agents.create')}
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredAgents.map((agent, i) => (
             <motion.div
               key={agent.id}
@@ -171,6 +231,7 @@ export default function AgentsPage() {
                 hoverable
                 onClick={() => router.push(`/agents/${agent.id}`)}
                 className="flex flex-col"
+                data-testid="agent-card"
               >
                 <div className="flex items-start gap-3 mb-3">
                   <div className="w-10 h-10 rounded-button bg-accent-soft flex items-center justify-center text-[22px] flex-shrink-0">
@@ -189,7 +250,7 @@ export default function AgentsPage() {
                 </p>
                 <div className="flex items-center gap-2 mt-3">
                   <span className="text-[11px] px-2 py-0.5 rounded-pill bg-surface-2 text-text-muted">
-                    {agent.model.split('/').pop()}
+                     {agent.model?.split('/').pop() ?? 'default'}
                   </span>
                 </div>
               </Card>
@@ -205,6 +266,7 @@ export default function AgentsPage() {
               hoverable
               onClick={() => setCreateOpen(true)}
               className="flex flex-col items-center justify-center h-full border-dashed min-h-[140px]"
+              data-testid="create-agent-card"
             >
               <Plus size={24} className="text-text-muted mb-2" />
               <p className="text-[14px] font-medium text-text-muted">{t('agents.create')}</p>
@@ -221,7 +283,7 @@ export default function AgentsPage() {
             title="Новый агент"
             size="lg"
           >
-            <CreateAgentForm
+            <CreateAgentWizard
               companyName={workspaceSettings.companyName || 'Компания'}
               onSubmit={handleCreate}
               onCancel={() => setCreateOpen(false)}
@@ -232,4 +294,3 @@ export default function AgentsPage() {
     </div>
   );
 }
-
