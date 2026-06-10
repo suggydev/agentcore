@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Performance Tests', () => {
-  test.skip('should load landing fast', async ({ page }) => {
+  test('should load landing fast', async ({ page }) => {
     const start = Date.now();
     await page.goto('/').catch(() => {});
     await page.waitForLoadState('networkidle').catch(() => {});
@@ -32,7 +32,7 @@ test.describe('Performance Tests', () => {
     console.log('✅ Dashboard загружается быстро');
   });
 
-  test.skip('should have reasonable bundle size', async ({ page }) => {
+  test('should have reasonable bundle size', async ({ page }) => {
     await page.goto('/').catch(() => {});
     
     const resources = await page.evaluate(async () => {
@@ -47,7 +47,7 @@ test.describe('Performance Tests', () => {
     console.log('✅ Размер бандла проверен');
   });
 
-  test.skip('should cache static assets', async ({ page }) => {
+  test('should cache static assets', async ({ page }) => {
     await page.goto('/').catch(() => {});
     
     const resources = await page.evaluate(async () => {

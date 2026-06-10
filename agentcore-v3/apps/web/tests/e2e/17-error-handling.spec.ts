@@ -56,7 +56,7 @@ test.describe('Error Handling Tests', () => {
     console.log('✅ Network errors обрабатываются');
   });
 
-  test.skip('should retry failed requests', async ({ page }) => {
+  test('should retry failed requests', async ({ page }) => {
     await page.goto('/');
     
     let attempts = 0;

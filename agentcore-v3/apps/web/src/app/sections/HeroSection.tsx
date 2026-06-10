@@ -48,6 +48,7 @@ export default function HeroSection() {
             <a
               href="/login"
               className="btn-ghost text-[15px]"
+              data-testid="cta-login"
             >
               или создать самому — бесплатно
             </a>

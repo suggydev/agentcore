@@ -95,8 +95,8 @@ agentcore-v3/
 
 - **Command**: `cd apps/web && npx playwright test --project=chromium`
 - **Config**: `apps/web/playwright.config.ts` (workers: 5, auth state: `playwright/.auth/user.json`)
-- **Current Status**: 145 passed, 51 skipped, 0 failed (June 10, 2026)
-- **Skipped**: 51 backend-only tests (API integration, security, performance, webhooks, etc.)
+- **Current Status**: 151 passed, 45 skipped, 0 failed (June 10, 2026)
+- **Skipped**: 45 tests (11 backend-only API/webhook/security/infra tests; 34 needs-backend tests for chat/knowledge/dialogs/channels)
 - **Key**: `workers: 5` prevents timeouts (10 workers caused 14 failures due to overload)
 - **Test user**: `test-e2e-new@agentcore.work` (trial plan, 1 workspace)
 - **Auth**: Shared via `tests/e2e/global-setup.ts` with 1-hour expiry

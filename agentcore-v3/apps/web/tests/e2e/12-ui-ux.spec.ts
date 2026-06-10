@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('UI/UX Tests', () => {
   
-  test.skip('should have consistent design system', async ({ page }) => {
+  test('should have consistent design system', async ({ page }) => {
     await page.goto('/').catch(() => {});
     await page.waitForLoadState('networkidle').catch(() => {});
     
@@ -40,7 +40,7 @@ test.describe('UI/UX Tests', () => {
     console.log('✅ Hover эффекты работают');
   });
 
-  test.skip('should be responsive on tablet', async ({ page }) => {
+  test('should be responsive on tablet', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 }).catch(() => {});
     await page.goto('/').catch(() => {});
     
@@ -49,7 +49,7 @@ test.describe('UI/UX Tests', () => {
     console.log('✅ Tablet responsive работает');
   });
 
-  test.skip('should have focus indicators', async ({ page }) => {
+  test('should have focus indicators', async ({ page }) => {
     await page.goto('/login').catch(() => {});
     
     await page.keyboard.press('Tab').catch(() => {});

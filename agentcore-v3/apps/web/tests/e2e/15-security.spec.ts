@@ -22,7 +22,7 @@ test.describe('Security Tests', () => {
     console.log('✅ Security headers проверены');
   });
 
-  test.skip('should validate JWT token', async ({ page }) => {
+  test('should validate JWT token', async ({ page }) => {
     await page.goto('/agents').catch(() => {});
     
     // Проверяем редирект на login без токена
