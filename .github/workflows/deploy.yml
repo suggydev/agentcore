@@ -40,6 +40,9 @@ jobs:
             fi
             echo "Repo path: $REPO_PATH"
 
+            # Clean stale git lock files (leftover from crashed git processes)
+            find "$REPO_PATH/.git" -maxdepth 1 -name "*.lock" -delete 2>/dev/null || true
+
             # 1. Git pull FIRST (so app path detection sees fresh structure)
             echo ""
             echo "=== [1/6] Git pull ==="
