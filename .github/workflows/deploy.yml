@@ -22,14 +22,13 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          script_stop: true
           timeout: 60s
           command_timeout: 15m
           script: |
             set -euo pipefail
             echo "=== AgentCore Auto-Deploy $(date '+%Y-%m-%d %H:%M:%S') ==="
 
-            # Detect repo path (checks common locations)
+            # Detect repo path (must have .git directory)
             REPO_PATH=""
             for p in /opt/agentcore-v3 /opt/agentcore /root/agentcore /home/agentcore/agentcore; do
               if [ -d "$p/.git" ]; then REPO_PATH="$p"; break; fi
@@ -37,29 +36,31 @@ jobs:
             if [ -z "$REPO_PATH" ]; then
               echo "ERROR: git repo not found in any of:"
               echo "  /opt/agentcore-v3, /opt/agentcore, /root/agentcore, /home/agentcore/agentcore"
-              echo "Clone the repo to one of these paths, or adjust the workflow."
               exit 1
             fi
             echo "Repo path: $REPO_PATH"
 
-            # Detect app subdir (repo has agentcore-v3/ subdir, or apps/ at root)
+            # 1. Git pull FIRST (so app path detection sees fresh structure)
+            echo ""
+            echo "=== [1/6] Git pull ==="
+            cd "$REPO_PATH"
+            git fetch --all --prune
+            git reset --hard origin/main
+            git clean -fd -e node_modules -e .next -e .env
+            git log -1 --oneline
+
+            # Detect app subdir AFTER pull (repo has agentcore-v3/ subdir, or apps/ at root)
             if [ -d "$REPO_PATH/agentcore-v3/apps/api" ]; then
               APP_PATH="$REPO_PATH/agentcore-v3"
             elif [ -d "$REPO_PATH/apps/api" ]; then
               APP_PATH="$REPO_PATH"
             else
               echo "ERROR: apps/api not found under $REPO_PATH"
+              echo "Contents of $REPO_PATH:"
+              ls -la "$REPO_PATH" || true
               exit 1
             fi
             echo "App path:  $APP_PATH"
-
-            # 1. Git pull
-            echo ""
-            echo "=== [1/6] Git pull ==="
-            cd "$REPO_PATH"
-            git fetch --all --prune
-            git reset --hard origin/main
-            git log -1 --oneline
 
             # 2. Install API deps
             echo ""
