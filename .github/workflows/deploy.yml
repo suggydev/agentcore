@@ -43,6 +43,21 @@ jobs:
             # Clean stale git lock files (leftover from crashed git processes)
             find "$REPO_PATH/.git" -maxdepth 1 -name "*.lock" -delete 2>/dev/null || true
 
+            # Ensure iptables symlink exists (docker needs it; missing on this server)
+            if [ ! -e /usr/sbin/iptables ] && [ -e /usr/sbin/iptables-nft ]; then
+              echo "Restoring iptables symlink (docker dependency)"
+              ln -sf /usr/sbin/iptables-nft /usr/sbin/iptables
+              ln -sf /usr/sbin/iptables-nft-save /usr/sbin/iptables-save
+              ln -sf /usr/sbin/iptables-nft-restore /usr/sbin/iptables-restore
+            fi
+
+            # Ensure docker is running (postgres is native, but keep docker healthy)
+            if ! systemctl is-active --quiet docker; then
+              echo "Starting docker..."
+              systemctl reset-failed docker 2>/dev/null || true
+              systemctl start docker || echo "WARN: docker failed to start (postgres is native, deploy can continue)"
+            fi
+
             # 1. Git pull FIRST (so app path detection sees fresh structure)
             echo ""
             echo "=== [1/6] Git pull ==="
@@ -90,12 +105,15 @@ jobs:
             cd "$APP_PATH/apps/api"
             npm install 2>&1 | tail -3
 
-            # 3. Prisma — run from apps/api so it picks up .env, point to schema in packages/prisma
+            # 3. Prisma — run from apps/api WITHOUT --schema so it reads schema path
+            #    from package.json (prisma.schema = ../../packages/prisma/schema.prisma)
+            #    and generates client into apps/api/node_modules/@prisma/client
+            #    (matches where @prisma/client imports look for it)
             echo ""
             echo "=== [3/6] Prisma generate + db push ==="
-            SCHEMA="$APP_PATH/packages/prisma/schema.prisma"
-            npx prisma generate --schema="$SCHEMA" 2>&1 | tail -3
-            npx prisma db push --schema="$SCHEMA" --accept-data-loss 2>&1 | tail -5
+            rm -rf node_modules/.prisma
+            npx prisma generate 2>&1 | tail -5
+            npx prisma db push --accept-data-loss 2>&1 | tail -5
 
             # 4. Install Web deps
             echo ""
@@ -109,6 +127,7 @@ jobs:
             npx next build 2>&1 | tail -15
 
             # 6. Restart PM2 — delete existing (removes duplicates) and start fresh
+            #    No --env production: ecosystem.config.js only defines `env`, not `env_production`
             echo ""
             echo "=== [6/6] Restart PM2 ==="
             cd "$APP_PATH"
@@ -116,24 +135,27 @@ jobs:
             sleep 1
             pm2 start ecosystem.config.js
             pm2 save
-            sleep 5
+            sleep 6
             pm2 status
 
-            # Health check — must be exactly 200
+            # Health check — API must be 200
             echo ""
             echo "=== Health check ==="
-            HTTP=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/api/health || echo "000")
-            WEB=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ || echo "000")
+            HTTP=$(curl -s -m 5 -o /dev/null -w "%{http_code}" http://localhost:4000/api/health || echo "000")
+            WEB=$(curl -s -m 5 -o /dev/null -w "%{http_code}" http://localhost:3000/ || echo "000")
             echo "API health: $HTTP"
             echo "Web health: $WEB"
 
             if [ "$HTTP" != "200" ]; then
               echo ""
               echo "=== FAIL: API not healthy (got $HTTP, expected 200) ==="
+              echo "--- API health body ---"
+              curl -s -m 5 http://localhost:4000/api/health 2>&1 || true
+              echo ""
               echo "--- PM2 status ---"
               pm2 status 2>&1 || true
-              echo "--- API logs (last 40 lines) ---"
-              pm2 logs agentcore-api --lines 40 --nostream 2>&1 || true
+              echo "--- API error logs (last 40 lines) ---"
+              pm2 logs agentcore-api --lines 40 --nostream --err 2>&1 | tail -50 || true
               echo "--- .env keys (values hidden) ---"
               grep -o '^[A-Z_]*=' "$APP_PATH/apps/api/.env" 2>/dev/null || true
               exit 1
