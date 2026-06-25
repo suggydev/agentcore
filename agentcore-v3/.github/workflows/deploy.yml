@@ -3,6 +3,7 @@ name: Deploy to Production
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: production
@@ -11,106 +12,110 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: |
-            apps/api/package-lock.json
-            apps/web/package-lock.json
-
-      - name: Install API dependencies
-        run: npm ci
-        working-directory: apps/api
-
-      - name: Install Web dependencies
-        run: npm ci
-        working-directory: apps/web
-
-      - name: Generate Prisma client
-        run: npx prisma generate
-        working-directory: apps/api
-
-      - name: Build Web
-        run: npm run build
-        working-directory: apps/web
-        env:
-          NEXT_PUBLIC_API_URL: https://api.agentcore.work
-
-      - name: Prepare deployment archive
-        run: |
-          mkdir -p deploy/api deploy/prisma deploy/web
-          cp -r apps/api/* deploy/api/
-          cp -r packages/prisma/schema.prisma deploy/prisma/
-          cp apps/web/.next/standalone deploy/web/standalone -r 2>/dev/null || true
-          cp apps/web/.next/static deploy/web/static -r 2>/dev/null || true
-          cp apps/web/public deploy/web/public -r 2>/dev/null || true
-          cp package.json deploy/ 2>/dev/null || true
-          cd deploy && tar -czf ../agentcore-deploy.tar.gz .
-
-      - name: Deploy to server via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
-          source: agentcore-deploy.tar.gz
-          target: /opt/agentcore-v3/
-          strip_components: 0
-
-      - name: Run deploy commands
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.2
-        timeout-minutes: 8
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script_stop: true
+          timeout: 60s
+          command_timeout: 15m
           script: |
-            set -e
-            cd /opt/agentcore-v3
+            set -euo pipefail
+            echo "=== AgentCore Auto-Deploy $(date '+%Y-%m-%d %H:%M:%S') ==="
 
-            echo "--- Extracting archive ---"
-            tar -xzf agentcore-deploy.tar.gz --overwrite
-            rm -f agentcore-deploy.tar.gz
-
-            echo "--- Installing API deps ---"
-            cd /opt/agentcore-v3/deploy/api
-            npm ci --production
-
-            echo "--- Prisma migrate ---"
-            cd /opt/agentcore-v3/deploy/api
-            cp /opt/agentcore-v3/deploy/prisma/schema.prisma ./ 2>/dev/null || true
-            npx prisma generate
-            npx prisma db push --accept-data-loss
-
-            echo "--- Rsync to live directory ---"
-            rsync -av --delete /opt/agentcore-v3/deploy/api/ /opt/agentcore-v3/apps/api/
-            rsync -av /opt/agentcore-v3/deploy/web/ /opt/agentcore-v3/apps/web/
-            rm -rf /opt/agentcore-v3/deploy
-
-            echo "--- Restarting PM2 ---"
-            export PATH=$PATH:$(npm root -g)/pm2/bin 2>/dev/null || true
-            pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
-
-            echo "--- Health check ---"
-            sleep 4
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/api/health || echo "000")
-            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "500" ]; then
-              echo "API health: $HTTP_CODE (ok/degraded)"
-            else
-              echo "API health: $HTTP_CODE FAIL"
+            # Detect repo path (checks common locations)
+            REPO_PATH=""
+            for p in /opt/agentcore-v3 /opt/agentcore /root/agentcore /home/agentcore/agentcore; do
+              if [ -d "$p/.git" ]; then REPO_PATH="$p"; break; fi
+            done
+            if [ -z "$REPO_PATH" ]; then
+              echo "ERROR: git repo not found in any of:"
+              echo "  /opt/agentcore-v3, /opt/agentcore, /root/agentcore, /home/agentcore/agentcore"
+              echo "Clone the repo to one of these paths, or adjust the workflow."
               exit 1
             fi
+            echo "Repo path: $REPO_PATH"
 
-            WEB_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ || echo "000")
-            echo "Web health: $WEB_CODE"
+            # Detect app subdir (repo has agentcore-v3/ subdir, or apps/ at root)
+            if [ -d "$REPO_PATH/agentcore-v3/apps/api" ]; then
+              APP_PATH="$REPO_PATH/agentcore-v3"
+            elif [ -d "$REPO_PATH/apps/api" ]; then
+              APP_PATH="$REPO_PATH"
+            else
+              echo "ERROR: apps/api not found under $REPO_PATH"
+              exit 1
+            fi
+            echo "App path:  $APP_PATH"
 
+            # 1. Git pull
+            echo ""
+            echo "=== [1/6] Git pull ==="
+            cd "$REPO_PATH"
+            git fetch --all --prune
+            git reset --hard origin/main
+            git log -1 --oneline
+
+            # 2. Install API deps
+            echo ""
+            echo "=== [2/6] Install API deps ==="
+            cd "$APP_PATH/apps/api"
+            npm install --production 2>&1 | tail -3
+
+            # 3. Prisma
+            echo ""
+            echo "=== [3/6] Prisma generate + db push ==="
+            cd "$APP_PATH/packages/prisma"
+            npx prisma generate 2>&1 | tail -3
+            npx prisma db push --accept-data-loss 2>&1 | tail -5
+
+            # 4. Install Web deps
+            echo ""
+            echo "=== [4/6] Install Web deps ==="
+            cd "$APP_PATH/apps/web"
+            npm install 2>&1 | tail -3
+
+            # 5. Build Web
+            echo ""
+            echo "=== [5/6] Build Web ==="
+            npx next build 2>&1 | tail -15
+
+            # 6. Restart PM2
+            echo ""
+            echo "=== [6/6] Restart PM2 ==="
+            cd "$APP_PATH"
+            # Reload if already managed by PM2, otherwise start fresh
+            if pm2 describe agentcore-api >/dev/null 2>&1 && pm2 describe agentcore-web >/dev/null 2>&1; then
+              echo "PM2 processes found, reloading..."
+              pm2 reload ecosystem.config.js --env production
+            else
+              echo "PM2 processes not found, starting fresh..."
+              pkill -f "node server.js" 2>/dev/null || true
+              pkill -f "next-server" 2>/dev/null || true
+              pkill -f "next start" 2>/dev/null || true
+              sleep 1
+              pm2 start ecosystem.config.js --env production
+              pm2 save
+            fi
+            sleep 4
             pm2 status
-            echo "--- Deploy complete ---"
+
+            # Health check
+            echo ""
+            echo "=== Health check ==="
+            HTTP=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/api/health || echo "000")
+            WEB=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ || echo "000")
+            echo "API health: $HTTP"
+            echo "Web health: $WEB"
+            if [ "$HTTP" = "000" ]; then
+              echo "FAIL: API not responding"
+              pm2 logs agentcore-api --lines 20 --nostream 2>&1 || true
+              exit 1
+            fi
+            echo ""
+            echo "=== Deploy complete ==="
