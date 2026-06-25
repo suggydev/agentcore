@@ -65,10 +65,22 @@ jobs:
             fi
             echo "App path:  $APP_PATH"
 
+            # Migrate .env from old layout if needed (repo used to have apps/ at root)
+            if [ ! -f "$APP_PATH/apps/api/.env" ] && [ -f "$REPO_PATH/apps/api/.env" ]; then
+              echo "Migrating .env from old layout ($REPO_PATH/apps/api/.env) -> $APP_PATH/apps/api/.env"
+              cp "$REPO_PATH/apps/api/.env" "$APP_PATH/apps/api/.env"
+            fi
+            # Same for web .env
+            if [ ! -f "$APP_PATH/apps/web/.env" ] && [ -f "$REPO_PATH/apps/web/.env" ]; then
+              echo "Migrating web .env from old layout -> $APP_PATH/apps/web/.env"
+              cp "$REPO_PATH/apps/web/.env" "$APP_PATH/apps/web/.env"
+            fi
+
             # Verify .env exists (DATABASE_URL is required for Prisma)
             if [ ! -f "$APP_PATH/apps/api/.env" ]; then
               echo "ERROR: $APP_PATH/apps/api/.env not found"
               echo "Create it with DATABASE_URL, JWT_SECRET, SUGGY_PROJECT_KEY, etc."
+              echo "Example: nano $APP_PATH/apps/api/.env"
               exit 1
             fi
             echo "Found .env: $APP_PATH/apps/api/.env"
