@@ -65,18 +65,26 @@ jobs:
             fi
             echo "App path:  $APP_PATH"
 
-            # 2. Install API deps
+            # Verify .env exists (DATABASE_URL is required for Prisma)
+            if [ ! -f "$APP_PATH/apps/api/.env" ]; then
+              echo "ERROR: $APP_PATH/apps/api/.env not found"
+              echo "Create it with DATABASE_URL, JWT_SECRET, SUGGY_PROJECT_KEY, etc."
+              exit 1
+            fi
+            echo "Found .env: $APP_PATH/apps/api/.env"
+
+            # 2. Install API deps (include devDeps for prisma CLI)
             echo ""
             echo "=== [2/6] Install API deps ==="
             cd "$APP_PATH/apps/api"
-            npm install --production 2>&1 | tail -3
+            npm install 2>&1 | tail -3
 
-            # 3. Prisma
+            # 3. Prisma — run from apps/api so it picks up .env, point to schema in packages/prisma
             echo ""
             echo "=== [3/6] Prisma generate + db push ==="
-            cd "$APP_PATH/packages/prisma"
-            npx prisma generate 2>&1 | tail -3
-            npx prisma db push --accept-data-loss 2>&1 | tail -5
+            SCHEMA="$APP_PATH/packages/prisma/schema.prisma"
+            npx prisma generate --schema="$SCHEMA" 2>&1 | tail -3
+            npx prisma db push --schema="$SCHEMA" --accept-data-loss 2>&1 | tail -5
 
             # 4. Install Web deps
             echo ""
